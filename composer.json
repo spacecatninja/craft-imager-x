@@ -1,0 +1,55 @@
+{
+    "name": "spacecatninja/imager-x",
+    "description": "The ultimate tool for all your image transform needs.",
+    "type": "craft-plugin",
+    "version": "v3.0.0-beta.1",
+    "license": "proprietary",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "image",
+        "responsive",
+        "transform",
+        "srcset",
+        "picture"
+    ],
+    "support": {
+        "docs": "https://github.com/spacecatninja/craft-imager-x/blob/master/README.md",
+        "issues": "https://github.com/spacecatninja/craft-imager-x/issues"
+    },
+    "authors": [
+        {
+            "name": "SPACECATNINJA",
+            "homepage": "https://www.spacecat.ninja"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.3.0",
+        "mikehaertl/php-shellcommand": "^1.2",
+        "tinify/tinify": ">=1.1.1",
+        "ksubileau/color-thief-php": "^1.4.0",
+        "ssnepenthe/color-utils": "~0.4",
+        "imgix/imgix-php": "^2.1.0",
+        "kraken-io/kraken-php": "^1.2",
+        "imageoptim/imageoptim": "^1.3",
+        "aws/aws-sdk-php": "^3.0.0",
+        "google/cloud": "~0.20"
+    },
+    "autoload": {
+        "psr-4": {
+          "spacecatninja\\imagerx\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Imager X",
+        "handle": "imager-x",
+        "schemaVersion": "3.0.0",
+        "hasCpSettings": false,
+        "hasCpSection": false,
+        "changelogUrl": "https://raw.githubusercontent.com/spacecatninja/craft-imager-x/master/CHANGELOG.md",
+        "components": {},
+        "class": "spacecatninja\\imagerx\\ImagerX"
+    }
+}
