@@ -139,6 +139,9 @@ class ImagerX extends Plugin
     // Static Properties
     // =========================================================================
 
+    const EDITION_LITE = 'lite';
+    const EDITION_PRO = 'pro';
+
     /**
      * Static property that is an instance of this plugin class so that it can be accessed via
      * ImagerX::$plugin
@@ -150,6 +153,14 @@ class ImagerX extends Plugin
     // Public Methods
     // =========================================================================
 
+    public static function editions(): array
+    {
+        return [
+            self::EDITION_LITE,
+            self::EDITION_PRO,
+        ];
+    }    
+    
     public function init()
     {
         parent::init();

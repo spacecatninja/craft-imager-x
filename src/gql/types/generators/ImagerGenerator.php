@@ -28,8 +28,8 @@ class ImagerGenerator implements GeneratorInterface
         $fields = ImagerTransformedImageInterface::getFieldDefinitions();
         $args = ImagerTransformQueryArguments::getArguments();
         $typeName = self::getName();
-        
-        $type = GqlEntityRegistry::getEntity($typeName) 
+
+        $type = GqlEntityRegistry::getEntity($typeName)
             ?: GqlEntityRegistry::createEntity($typeName, new ImagerType([
                 'name' => $typeName,
                 'args' => function () use ($args) {
