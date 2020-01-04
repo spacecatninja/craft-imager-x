@@ -445,7 +445,7 @@ class ImagerHelpers
      * Returns something that can be used as a fallback image for the transform method.
      *
      * @param string|Asset|int|null $configValue
-     * @return Asset|string|null
+     * @return Asset|array|string|null
      */
     public static function getTransformableFromConfigSetting($configValue)
     {
@@ -471,19 +471,21 @@ class ImagerHelpers
      */
     public static function processMetaData(&$imageInstance, $transform)
     {
-        $config = ImagerService::getConfig();
-        $imagick = $imageInstance->getImagick();
-        $supportsImageProfiles = method_exists($imagick, 'getimageprofiles');
-        $iccProfiles = null;
-
-        if ($config->preserveColorProfiles && $supportsImageProfiles) {
-            $iccProfiles = $imagick->getImageProfiles('icc', true);
-        }
-        
-        $imagick->stripImage();
-
-        if (!empty($iccProfiles)) {
-            $imagick->profileImage('icc', $iccProfiles['icc'] ?? '');
+        if ($imageInstance instanceof ImagickImage) {
+            $config = ImagerService::getConfig();
+            $imagick = $imageInstance->getImagick();
+            $supportsImageProfiles = method_exists($imagick, 'getimageprofiles');
+            $iccProfiles = null;
+    
+            if ($config->preserveColorProfiles && $supportsImageProfiles) {
+                $iccProfiles = $imagick->getImageProfiles('icc', true);
+            }
+            
+            $imagick->stripImage();
+    
+            if (!empty($iccProfiles)) {
+                $imagick->profileImage('icc', $iccProfiles['icc'] ?? '');
+            }
         }
     }
 

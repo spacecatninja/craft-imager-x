@@ -191,8 +191,8 @@ class LocalSourceImageModel
      */
     private function getPathsForLocalAsset(Asset $image)
     {
-        /** @var LocalVolumeInterface $volume */
         try {
+            /** @var LocalVolumeInterface $volume */
             $volume = $image->getVolume();
             $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
         } catch (InvalidConfigException $e) {

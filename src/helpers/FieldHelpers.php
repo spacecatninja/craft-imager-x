@@ -86,6 +86,10 @@ class FieldHelpers
     protected static function getFieldHandleSegments($handle):array 
     {
         $segments = preg_split('/(\:|\.)/', $handle);
+        
+        if (!is_array($segments)) {
+            $segments = [];
+        }
 
         if (count($segments) !== 3) {
             $msg = Craft::t('imager-x', 'Invalid field format handle for “{handle}“. Either use a single string for fields directly on the element, or a string with the format “myMatrixField:myMatrixBlockType.myMatrixBlockField“.', ['handle' => $handle]);

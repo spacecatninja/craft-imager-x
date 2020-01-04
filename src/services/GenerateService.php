@@ -93,7 +93,7 @@ class GenerateService extends Component
             $criteria = $config['criteria'] ?? null;
             $transforms = $config['transforms'] ?? null;
 
-            if ($element instanceof $config['elementType'] && is_array($fields) && is_array($transforms) && count($fields) > 0 && count($transforms) > 0) {
+            if ($elementType && $element instanceof $elementType && is_array($fields) && is_array($transforms) && count($fields) > 0 && count($transforms) > 0) {
                 // Check if criteria matches
                 if ($criteria && is_array($criteria)) {
                     /** @var Query $query */

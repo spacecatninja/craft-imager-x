@@ -460,25 +460,27 @@ class ImagerX extends Plugin
                     $config = ImagerService::$generateConfig;
 
                     $element = $event->element;
-
-                    if (ImagerX::$plugin->generate->shouldGenerateByVolumes($element)) {
-                        ImagerX::$plugin->generate->processAssetByVolumes($element);
-                    }
-
-                    if ($element->getIsRevision()) {
-                        return;
-                    }
-
-                    if (!$config->generateForDrafts && $element->getIsDraft()) {
-                        return;
-                    }
-
-                    if (ImagerX::$plugin->generate->shouldGenerateByElements($element)) {
-                        ImagerX::$plugin->generate->processElementByElements($element);
-                    }
-
-                    if (ImagerX::$plugin->generate->shouldGenerateByFields($element)) {
-                        ImagerX::$plugin->generate->processElementByFields($element);
+                    
+                    if ($element !== null) {
+                        if (ImagerX::$plugin->generate->shouldGenerateByVolumes($element)) {
+                            ImagerX::$plugin->generate->processAssetByVolumes($element);
+                        }
+    
+                        if ($element->getIsRevision()) {
+                            return;
+                        }
+    
+                        if (!$config->generateForDrafts && $element->getIsDraft()) {
+                            return;
+                        }
+    
+                        if (ImagerX::$plugin->generate->shouldGenerateByElements($element)) {
+                            ImagerX::$plugin->generate->processElementByElements($element);
+                        }
+    
+                        if (ImagerX::$plugin->generate->shouldGenerateByFields($element)) {
+                            ImagerX::$plugin->generate->processElementByFields($element);
+                        }
                     }
                 });
         }
