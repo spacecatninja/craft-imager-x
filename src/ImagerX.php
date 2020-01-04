@@ -266,7 +266,7 @@ class ImagerX extends Plugin
     private function loadAdditionalConfigs()
     {
         // Named transforms
-        $transformsConfig = Craft::$app->config->getConfigFromFile('imagerx-transforms');
+        $transformsConfig = Craft::$app->config->getConfigFromFile('imager-x-transforms');
 
         if (is_array($transformsConfig)) {
             foreach ($transformsConfig as $transformname => $transformConfig) {
@@ -275,7 +275,7 @@ class ImagerX extends Plugin
         }
 
         // Generate setup
-        $generateConfig = Craft::$app->config->getConfigFromFile('imagerx-generate');
+        $generateConfig = Craft::$app->config->getConfigFromFile('imager-x-generate');
 
         if (is_array($generateConfig)) {
             ImagerService::$generateConfig = new GenerateSettings($generateConfig);
