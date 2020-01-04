@@ -247,6 +247,9 @@ class GenerateService extends Component
                     $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and transform “{transformName}”: {message}', ['assetId' => $asset->id, 'transformName' => $transformName, 'message' => $exception->getMessage()]);
                     Craft::error($msg, __METHOD__);
                 }
+            } else {
+                $msg = Craft::t('imager-x', 'Named transform with handle “{transformName}” could not be found', ['transformName' => $transformName]);
+                Craft::error($msg, __METHOD__);
             }
         }
     }

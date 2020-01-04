@@ -377,7 +377,12 @@ class ImagerService extends Component
         
         // Create transformer
         if (!isset(self::$transformers[self::$transformConfig->transformer])) {
-            $msg = 'Invalid transformer "' . self::$transformConfig->transformer . '"';
+            $msg = 'Invalid transformer "' . self::$transformConfig->transformer . '".';
+            
+            if (self::$transformConfig->transformer !== 'craft' && !Plugin::getInstance()->is(Plugin::EDITION_PRO)) {
+                $msg .= ' Custom transformers are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
+            }
+            
             Craft::error($msg, __METHOD__);
             throw new ImagerException($msg);
         }

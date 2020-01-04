@@ -15,6 +15,7 @@ use craft\base\Component;
 
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\externalstorage\ImagerStorageInterface;
+use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\models\ConfigModel;
 
 /**
@@ -62,12 +63,17 @@ class StorageService extends Component
                         // Note, we don't throw exception here, to avoid stopping the processing of the rest of the images.
                     }
                 } else {
-                    $msg = 'Could not find settings for storage "' . $storage . '"';
+                    $msg = 'Could not find settings for storage "' . $storage . '".';
                     Craft::error($msg, __METHOD__);
                     throw new ImagerException($msg);
                 }
             } else {
-                $msg = 'Could not find a registered storage with handle "' . $storage . '"';
+                $msg = 'Could not find a registered storage with handle "' . $storage . '".';
+                
+                if (!ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
+                    $msg .= ' External storages are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
+                }
+                
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg);
             }

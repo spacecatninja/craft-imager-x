@@ -103,6 +103,11 @@ class GenerateController extends Controller
      */
     public function actionIndex()
     {
+        if (!ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
+            $this->error('Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it\'s so worth it!).');
+            return ExitCode::UNAVAILABLE;
+        }
+
         $this->transforms = trim($this->transforms);
         $this->volume = trim($this->volume);
         

@@ -130,7 +130,7 @@ class ImagerX extends Plugin
 {
     // Events
     // =========================================================================
-    
+
     const EVENT_REGISTER_TRANSFORMERS = 'imagerxRegisterTransformers';
     const EVENT_REGISTER_EXTERNAL_STORAGES = 'imagerxRegisterExternalStorages';
     const EVENT_REGISTER_EFFECTS = 'imagerxRegisterEffects';
@@ -159,8 +159,8 @@ class ImagerX extends Plugin
             self::EDITION_LITE,
             self::EDITION_PRO,
         ];
-    }    
-    
+    }
+
     public function init()
     {
         parent::init();
@@ -317,16 +317,18 @@ class ImagerX extends Plugin
 
                 $event->actions[] = ClearTransformsElementAction::class;
 
-                // If Imgix purging is possible, add element action for purging – unless the element action is disabled
-                if ($config->imgixEnablePurgeElementAction && ImgixService::getCanPurge()) {
-                    $event->actions[] = ImgixPurgeElementAction::class;
-                }
+                if (ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
+                    // If Imgix purging is possible, add element action for purging – unless the element action is disabled
+                    if ($config->imgixEnablePurgeElementAction && ImgixService::getCanPurge()) {
+                        $event->actions[] = ImgixPurgeElementAction::class;
+                    }
 
-                // If any volume transforms were configured, add generate transforms element action
-                $generateVolumeConfig = ImagerService::$generateConfig['volumes'] ?? null;
+                    // If any volume transforms were configured, add generate transforms element action
+                    $generateVolumeConfig = ImagerService::$generateConfig['volumes'] ?? null;
 
-                if ($generateVolumeConfig) {
-                    $event->actions[] = GenerateTransformsAction::class;
+                    if ($generateVolumeConfig) {
+                        $event->actions[] = GenerateTransformsAction::class;
+                    }
                 }
             }
         );
@@ -405,38 +407,40 @@ class ImagerX extends Plugin
      */
     private function registerGraphQL()
     {
-        // Register types
-        Event::on(
-            Gql::class,
-            Gql::EVENT_REGISTER_GQL_TYPES,
-            static function (RegisterGqlTypesEvent $event) {
-                Craft::debug(
-                    'Gql::EVENT_REGISTER_GQL_TYPES',
-                    __METHOD__
-                );
-                $event->types[] = ImagerTransformedImageInterface::class;
-            }
-        );
-        
-        // Register query
-        Event::on(Gql::class,
-            Gql::EVENT_REGISTER_GQL_QUERIES,
-            static function (RegisterGqlQueriesEvent $event) {
-                $queries = ImagerQuery::getQueries();
-                foreach ($queries as $key => $value) {
-                    $event->queries[$key] = $value;
+        if (self::getInstance()->is(self::EDITION_PRO)) {
+            // Register types
+            Event::on(
+                Gql::class,
+                Gql::EVENT_REGISTER_GQL_TYPES,
+                static function (RegisterGqlTypesEvent $event) {
+                    Craft::debug(
+                        'Gql::EVENT_REGISTER_GQL_TYPES',
+                        __METHOD__
+                    );
+                    $event->types[] = ImagerTransformedImageInterface::class;
                 }
-            }
-        );
+            );
 
-        // Register directives
-        Event::on(Gql::class,
-            Gql::EVENT_REGISTER_GQL_DIRECTIVES,
-            static function (RegisterGqlDirectivesEvent $event) {
-                $event->directives[] = ImagerTransform::class;
-                $event->directives[] = ImagerSrcset::class;
-            }
-        );
+            // Register query
+            Event::on(Gql::class,
+                Gql::EVENT_REGISTER_GQL_QUERIES,
+                static function (RegisterGqlQueriesEvent $event) {
+                    $queries = ImagerQuery::getQueries();
+                    foreach ($queries as $key => $value) {
+                        $event->queries[$key] = $value;
+                    }
+                }
+            );
+
+            // Register directives
+            Event::on(Gql::class,
+                Gql::EVENT_REGISTER_GQL_DIRECTIVES,
+                static function (RegisterGqlDirectivesEvent $event) {
+                    $event->directives[] = ImagerTransform::class;
+                    $event->directives[] = ImagerSrcset::class;
+                }
+            );
+        }
     }
 
     /**
@@ -444,38 +448,40 @@ class ImagerX extends Plugin
      */
     private function registerGenerateListeners()
     {
-        if (ImagerService::$generateConfig === null) {
-            return;
+        if (self::getInstance()->is(self::EDITION_PRO)) {
+            if (ImagerService::$generateConfig === null) {
+                return;
+            }
+
+            Event::on(Elements::class,
+                Elements::EVENT_AFTER_SAVE_ELEMENT,
+                static function (ElementEvent $event) {
+                    /** @var GenerateSettings $config */
+                    $config = ImagerService::$generateConfig;
+
+                    $element = $event->element;
+
+                    if (ImagerX::$plugin->generate->shouldGenerateByVolumes($element)) {
+                        ImagerX::$plugin->generate->processAssetByVolumes($element);
+                    }
+
+                    if ($element->getIsRevision()) {
+                        return;
+                    }
+
+                    if (!$config->generateForDrafts && $element->getIsDraft()) {
+                        return;
+                    }
+
+                    if (ImagerX::$plugin->generate->shouldGenerateByElements($element)) {
+                        ImagerX::$plugin->generate->processElementByElements($element);
+                    }
+
+                    if (ImagerX::$plugin->generate->shouldGenerateByFields($element)) {
+                        ImagerX::$plugin->generate->processElementByFields($element);
+                    }
+                });
         }
-
-        Event::on(Elements::class,
-            Elements::EVENT_AFTER_SAVE_ELEMENT,
-            static function (ElementEvent $event) {
-                /** @var GenerateSettings $config */
-                $config = ImagerService::$generateConfig;
-
-                $element = $event->element;
-
-                if (ImagerX::$plugin->generate->shouldGenerateByVolumes($element)) {
-                    ImagerX::$plugin->generate->processAssetByVolumes($element);
-                }
-
-                if ($element->getIsRevision()) {
-                    return;
-                }
-
-                if (!$config->generateForDrafts && $element->getIsDraft()) {
-                    return;
-                }
-
-                if (ImagerX::$plugin->generate->shouldGenerateByElements($element)) {
-                    ImagerX::$plugin->generate->processElementByElements($element);
-                }
-
-                if (ImagerX::$plugin->generate->shouldGenerateByFields($element)) {
-                    ImagerX::$plugin->generate->processElementByFields($element);
-                }
-            });
     }
 
     /**
@@ -483,22 +489,26 @@ class ImagerX extends Plugin
      */
     private function registerTransformers()
     {
-        $data = [
-            'craft' => CraftTransformer::class,
-            'imgix' => ImgixTransformer::class,
-        ];
+        if (self::getInstance()->is(self::EDITION_PRO)) {
+            $data = [
+                'craft' => CraftTransformer::class,
+                'imgix' => ImgixTransformer::class,
+            ];
 
-        $event = new RegisterTransformersEvent([
-            'transformers' => $data,
-        ]);
+            $event = new RegisterTransformersEvent([
+                'transformers' => $data,
+            ]);
 
-        $this->trigger(self::EVENT_REGISTER_TRANSFORMERS, $event);
+            $this->trigger(self::EVENT_REGISTER_TRANSFORMERS, $event);
 
-        foreach ($event->transformers as $handle => $class) {
-            ImagerService::registerTransformer($handle, $class);
+            foreach ($event->transformers as $handle => $class) {
+                ImagerService::registerTransformer($handle, $class);
+            }
+        } else {
+            ImagerService::registerTransformer('craft', CraftTransformer::class);
         }
     }
-    
+
     /**
      * Register effects
      */
@@ -583,19 +593,21 @@ class ImagerX extends Plugin
      */
     private function registerExternalStorages()
     {
-        $data = [
-            'aws' => AwsStorage::class,
-            'gcs' => GcsStorage::class,
-        ];
+        if (self::getInstance()->is(self::EDITION_PRO)) {
+            $data = [
+                'aws' => AwsStorage::class,
+                'gcs' => GcsStorage::class,
+            ];
 
-        $event = new RegisterExternalStoragesEvent([
-            'storages' => $data,
-        ]);
+            $event = new RegisterExternalStoragesEvent([
+                'storages' => $data,
+            ]);
 
-        $this->trigger(self::EVENT_REGISTER_EXTERNAL_STORAGES, $event);
+            $this->trigger(self::EVENT_REGISTER_EXTERNAL_STORAGES, $event);
 
-        foreach ($event->storages as $handle => $class) {
-            ImagerService::registerExternalStorage($handle, $class);
+            foreach ($event->storages as $handle => $class) {
+                ImagerService::registerExternalStorage($handle, $class);
+            }
         }
     }
 }
