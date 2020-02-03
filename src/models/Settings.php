@@ -174,8 +174,7 @@ class Settings extends Model
 
     public function init()
     {
-        // Have to set this here cause Yii::getAlias can't be used in default value
-        $this->imagerSystemPath = FileHelper::normalizePath(Yii::getAlias($this->imagerSystemPath));
+        // Set default based on devMode. Overridable through config.  
         $this->suppressExceptions = !\Craft::$app->getConfig()->general->devMode;
     }
 }

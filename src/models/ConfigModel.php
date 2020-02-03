@@ -12,6 +12,7 @@ namespace spacecatninja\imagerx\models;
 
 use craft\base\Model;
 
+use craft\helpers\FileHelper;
 use spacecatninja\imagerx\services\ImagerService;
 
 class ConfigModel extends Settings
@@ -57,11 +58,14 @@ class ConfigModel extends Settings
         $this->position = str_replace('%', '', $this->position);
 
         // Replace aliases
-        $aliasables = ['imagerSystemPath', 'imagerUrl'];
+        $parseables = ['imagerSystemPath', 'imagerUrl'];
 
-        foreach ($aliasables as $aliasable) {
-            $this->{$aliasable} = \Yii::getAlias($this->{$aliasable});
+        foreach ($parseables as $parseable) {
+            $this->{$parseable} = \Craft::parseEnv($this->{$parseable});
         }
+        
+        // Normalize imager system path 
+        $this->imagerSystemPath = FileHelper::normalizePath($this->imagerSystemPath);
     }
 
     /**
