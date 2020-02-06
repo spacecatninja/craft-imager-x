@@ -13,10 +13,12 @@
 - Added console commands for generating transforms.
 - Added element action for generating transforms.
 - Added basic support for GraphQL.
+- Added parsing of craft style environment variables ($MY_ENV_VARIABLE) for `imagerSystemPath` and `imagerUrl`.
 - Added opacity, gaussian blur, motion blur, radial blur, oil paint, adaptive blur, adaptive sharpen, despeckle, enhance and equalize effects.
 - Added support for fallback image (used if an image cannot be found).
 - Added support for mock image (used for every transform no matter what's passed in).
-- Added a `preserveColorProfiles` config setting for preserving color profiles even if meta data is being stripped.
+- Added support for `pad` transform parameter.
+- Added `preserveColorProfiles` config setting for preserving color profiles even if meta data is being stripped.
 
 ### Fixed 
 - Fixed issues that would occur if external downloads are interrupted and the error can't be caught. Downloads are now saved to a temporary file first.
