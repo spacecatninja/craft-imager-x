@@ -138,6 +138,10 @@ class TransformHelpers
      */
     public static function normalizeTransform($transform, $image): array
     {
+        if (isset($transform['mode'])) {
+            $transform['mode'] = mb_strtolower($transform['mode']);
+        }
+        
         // if resize mode is not crop or croponly, remove position
         if (isset($transform['mode'], $transform['position']) && (($transform['mode'] !== 'crop') && ($transform['mode'] !== 'croponly'))) {
             unset($transform['position']);
@@ -183,7 +187,11 @@ class TransformHelpers
 
             $transform['position'] = str_replace('%', '', (string)$transform['position']);
         }
-
+        
+        // normalize padding
+        if (isset($transform['pad'])) {
+            $transform['pad'] = self::normalizePadding($transform['pad']);
+        }
 
         // sort keys to get them in the same order 
         ksort($transform);
@@ -197,5 +205,46 @@ class TransformHelpers
         $transform = ImagerHelpers::moveArrayKeyToPos('watermark', 99, $transform);
 
         return $transform;
+    }
+
+    /**
+     * @param string|int|array $val
+     * @return int[]|null
+     */
+    public static function normalizePadding($val)
+    {
+        if (is_int($val)) {
+            return [$val, $val, $val, $val];
+        }
+        
+        if (is_string($val)) {
+            $val = str_replace('px', '', $val);
+            $val = explode(' ', $val);
+        }
+        
+        if (is_array($val)) {
+            if (count($val) === 1) {
+                return [(int)$val[0], (int)$val[0], (int)$val[0], (int)$val[0]];
+            }
+            if (count($val) === 2) {
+                return [(int)$val[0], (int)$val[1], (int)$val[0], (int)$val[1]];
+            }
+            if (count($val) === 3) {
+                return [(int)$val[0], (int)$val[1], (int)$val[2], (int)$val[1]];
+            }
+            if (count($val) > 4) {
+                $val = array_slice($val, 0, 4);
+            }
+            if (count($val) === 4) {
+                return [(int)$val[0], (int)$val[1], (int)$val[2], (int)$val[3]];
+            }
+        }
+        
+        return null;
+    }
+
+    public static function calculatePadding($imageWidth, $imageHeight, $padding)
+    {
+        
     }
 }

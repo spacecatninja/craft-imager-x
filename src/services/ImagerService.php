@@ -112,6 +112,7 @@ class ImagerService extends Component
         'watermark' => 'WM',
         'letterbox' => 'LB',
         'frames' => 'FR',
+        'pad' => 'PAD',
     ];
 
     /**
@@ -242,6 +243,12 @@ class ImagerService extends Component
     {
         self::detectImageDriver();
 
+        $config = self::getConfig();
+
+        if ($config->useCwebp && $config->cwebpPath !== '' && file_exists($config->cwebpPath)) {
+            return true;
+        }
+
         if (self::$imageDriver === 'gd' && \function_exists('imagewebp')) {
             return true;
         }
@@ -250,11 +257,6 @@ class ImagerService extends Component
             return true;
         }
 
-        $config = self::getConfig();
-
-        if ($config->useCwebp && $config->cwebpPath !== '' && file_exists($config->cwebpPath)) {
-            return true;
-        }
 
         return false;
     }

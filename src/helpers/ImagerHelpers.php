@@ -38,12 +38,12 @@ class ImagerHelpers
      * @param array $transform
      * @return bool
      */
-    public static function shouldCreateTransform($targetModel, $transform): bool 
+    public static function shouldCreateTransform($targetModel, $transform): bool
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
-        return !$config->getSetting('cacheEnabled', $transform) || 
+        return !$config->getSetting('cacheEnabled', $transform) ||
             !file_exists($targetModel->getFilePath()) ||
             (($config->getSetting('cacheDuration', $transform) !== false) && (FileHelper::lastModifiedTime($targetModel->getFilePath()) + $config->getSetting('cacheDuration', $transform) < time()));
     }
@@ -51,17 +51,28 @@ class ImagerHelpers
     /**
      * Creates the destination crop size box
      *
-     * @param \Imagine\Image\Box $originalSize
+     * @param \Imagine\Image\Box|\Imagine\Image\BoxInterface|object $originalSize
      * @param array $transform
      * @param bool $allowUpscale
+     * @param bool $usePadding
      *
      * @return Box
      * @throws \Imagine\Exception\InvalidArgumentException
      */
-    public static function getCropSize($originalSize, $transform, $allowUpscale): Box
+    public static function getCropSize($originalSize, $transform, $allowUpscale, $usePadding = true): Box
     {
         $width = $originalSize->getWidth();
         $height = $originalSize->getHeight();
+        $padding = $transform['pad'] ?? [0, 0, 0, 0];
+        
+        if ($usePadding) {
+            $padWidth = $padding[1] + $padding[3];
+            $padHeight = $padding[0] + $padding[2];
+        } else {
+            $padWidth = 0;
+            $padHeight = 0; 
+        }
+        
         $aspect = $width / $height;
 
         if (isset($transform['width'], $transform['height'])) {
@@ -78,12 +89,15 @@ class ImagerHelpers
                 }
             }
         }
-
+        
         // check if we want to upscale. If not, adjust the transform here 
         if (!$allowUpscale) {
             list($width, $height) = self::enforceMaxSize($width, $height, $originalSize, true);
         }
-
+        
+        $width -= $padWidth;
+        $height -= $padHeight;
+        
         // ensure that size is larger than 0
         if ($width <= 0) {
             $width = 1;
@@ -98,20 +112,30 @@ class ImagerHelpers
     /**
      * Creates the resize size box
      *
-     * @param \Imagine\Image\Box $originalSize
+     * @param \Imagine\Image\Box|\Imagine\Image\BoxInterface|object $originalSize
      * @param array $transform
      * @param bool $allowUpscale
+     * @param bool $usePadding
      *
      * @return Box
      * @throws ImagerException
      */
-    public static function getResizeSize($originalSize, $transform, $allowUpscale): Box
+    public static function getResizeSize($originalSize, $transform, $allowUpscale, $usePadding = true): Box
     {
         $width = $originalSize->getWidth();
         $height = $originalSize->getHeight();
+        $padding = $transform['pad'] ?? [0, 0, 0, 0];
         $aspect = $width / $height;
 
-        $mode = isset($transform['mode']) ? mb_strtolower($transform['mode']) : 'crop';
+        if ($usePadding) {
+            $padWidth = $padding[1] + $padding[3];
+            $padHeight = $padding[0] + $padding[2];
+        } else {
+            $padWidth = 0;
+            $padHeight = 0; 
+        }
+        
+        $mode = $transform['mode'] ?? 'crop';
 
         if ($mode === 'crop' || $mode === 'fit' || $mode === 'letterbox') {
 
@@ -163,6 +187,9 @@ class ImagerHelpers
         if (!$allowUpscale) {
             list($width, $height) = self::enforceMaxSize((int)$width, (int)$height, $originalSize, false, self::getCropZoomFactor($transform));
         }
+        
+        $width -= $padWidth;
+        $height -= $padHeight;
 
         try {
             $box = new Box((int)$width, (int)$height);
@@ -476,13 +503,13 @@ class ImagerHelpers
             $imagick = $imageInstance->getImagick();
             $supportsImageProfiles = method_exists($imagick, 'getimageprofiles');
             $iccProfiles = null;
-    
+
             if ($config->preserveColorProfiles && $supportsImageProfiles) {
                 $iccProfiles = $imagick->getImageProfiles('icc', true);
             }
-            
+
             $imagick->stripImage();
-    
+
             if (!empty($iccProfiles)) {
                 $imagick->profileImage('icc', $iccProfiles['icc'] ?? '');
             }

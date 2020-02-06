@@ -10,19 +10,13 @@
 
 namespace spacecatninja\imagerx\transformers;
 
-use spacecatninja\imagerx\helpers\QueueHelpers;
-use spacecatninja\imagerx\ImagerX;
-use spacecatninja\imagerx\models\NoopImageModel;
-use spacecatninja\imagerx\models\TransformedImageInterface;
 use Craft;
 
 use craft\base\Component;
 use craft\elements\Asset;
 use craft\helpers\FileHelper;
-use craft\helpers\UrlHelper;
 
 use spacecatninja\imagerx\helpers\ImagerHelpers;
-use spacecatninja\imagerx\jobs\OptimizeJob;
 use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\models\LocalTransformedImageModel;
 use spacecatninja\imagerx\models\LocalSourceImageModel;
@@ -30,8 +24,10 @@ use spacecatninja\imagerx\models\LocalTargetImageModel;
 use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\effects\ImagerEffectsInterface;
-use spacecatninja\imagerx\optimizers\ImagerOptimizeInterface;
-use spacecatninja\imagerx\externalstorage\ImagerStorageInterface;
+use spacecatninja\imagerx\helpers\QueueHelpers;
+use spacecatninja\imagerx\ImagerX;
+use spacecatninja\imagerx\models\NoopImageModel;
+use spacecatninja\imagerx\models\TransformedImageInterface;
 
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
@@ -80,6 +76,7 @@ class CraftTransformer extends Component implements TransformerInterface
      * @return array|null
      *
      * @throws ImagerException
+     * @throws Exception
      */
     public function transform($image, $transforms)
     {
@@ -135,6 +132,7 @@ class CraftTransformer extends Component implements TransformerInterface
      * @return LocalTransformedImageModel|null
      *
      * @throws ImagerException
+     * @throws Exception
      */
     private function getTransformedImage($sourceModel, $transform)
     {
@@ -281,7 +279,7 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Apply transforms to an image or layer.
      *
-     * @param GdImage|ImagickImage $layer
+     * @param GdImage|ImagickImage|ImageInterface|object $layer
      * @param array $transform
      * @param string $sourceExtension
      *
@@ -303,7 +301,7 @@ class CraftTransformer extends Component implements TransformerInterface
             $cropSize = ImagerHelpers::getCropSize($originalSize, $transform, $config->getSetting('allowUpscale', $transform));
             $resizeSize = ImagerHelpers::getResizeSize($originalSize, $transform, $config->getSetting('allowUpscale', $transform));
             $filterMethod = $this->getFilterMethod($transform);
-
+            
             // Do the resize
             if (ImagerService::$imageDriver === 'imagick' && $config->getSetting('smartResizeEnabled', $transform)) {
                 /** @var ImagickImage $layer */
@@ -313,7 +311,7 @@ class CraftTransformer extends Component implements TransformerInterface
             }
 
             // Do the crop
-            if (!isset($transform['mode']) || mb_strtolower($transform['mode']) === 'crop' || mb_strtolower($transform['mode']) === 'croponly') {
+            if (!isset($transform['mode']) || $transform['mode'] === 'crop' || $transform['mode'] === 'croponly') {
                 $cropPoint = ImagerHelpers::getCropPoint($resizeSize, $cropSize, $config->getSetting('position', $transform));
                 $layer->crop($cropPoint, $cropSize);
             }
@@ -322,15 +320,15 @@ class CraftTransformer extends Component implements TransformerInterface
         } catch (RuntimeException $e) {
             throw new ImagerException($e->getMessage(), $e->getCode(), $e);
         }
-
-        // Letterbox, add padding
-        if (isset($transform['mode']) && mb_strtolower($transform['mode']) === 'letterbox') {
-            $this->applyLetterbox($layer, $transform);
-        }
-
+        
         // Apply post resize effects
         if (isset($transform['effects'])) {
             $this->applyEffects($layer, $transform['effects']);
+        }
+        
+        // Letterbox, add padding
+        if (isset($transform['mode']) && mb_strtolower($transform['mode']) === 'letterbox') {
+            $this->applyLetterbox($layer, $transform);
         }
 
         // Interlace if true
@@ -352,6 +350,11 @@ class CraftTransformer extends Component implements TransformerInterface
         // Apply background color if enabled and applicable
         if (($sourceExtension !== 'jpg') && ($config->getSetting('bgColor', $transform) !== '')) {
             $this->applyBackgroundColor($layer, $config->getSetting('bgColor', $transform));
+        }
+        
+        // Add padding
+        if (isset($transform['pad'])) {
+            $this->applyPadding($layer, $transform, $sourceExtension);
         }
     }
 
@@ -396,12 +399,13 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Saves image as webp
      *
-     * @param GdImage|ImagickImage $imageInstance
+     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
      * @param string $path
      * @param string $sourceExtension
      * @param array $saveOptions
      *
      * @throws ImagerException
+     * @throws Exception
      */
     private function saveAsWebp($imageInstance, $path, $sourceExtension, $saveOptions)
     {
@@ -472,12 +476,13 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Save temporary file and return filename
      *
-     * @param GdImage|ImagickImage $imageInstance
+     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
      * @param string $sourceExtension
      *
      * @return string
      *
      * @throws ImagerException
+     * @throws Exception
      */
     private function saveTemporaryFile($imageInstance, $sourceExtension): string
     {
@@ -556,11 +561,15 @@ class CraftTransformer extends Component implements TransformerInterface
             $letterboxDef = $config->getSetting('letterbox', $transform);
 
             try {
-                $size = new Box($transform['width'], $transform['height']);
+                $padding = $transform['pad'] ?? [0, 0, 0, 0];
+                $padWidth = $padding[1] + $padding[3];
+                $padHeight = $padding[0] + $padding[2];
+                
+                $size = new Box($transform['width'] - $padWidth, $transform['height'] - $padHeight);
 
                 $position = new Point(
-                    (int)floor(((int)$transform['width'] - $imageInstance->getSize()->getWidth()) / 2),
-                    (int)floor(((int)$transform['height'] - $imageInstance->getSize()->getHeight()) / 2)
+                    (int)floor(((int)$transform['width'] - $padWidth - $imageInstance->getSize()->getWidth()) / 2),
+                    (int)floor(((int)$transform['height'] - $padHeight - $imageInstance->getSize()->getHeight()) / 2)
                 );
             } catch (InvalidArgumentException $e) {
                 Craft::error($e->getMessage(), __METHOD__);
@@ -572,6 +581,52 @@ class CraftTransformer extends Component implements TransformerInterface
                 $letterboxDef['color'] ?? '#000',
                 isset($letterboxDef['opacity']) ? (int)($letterboxDef['opacity'] * 100) : 0
             );
+
+            if ($this->imagineInstance !== null) {
+                $backgroundImage = $this->imagineInstance->create($size, $color);
+                $backgroundImage->paste($imageInstance, $position);
+                $imageInstance = $backgroundImage;
+            }
+        }
+    }
+
+    /**
+     * Apply padding to image
+     *
+     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
+     * @param array $transform
+     * @param string $sourceExtension
+     *
+     * @throws ImagerException
+     */
+    private function applyPadding(&$imageInstance, $transform, $sourceExtension)
+    {
+        if (isset($transform['pad'])) { 
+            /** @var ConfigModel $settings */
+            $config = ImagerService::getConfig();
+            
+            $bgColor = $config->getSetting('bgColor', $transform);
+            
+            if (empty($bgColor)) {
+                $bgColor = ($sourceExtension !== 'jpg' ? 'transparent' : '#000');
+            }
+            
+            $imageWidth = $imageInstance->getSize()->getWidth(); 
+            $imageHeight = $imageInstance->getSize()->getHeight();
+            $padding = $transform['pad'];
+            $padWidth = $padding[1] + $padding[3];
+            $padHeight = $padding[0] + $padding[2];
+            
+            try {
+                $size = new Box($imageWidth + $padWidth, $imageHeight + $padHeight);
+                $position = new Point($padding[3], $padding[0]);
+            } catch (InvalidArgumentException $e) {
+                Craft::error($e->getMessage(), __METHOD__);
+                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            }
+
+            $palette = new RGB();
+            $color = $palette->color($bgColor);
 
             if ($this->imagineInstance !== null) {
                 $backgroundImage = $this->imagineInstance->create($size, $color);
