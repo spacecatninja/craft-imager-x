@@ -70,11 +70,11 @@ class ImgixService extends Component
             }
             
             // Make sure there's at least one profile that is not a web proxy and that is not excluded from purging
-            $hasApiKey = !!$config->getSetting('imgixApiKey');
+            $hasApiKey = (bool)$config->getSetting('imgixApiKey');
             $hasPurgableProfile = false;
             foreach ($imgixConfigArr as $profile => $imgixConfig) {
                 $imgixConfig = new ImgixSettings($imgixConfig);
-                $hasApiKey = $hasApiKey || !!$imgixConfig->apiKey;
+                $hasApiKey = $hasApiKey || (bool)$imgixConfig->apiKey;
                 $hasPurgableProfile = $hasPurgableProfile || (!$imgixConfig->sourceIsWebProxy && !$imgixConfig->excludeFromPurge);
                 if ($hasApiKey && $hasPurgableProfile) {
                     break;
@@ -125,7 +125,7 @@ class ImgixService extends Component
         $imgixConfigArr = $config->getSetting('imgixConfig');
 
         if (!$imgixConfigArr || !\is_array($imgixConfigArr) || empty($imgixConfigArr)) {
-            $msg = Craft::t('imager-x', 'The "imgixConfig" config setting is missing, or is not correctly set up.');
+            $msg = Craft::t('imager-x', 'The `imgixConfig` config setting is missing, or is not correctly set up.');
             Craft::error($msg, __METHOD__);
             throw new ImagerException($msg);
         }
@@ -142,34 +142,25 @@ class ImgixService extends Component
                 continue;
             }
 
-            $domains = $imgixConfig->domains;
+            $domain = $imgixConfig->domain;
 
-            if (!\is_array($domains) || empty($domains)) {
-                $msg = Craft::t('imager-x', 'Imgix config setting “domains” does not appear to be correctly set up. It needs to be an array of strings representing your Imgix source\'s domains.');
-                Craft::error($msg, __METHOD__);
-                throw new ImagerException($msg);
+            try {
+                // Build base URL for the image on Imgix
+                $builder = new UrlBuilder($domain, 
+                    $imgixConfig->useHttps, 
+                    null, 
+                    false);
+
+                $path = ImgixHelpers::getImgixFilePath($asset, $imgixConfig);
+                $url = urldecode($builder->createURL($path));
+                
+                $this->purgeUrlFromImgix($url, $apiKey);
+
+            } catch (\Throwable $e) {
+                Craft::error($e->getMessage(), __METHOD__);
+                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
             }
-
-            // Loop over this profile's domains
-            foreach ($domains as $domain) {
-                try {
-                    // Build base URL for the image on Imgix
-                    $builder = new UrlBuilder([$domain], 
-                        $imgixConfig->useHttps, 
-                        null, 
-                        null, 
-                        false);
-
-                    $path = ImgixHelpers::getImgixFilePath($asset, $imgixConfig);
-                    $url = $builder->createURL($path);
-                    
-                    $this->purgeUrlFromImgix($url, $apiKey);
-
-                } catch (\Throwable $e) {
-                    Craft::error($e->getMessage(), __METHOD__);
-                    throw new ImagerException($e->getMessage(), $e->getCode(), $e);
-                }
-            }
+        
         }
     }
 }

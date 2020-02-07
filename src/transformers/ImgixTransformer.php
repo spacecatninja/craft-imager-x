@@ -25,7 +25,6 @@ use spacecatninja\imagerx\models\ImgixTransformedImageModel;
 use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\exceptions\ImagerException;
 
-use Imgix\ShardStrategy;
 use Imgix\UrlBuilder;
 
 use yii\base\InvalidConfigException;
@@ -187,9 +186,6 @@ class ImgixTransformer extends Component implements TransformerInterface
                 $mode = $transform['mode'];
 
                 switch ($mode) {
-                    case 'crop':
-                        $r['fit'] = 'crop';
-                        break;
                     case 'fit':
                         $r['fit'] = 'clip';
                         break;

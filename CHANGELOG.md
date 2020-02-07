@@ -23,3 +23,6 @@
 ### Fixed 
 - Fixed issues that would occur if external downloads are interrupted and the error can't be caught. Downloads are now saved to a temporary file first.
 - Fixed issues that would occur if a file upload to an external storage fails. The transformed file is now deleted so that Imager can try again. 
+
+### Deprecated
+- Deprecated `domains` and `shardStrategy` Imgix config settings, and added `domain`, due to changes in imgix/imgix-php 3.x.
