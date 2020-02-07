@@ -192,7 +192,26 @@ class Potracio
 
     public function loadImageFromFile($file)
     {
-        $image = imagecreatefromjpeg($file);
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
+        $image = null;
+        
+        switch ($ext) {
+            case 'jpg':
+            case 'jpeg':
+                $image = imagecreatefromjpeg($file);
+                break;
+            case 'gif':
+                $image = imagecreatefromgif($file);
+                break;
+            case 'png':
+                $image = imagecreatefrompng($file);
+                break;
+        }
+        
+        if ($image === null) {
+            throw new \Exception('Unknown file type passed to placeholder method.');
+        }
+
         list($w, $h) = getimagesize($file);
 
         $this->bm = new Bitmap($w, $h);
