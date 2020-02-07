@@ -101,14 +101,8 @@ class ImgixTransformer extends Component implements TransformerInterface
         }
 
         $imgixConfig = new ImgixSettings($imgixConfigArr[$profile]);
-
-        $domains = $imgixConfig->domains;
-
-        if (!\is_array($domains)) {
-            $msg = Craft::t('imager-x', 'Imgix config setting “domains” does not appear to be correctly set up. It needs to be an array of strings representing your Imgix source`s domains.');
-            Craft::error($msg, __METHOD__);
-            throw new ImagerException($msg);
-        }
+        
+        $domain = $imgixConfig->domain;
 
         if (($imgixConfig->sourceIsWebProxy === true) && ($imgixConfig->signKey === '')) {
             $msg = Craft::t('imager-x', 'Your Imgix source is a web proxy according to config setting “sourceIsWebProxy”, but no sign key/security token has been given in imgix config setting “signKey”. You`ll find this in your Imgix source details page.');
@@ -117,10 +111,9 @@ class ImgixTransformer extends Component implements TransformerInterface
         }
 
         try {
-            $builder = new UrlBuilder($domains,
+            $builder = new UrlBuilder($domain,
                 $imgixConfig->useHttps,
                 $imgixConfig->signKey,
-                ($imgixConfig->shardStrategy === 'cycle' ? ShardStrategy::CYCLE : ShardStrategy::CRC),
                 false);
         } catch (\InvalidArgumentException $e) {
             Craft::error($e->getMessage(), __METHOD__);
@@ -129,7 +122,7 @@ class ImgixTransformer extends Component implements TransformerInterface
 
         $params = $this->createParams($transform, $image, $imgixConfig);
         $path = ImgixHelpers::getImgixFilePath($image, $imgixConfig);
-        $url = $builder->createURL($path, $params);
+        $url = urldecode($builder->createURL($path, $params));
 
         return new ImgixTransformedImageModel($url, $image, $params, $imgixConfig);
     }

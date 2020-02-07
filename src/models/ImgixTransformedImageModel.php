@@ -91,8 +91,7 @@ class ImgixTransformedImageModel implements TransformedImageInterface
 
         $this->width = 0;
         $this->height = 0;
-
-
+        
         if (isset($params['w'], $params['h'])) {
             if (($source !== null) && ($params['fit'] === 'min' || $params['fit'] === 'max')) {
                 list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
@@ -115,7 +114,6 @@ class ImgixTransformedImageModel implements TransformedImageInterface
             }
         } else {
             if (isset($params['w']) || isset($params['h'])) {
-
                 if ($source !== null && $params !== null) {
                     list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
 
