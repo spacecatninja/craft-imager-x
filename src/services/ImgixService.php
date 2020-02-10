@@ -152,7 +152,7 @@ class ImgixService extends Component
                     false);
 
                 $path = ImgixHelpers::getImgixFilePath($asset, $imgixConfig);
-                $url = urldecode($builder->createURL($path));
+                $url = $builder->createURL($path);
                 
                 $this->purgeUrlFromImgix($url, $apiKey);
 

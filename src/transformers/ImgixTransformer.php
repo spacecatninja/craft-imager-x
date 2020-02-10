@@ -10,24 +10,19 @@
 
 namespace spacecatninja\imagerx\transformers;
 
-use spacecatninja\imagerx\helpers\ImgixHelpers;
 use Craft;
 
 use craft\base\Component;
-use craft\base\LocalVolumeInterface;
-use craft\base\Volume;
 use craft\elements\Asset;
-use craft\volumes\Local;
 
 use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\models\ImgixSettings;
 use spacecatninja\imagerx\models\ImgixTransformedImageModel;
 use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\helpers\ImgixHelpers;
 
 use Imgix\UrlBuilder;
-
-use yii\base\InvalidConfigException;
 
 /**
  * ImgixTransformer
@@ -121,7 +116,7 @@ class ImgixTransformer extends Component implements TransformerInterface
 
         $params = $this->createParams($transform, $image, $imgixConfig);
         $path = ImgixHelpers::getImgixFilePath($image, $imgixConfig);
-        $url = urldecode($builder->createURL($path, $params));
+        $url = $builder->createURL($path, $params);
 
         return new ImgixTransformedImageModel($url, $image, $params, $imgixConfig);
     }
