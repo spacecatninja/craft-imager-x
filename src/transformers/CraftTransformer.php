@@ -259,7 +259,7 @@ class CraftTransformer extends Component implements TransformerInterface
                 if (ImagerService::hasSupportForWebP()) {
                     $this->saveAsWebp($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $saveOptions);
                 } else {
-                    $msg = Craft::t('imager-x', 'This version of {imageDriver} does not support the webp format. You should use “craft.imager.serverSupportsWebp” in your templates to test for it.', ['imageDriver' => ImagerService::$imageDriver === 'gd' ? 'GD' : 'Imagick']);
+                    $msg = Craft::t('imager-x', 'This version of {imageDriver} does not support the webp format, and cwebp does not seem to be configured. You should use “craft.imager.serverSupportsWebp” in your templates to test for it.', ['imageDriver' => ImagerService::$imageDriver === 'gd' ? 'GD' : 'Imagick']);
                     Craft::error($msg, __METHOD__);
                     throw new ImagerException($msg);
                 }

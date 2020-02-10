@@ -243,8 +243,4 @@ class TransformHelpers
         return null;
     }
 
-    public static function calculatePadding($imageWidth, $imageHeight, $padding)
-    {
-        
-    }
 }
