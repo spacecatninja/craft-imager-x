@@ -2,7 +2,7 @@
     "name": "spacecatninja/imager-x",
     "description": "Ninja powered image transforms.",
     "type": "craft-plugin",
-    "version": "v3.0.0-beta.3",
+    "version": "v3.0.0",
     "license": "proprietary",
     "keywords": [
         "craft",
@@ -26,7 +26,7 @@
         }
     ],
     "require": {
-        "craftcms/cms": "~3.3",
+        "craftcms/cms": "^3.3.0",
         "mikehaertl/php-shellcommand": "^1.2",
         "tinify/tinify": ">=1.1.1",
         "ksubileau/color-thief-php": "^1.4.0",
