@@ -1,5 +1,11 @@
 # Imager X Changelog
 
+## 3.0.1 - 2019-02-18
+
+### Fixed
+- Fixed an issue with generate config where only the first config element would be processed (fixes #2). 
+- Fixed some issues where Imager would throw an exception if an invalid field was targeted by generate config, and an element was saved.
+
 ## 3.0.0 - 2019-02-11
 
 ### Changed
