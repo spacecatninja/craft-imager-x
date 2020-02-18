@@ -49,7 +49,7 @@ class FieldHelpers
 
             list($matrixFieldHandle, $matrixBlockType, $matrixBlockFieldHandle) = $segments;
 
-            $matrixField = $element->{$matrixFieldHandle};
+            $matrixField = $element->{$matrixFieldHandle} ?? null;
 
             if (!$matrixField || !$matrixField instanceof MatrixBlockQuery) {
                 return null;

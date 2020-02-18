@@ -458,7 +458,7 @@ class ImagerX extends Plugin
                 static function (ElementEvent $event) {
                     /** @var GenerateSettings $config */
                     $config = ImagerService::$generateConfig;
-
+                    
                     $element = $event->element;
                     
                     if ($element !== null) {

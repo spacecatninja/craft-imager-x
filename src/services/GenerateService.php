@@ -84,7 +84,7 @@ class GenerateService extends Component
         if (empty($elementsConfig)) {
             return;
         }
-
+        
         // Check if any of the defined element configs are of this element type
         foreach ($elementsConfig as $config) {
             /** @var Element|null $elementType */
@@ -92,7 +92,7 @@ class GenerateService extends Component
             $fields = $config['fields'] ?? null;
             $criteria = $config['criteria'] ?? null;
             $transforms = $config['transforms'] ?? null;
-
+            
             if ($elementType && $element instanceof $elementType && is_array($fields) && is_array($transforms) && count($fields) > 0 && count($transforms) > 0) {
                 // Check if criteria matches
                 if ($criteria && is_array($criteria)) {
@@ -107,11 +107,11 @@ class GenerateService extends Component
                     if (ImagerService::$generateConfig->generateForDrafts) {
                         $criteria['drafts'] = true;
                     }
-
+                    
                     Craft::configure($query, $criteria);
 
                     if ($query->count() === 0) {
-                        return;
+                        continue;
                     }
                 }
 
@@ -130,7 +130,9 @@ class GenerateService extends Component
                     }
                 }
                 
-                $assets = array_merge(...$assets);
+                if (count($assets)>0) {
+                    $assets = array_merge(...$assets);
+                }
 
                 // transform assets
                 foreach ($assets as $asset) {
