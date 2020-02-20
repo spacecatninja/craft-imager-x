@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.0.2 - 2020-02-20
+
+### Added
+- Added the ability to use named transforms in named transforms, with safeguards for cyclic references (see issue #7). X-)
+
 ## 3.0.1 - 2020-02-18
 
 ### Fixed
