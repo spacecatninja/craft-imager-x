@@ -335,21 +335,37 @@ class ImagerService extends Component
         
         // Let's handle named transforms here
         if (is_string($transforms)) {
-            if (!isset(self::$namedTransforms[$transforms])) {
-                $msg = Craft::t('imager-x', 'There is no named transform with handle “{transformName}”.', ['transformName' => $transforms]);
-                Craft::error($msg, __METHOD__);
-
-                if (self::getConfig()->suppressExceptions) {
-                    return null;
+            $processedTransforms = [];
+            
+            while (is_string($transforms)) {
+                if (!isset(self::$namedTransforms[$transforms])) {
+                    $msg = Craft::t('imager-x', 'There is no named transform with handle “{transformName}”.', ['transformName' => $transforms]);
+                    Craft::error($msg, __METHOD__);
+    
+                    if (self::getConfig()->suppressExceptions) {
+                        return null;
+                    }
+    
+                    throw new ImagerException($msg);
                 }
-
-                throw new ImagerException($msg);
+                
+                if (in_array($transforms, $processedTransforms, true)) {
+                    $msg = Craft::t('imager-x', 'There was a cyclic reference to named transform with handle “{transformName}”.', ['transformName' => $transforms]);
+                    Craft::error($msg, __METHOD__);
+    
+                    if (self::getConfig()->suppressExceptions) {
+                        return null;
+                    }
+    
+                    throw new ImagerException($msg);
+                }
+    
+                $processedTransforms[] = $transforms;
+                $namedTransform = self::$namedTransforms[$transforms];
+                $transforms = $namedTransform['transforms'] ?? [];
+                $transformDefaults = array_merge($namedTransform['defaults'] ?? [], $transformDefaults ?? []) ?? [];
+                $configOverrides = array_merge($namedTransform['configOverrides'] ?? [], $configOverrides ?? []) ?? [];
             }
-
-            $namedTransform = self::$namedTransforms[$transforms];
-            $transforms = $namedTransform['transforms'] ?? [];
-            $transformDefaults = array_merge($namedTransform['defaults'] ?? [], $transformDefaults ?? []) ?? [];
-            $configOverrides = array_merge($namedTransform['configOverrides'] ?? [], $configOverrides ?? []) ?? [];
         }
 
         // Let's figure out what our return value should be.
