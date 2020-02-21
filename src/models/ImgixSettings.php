@@ -37,7 +37,7 @@ class ImgixSettings extends Model
             \Craft::$app->deprecator->log(__METHOD__, 'The `shardStrategy` config setting for Imgix has been deprecated and should be removed.');
         }
     
-        if (count($this->domains) > 0) {
+        if (is_array($this->domains) && count($this->domains) > 0) {
             \Craft::$app->deprecator->log(__METHOD__, 'The `domains` config setting for Imgix has been deprecated, use `domain` (single string value) instead.');
             
             if ($this->domain === '') {
