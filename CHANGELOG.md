@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.0.3 - 2020-02-21
+
+### Fixed
+- Fixed an issue that would cause an exception if the old `domains` config setting for Imgix was set to a string accidentally. 
+
 ## 3.0.2 - 2020-02-20
 
 ### Added
