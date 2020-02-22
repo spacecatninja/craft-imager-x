@@ -40,8 +40,10 @@ PASTE THE ERROR MESSAGE / STACK TRACE HERE
 
 ### Additional info
 
-- Imager version and edition:
+- Imager version & edition:
+- Imager transformer:
 - Craft version:
 - PHP version:
+- Image driver & version:
 - Database driver & version:
-- Plugins & versions:
+- Plugins & versions (if relevant):
