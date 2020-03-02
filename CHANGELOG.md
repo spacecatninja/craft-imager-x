@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.0.4 - 2020-03-02
+
+### Fixed
+- Fixed an issue where an elements field layout was `null` (fixes #12).
+
 ## 3.0.3 - 2020-02-21
 
 ### Fixed
