@@ -30,6 +30,10 @@ class FieldHelpers
      */
     public static function getFieldInFieldLayoutByHandle($element, $layout, $handle)
     {
+        if ($layout === null) {
+            return null;
+        }
+        
         return $layout->getFieldByHandle($handle) ? $element->{$handle} : null;
     }
 
