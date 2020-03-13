@@ -379,6 +379,9 @@ class ImagerService extends Component
         // Create config model
         self::$transformConfig = new ConfigModel(Plugin::$plugin->getSettings(), $configOverrides);
         
+        // Resolve any callables in base transforms
+        $transforms = TransformHelpers::resolveTransforms($image, $transforms);
+
         // Fill missing transforms if fillTransforms is enabled
         if (self::$transformConfig->fillTransforms === true && \count($transforms) > 1) {
             $transforms = TransformHelpers::fillTransforms($transforms);
@@ -387,7 +390,7 @@ class ImagerService extends Component
         // Merge in default transform parameters
         $transforms = TransformHelpers::mergeTransforms($transforms, $transformDefaults);
 
-        // Resolve any callables in transforms
+        // Resolve any callables in transforms after defaults were merged in
         $transforms = TransformHelpers::resolveTransforms($image, $transforms);
 
         // Normalize transform parameters
