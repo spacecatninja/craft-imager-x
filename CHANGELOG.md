@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.0.5 - 2020-03-13
+
+### Added
+- Added parsing of callables prior to running `fillTransforms`, so that callables can be used also for properties that is used as `fillAttribute` (addresses #13).
+
 ## 3.0.4 - 2020-03-02
 
 ### Fixed
