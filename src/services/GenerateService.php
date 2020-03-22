@@ -136,7 +136,7 @@ class GenerateService extends Component
 
                 // transform assets
                 foreach ($assets as $asset) {
-                    if ($this->shouldTransformElement($asset)) {
+                    if (self::shouldTransformElement($asset)) {
                         $this->createTransformJob($asset, $transforms);
                     }
                 }
@@ -164,7 +164,7 @@ class GenerateService extends Component
                 $assets = $field->all();
                 
                 foreach ($assets as $asset) {
-                    if ($this->shouldTransformElement($asset)) {
+                    if (self::shouldTransformElement($asset)) {
                         $this->createTransformJob($asset, $transforms);
                     }
                 }
@@ -178,7 +178,7 @@ class GenerateService extends Component
      */
     public function shouldGenerateByVolumes($element): bool
     {
-        return $this->shouldTransformElement($element);
+        return self::shouldTransformElement($element);
     }
 
     /**
@@ -241,32 +241,30 @@ class GenerateService extends Component
      */
     public function generateTransformsForAsset($asset, $transforms)
     {
-        foreach ($transforms as $transformName) {
-            if (isset(ImagerService::$namedTransforms[$transformName])) {
-                try {
-                    ImagerX::$plugin->imager->transformImage($asset, $transformName, null, ['optimizeType' => 'runtime']);
-                } catch (ImagerException $exception) {
-                    $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and transform “{transformName}”: {message}', ['assetId' => $asset->id, 'transformName' => $transformName, 'message' => $exception->getMessage()]);
+        if (self::shouldTransformElement($asset)) {
+            foreach ($transforms as $transformName) {
+                if (isset(ImagerService::$namedTransforms[$transformName])) {
+                    try {
+                        ImagerX::$plugin->imager->transformImage($asset, $transformName, null, ['optimizeType' => 'runtime']);
+                    } catch (ImagerException $exception) {
+                        $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and transform “{transformName}”: {message}', ['assetId' => $asset->id, 'transformName' => $transformName, 'message' => $exception->getMessage()]);
+                        Craft::error($msg, __METHOD__);
+                    }
+                } else {
+                    $msg = Craft::t('imager-x', 'Named transform with handle “{transformName}” could not be found', ['transformName' => $transformName]);
                     Craft::error($msg, __METHOD__);
                 }
-            } else {
-                $msg = Craft::t('imager-x', 'Named transform with handle “{transformName}” could not be found', ['transformName' => $transformName]);
-                Craft::error($msg, __METHOD__);
             }
         }
     }
 
     /**
-     * --- Protected functions -----------------------------------------------------
-     */
-
-    /**
      * @param ElementInterface|Element|Asset $element
      * @return bool
      */
-    protected function shouldTransformElement($element): bool
+    public static function shouldTransformElement($element): bool
     {
-        return $element instanceof Asset && $element->kind === 'image' && \in_array(strtolower($element->getExtension()), Image::webSafeFormats(), true);
+        return $element instanceof Asset && $element->kind === 'image' && \in_array(strtolower($element->getExtension()), ImagerService::getConfig()->safeFileFormats, true);
     }
     
 }

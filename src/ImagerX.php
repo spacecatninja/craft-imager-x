@@ -345,7 +345,7 @@ class ImagerX extends Plugin
         if ($config->useForNativeTransforms) {
             Event::on(Assets::class, Assets::EVENT_GET_ASSET_URL,
                 static function (GetAssetUrlEvent $event) {
-                    if ($event->asset !== null && $event->transform !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), Image::webSafeFormats(), true)) {
+                    if ($event->asset !== null && $event->transform !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
                             $transform = $event->transform;
 
@@ -385,7 +385,7 @@ class ImagerX extends Plugin
         if ($config->useForCpThumbs) {
             Event::on(Assets::class, Assets::EVENT_GET_ASSET_THUMB_URL,
                 static function (GetAssetThumbUrlEvent $event) {
-                    if ($event->asset !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), Image::webSafeFormats(), true)) {
+                    if ($event->asset !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
                             /** @var TransformedImageInterface $transformedImage */
                             $transformedImage = ImagerX::$plugin->imagerx->transformImage($event->asset, ['width' => $event->width, 'height' => $event->height, 'mode' => 'fit']);

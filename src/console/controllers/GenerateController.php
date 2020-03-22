@@ -20,6 +20,7 @@ use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 
 use spacecatninja\imagerx\ImagerX;
+use spacecatninja\imagerx\services\GenerateService;
 use spacecatninja\imagerx\services\ImagerService;
 
 use yii\console\Controller;
@@ -73,6 +74,7 @@ class GenerateController extends Controller
     public function options($actionsID): array
     {
         $options = parent::options($actionsID);
+        
         return array_merge($options, [
             'volume',
             'folderId',
@@ -170,14 +172,18 @@ class GenerateController extends Controller
             }
         }        
         
+        $assets = [];
+        
         if ($volumeSpecified) {
             $assets = $this->getAssetsByVolume();
         } else if ($fieldSpecified) {
             $assets = $this->getAssetsByField();
         }
         
+        $assets = $this->pruneTransformableAssets($assets);
+        
         if (empty($assets)) {
-            $this->error("No assets found");
+            $this->error("No transformable assets found");
             return ExitCode::OK;
         }
         
@@ -309,5 +315,22 @@ class GenerateController extends Controller
             ->select(['fields.id', 'fields.handle'])
             ->from(['{{%fields}} fields'])
             ->all();
+    }
+
+    /**
+     * @param array $assets
+     * @return array
+     */
+    private function pruneTransformableAssets($assets): array
+    {
+        $r = [];
+        
+        foreach ($assets as $asset) {
+            if (GenerateService::shouldTransformElement($asset)) {
+                $r[] = $asset;
+            }
+        }
+        
+        return $r;
     }
 }

@@ -38,6 +38,7 @@ class Settings extends Model
     public $smartResizeEnabled = false;
     public $removeMetadata = false;
     public $preserveColorProfiles = false;
+    public $safeFileFormats = ['jpg', 'jpeg', 'gif', 'png'];
     public $bgColor = '';
     public $position = '50% 50%';
     public $letterbox = ['color' => '#000', 'opacity' => 0];

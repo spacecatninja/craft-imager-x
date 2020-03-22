@@ -39,7 +39,7 @@ class ConfigModel extends Settings
         }
 
         // Apply transform overrides
-        $excludedConfigOverrideProperties = ['fillTransforms', 'fillInterval', 'fillAttribute', 'filenamePattern', 'transformer', 'optimizeType'];
+        $excludedConfigOverrideProperties = ['fillTransforms', 'fillInterval', 'fillAttribute', 'filenamePattern', 'transformer', 'optimizeType', 'safeFileFormats'];
 
         if ($overrides !== null) {
             foreach ($overrides as $key => $value) {
