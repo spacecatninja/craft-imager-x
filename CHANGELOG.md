@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 3.0.6 - 2020-03-22
+
+### Added
+- Added `safeFileFormats` setting which is be used to avoid trying to transform file formats that isn't transformable, notably when doing auto generation (adresses #15).
+
+### Fixed
+- Fixed deprecated default values in example imgix config (fixes #18).
+
 ## 3.0.5 - 2020-03-13
 
 ### Added
