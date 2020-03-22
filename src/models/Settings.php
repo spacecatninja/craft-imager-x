@@ -73,12 +73,11 @@ class Settings extends Model
     public $imgixEnablePurgeElementAction = true;
     public $imgixConfig = [
         'default' => [
-            'domains' => [],
+            'domain' => '',
             'useHttps' => true,
             'signKey' => '',
             'sourceIsWebProxy' => false,
             'useCloudSourcePath' => true,
-            'shardStrategy' => 'cycle',
             'getExternalImageDimensions' => true,
             'defaultParams' => [],
             'apiKey' => '',
