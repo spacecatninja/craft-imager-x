@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.0.7 - 2020-04-11
+
+### Changed
+- Imager X no longer generates transforms when reindexing asset volumes. Use console commands to mass generate instead (adresses #19).
+
 ## 3.0.6 - 2020-03-22
 
 ### Added
