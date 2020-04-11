@@ -459,9 +459,14 @@ class ImagerX extends Plugin
                     /** @var GenerateSettings $config */
                     $config = ImagerService::$generateConfig;
                     
+                    /** @var Element $element */
                     $element = $event->element;
                     
                     if ($element !== null) {
+                        if ($element instanceof Asset && $element->scenario === Asset::SCENARIO_INDEX) {
+                            return;
+                        }
+                        
                         if (ImagerX::$plugin->generate->shouldGenerateByVolumes($element)) {
                             ImagerX::$plugin->generate->processAssetByVolumes($element);
                         }
