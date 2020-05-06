@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 3.0.8 - 2020-05-06
+
+### Added
+- Added a `return` parameter to the `imagerTransform` GQL directive, to make it possible to return base64-encoded and dataUri's in addition to URL's (adresses #23).
+
+### Changed
+- Changed requirement from `google/cloud` to `google/cloud-storage` to avoid excessive amounts of packages being included and to stay in line with the relevant flysystem driver (adresses #22).
+
 ## 3.0.7 - 2020-04-11
 
 ### Changed
