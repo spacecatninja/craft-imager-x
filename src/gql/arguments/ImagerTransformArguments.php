@@ -60,6 +60,11 @@ class ImagerTransformArguments extends Arguments
                 'type' => Type::string(),
                 'description' => 'The format to use for the transform'
             ],
+            'return' => [
+                'name' => 'return',
+                'type' => Type::string(),
+                'description' => 'Data return type. Can be `url`, `base64` or `dataUri`'
+            ],
         ];
     }
 }

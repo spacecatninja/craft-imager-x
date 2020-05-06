@@ -76,6 +76,13 @@ class ImagerTransform extends Directive
         if ($resolveInfo->fieldName !== 'url') {
             return $value;
         }
+        
+        $returnType = 'url';
+        
+        if (isset($arguments['return'])) {
+            $returnType = $arguments['return'];
+            unset($arguments['return']);
+        }
 
         $transform = $arguments;
         
@@ -84,6 +91,14 @@ class ImagerTransform extends Directive
         } catch (ImagerException $e) {
             Craft::error('An error occured when trying to transform image in GraphQL directive: ' . $e->getMessage(), __METHOD__);
             return null;
+        }
+        
+        if ($returnType === 'base64') {
+            return $transformedImage->getBase64Encoded();
+        }
+        
+        if ($returnType === 'dataUri') {
+            return $transformedImage->getDataUri();
         }
         
         return $transformedImage->getUrl();
