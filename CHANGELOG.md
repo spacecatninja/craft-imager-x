@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.0.9 - 2020-05-07
+
+### Fixed
+- Fixed issue where ImgixTransformedImageModel would return the wrong width and/or height if crop mode `fit` was used, and both width and height was set (fixes #24).
+
 ## 3.0.8 - 2020-05-06
 
 ### Added
