@@ -23,6 +23,7 @@ use GraphQL\Type\Definition\Type;
 
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\gql\arguments\ImagerTransformArguments;
+use spacecatninja\imagerx\services\ImagerService;
 
 /**
  * Class ImagerTransform
@@ -80,6 +81,10 @@ class ImagerSrcset extends Directive
         }
 
         if (empty($arguments['handle'])) {
+            return null;
+        }
+        
+        if ($source->kind !== 'image' || !\in_array(strtolower($source->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
             return null;
         }
         

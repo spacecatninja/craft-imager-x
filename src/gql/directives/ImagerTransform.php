@@ -21,6 +21,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\gql\arguments\ImagerTransformArguments;
+use spacecatninja\imagerx\services\ImagerService;
 
 /**
  * Class ImagerTransform
@@ -85,6 +86,10 @@ class ImagerTransform extends Directive
         }
 
         $transform = $arguments;
+        
+        if ($source->kind !== 'image' || !\in_array(strtolower($source->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+            return null;
+        }
         
         try {
             $transformedImage = ImagerX::$plugin->imagerx->transformImage($source, $transform);

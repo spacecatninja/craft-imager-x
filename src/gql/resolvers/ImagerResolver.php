@@ -18,6 +18,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\services\ImagerService;
 
 class ImagerResolver extends Resolver
 {
@@ -50,6 +51,12 @@ class ImagerResolver extends Resolver
                 $asset = $query->one();
             } elseif (!empty($url)) {
                 $asset = $url;
+            }
+        }
+        
+        if ($asset instanceof Asset) {
+            if ($asset->kind !== 'image' || !\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+                return null;
             }
         }
         
