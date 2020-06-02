@@ -65,6 +65,12 @@ interface TransformedImageInterface
     public function getBase64Encoded():string;
 
     /**
+     * @param array $settings
+     * @return string
+     */
+    public function getPlaceholder($settings = []):string;
+
+    /**
      * @return bool
      */
     public function getIsNew():bool;

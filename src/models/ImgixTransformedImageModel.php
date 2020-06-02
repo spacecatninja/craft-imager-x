@@ -11,56 +11,11 @@
 namespace spacecatninja\imagerx\models;
 
 use craft\elements\Asset;
-use craft\helpers\FileHelper;
-
-use Imagine\Image\Box;
-
-use spacecatninja\imagerx\helpers\ImagerHelpers;
-use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\exceptions\ImagerException;
 
-class ImgixTransformedImageModel implements TransformedImageInterface
+class ImgixTransformedImageModel extends BaseTransformedImageModel implements TransformedImageInterface
 {
-    /**
-     * @var string
-     */
-    public $path;
-    
-    /**
-     * @var string
-     */
-    public $filename;
-    
-    /**
-     * @var string
-     */
-    public $url;
-    
-    /**
-     * @var string
-     */
-    public $extension;
-    
-    /**
-     * @var string
-     */
-    public $mimeType;
-    
-    /**
-     * @var int
-     */
-    public $width;
-    
-    /**
-     * @var int
-     */
-    public $height;
-    
-    /**
-     * @var int|float
-     */
-    public $size;
-
+   
     /**
      * @var ImgixSettings|null
      */
@@ -227,62 +182,6 @@ class ImgixTransformedImageModel implements TransformedImageInterface
     }
 
     /**
-     * @return string
-     */
-    public function getPath(): string
-    {
-        return $this->path;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFilename(): string
-    {
-        return $this->filename;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUrl(): string
-    {
-        return $this->url;
-    }
-
-    /**
-     * @return string
-     */
-    public function getExtension(): string
-    {
-        return $this->extension;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMimeType(): string
-    {
-        return $this->mimeType;
-    }
-
-    /**
-     * @return int
-     */
-    public function getWidth(): int
-    {
-        return (int)$this->width;
-    }
-
-    /**
-     * @return int
-     */
-    public function getHeight(): int
-    {
-        return (int)$this->height;
-    }
-
-    /**
      * @param string $unit
      * @param int    $precision
      *
@@ -317,12 +216,5 @@ class ImgixTransformedImageModel implements TransformedImageInterface
         return false;
     }
     
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return (string)$this->url;
-    }
 
 }
