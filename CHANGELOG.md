@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 3.0.10 - 2020-06-02
+
+### Added
+- Added `getPlaceholder` method to TransformedImageInterface (fixes #25).
+
+### Changed
+- Changed GraphQL directives and queries to use the `safeFileFormats` setting to avoid trying to transform file formats that aren't transformable (adresses #15 again).
+
 ## 3.0.9 - 2020-05-07
 
 ### Fixed
