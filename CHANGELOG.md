@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.0.11 - 2020-06-17
+
+### Added
+- Added option to toggle public visibility to transforms uploaded to S3 (fixes #31).
+
 ## 3.0.10 - 2020-06-02
 
 ### Added
