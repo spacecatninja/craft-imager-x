@@ -147,6 +147,7 @@ class Settings extends Model
             'folder' => '',
             'requestHeaders' => array(),
             'storageType' => 'standard',
+            'public' => 'true',
             'cloudfrontInvalidateEnabled' => false,
             'cloudfrontDistributionId' => '',
         ],

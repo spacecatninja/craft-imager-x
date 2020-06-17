@@ -65,6 +65,7 @@ class AwsStorage implements ImagerStorageInterface
 
         $opts = $settings['requestHeaders'] ?? [];
         $cacheDuration = $isFinal ? $config->cacheDurationExternalStorage : $config->cacheDurationNonOptimized;
+        $visibility = !isset($settings['public']) || $settings['public'] === true ? 'public-read' : 'private'; 
 
         if (!isset($opts['Cache-Control'])) {
             $opts['CacheControl'] = 'max-age='.$cacheDuration.', must-revalidate';
@@ -74,7 +75,7 @@ class AwsStorage implements ImagerStorageInterface
             'Bucket' => $settings['bucket'],
             'Key' => $uri,
             'Body' => fopen($file, 'rb'),
-            'ACL' => 'public-read',
+            'ACL' => $visibility,
             'StorageClass' => self::getAWSStorageClass($settings['storageType'] ?? 'standard'),
         ]);
 
