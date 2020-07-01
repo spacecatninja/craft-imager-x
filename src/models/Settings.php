@@ -55,6 +55,7 @@ class Settings extends Model
     public $suppressExceptions = false;
     public $convertToRGB = false;
     public $skipExecutableExistCheck = false;
+    public $removeTransformsOnAssetFileops = false;
     public $curlOptions = [];
     public $runJobsImmediatelyOnAjaxRequests = true;
     public $fillTransforms = false;

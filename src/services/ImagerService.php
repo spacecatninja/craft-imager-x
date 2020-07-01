@@ -555,6 +555,7 @@ class ImagerService extends Component
             if (strpos($targetModel->path, $config->imagerSystemPath) !== false) {
                 try {
                     FileHelper::clearDirectory(FileHelper::normalizePath($targetModel->path));
+                    FileHelper::removeDirectory(FileHelper::normalizePath($targetModel->path));
                 } catch (ErrorException $e) {
                     Craft::error('Could not clear directory "' . $targetModel->path . '" (' . $e->getMessage() . ')', __METHOD__);
                 } catch (InvalidArgumentException $e) {

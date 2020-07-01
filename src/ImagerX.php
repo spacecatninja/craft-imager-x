@@ -208,7 +208,6 @@ class ImagerX extends Plugin
             }
         );
 
-
         // Event listener for clearing caches when an asset is replaced
         Event::on(Assets::class, Assets::EVENT_AFTER_REPLACE_ASSET,
             static function (ReplaceAssetEvent $event) use ($config) {
@@ -237,6 +236,11 @@ class ImagerX extends Plugin
 
         // Register generate listeners
         $this->registerGenerateListeners();
+
+        // Register listener for clearing transforms on asset delete/move
+        if ($config->removeTransformsOnAssetFileops) {
+            $this->registerRemoveTransformsListeners();
+        }
 
         Event::on(
             Plugins::class,
@@ -500,6 +504,47 @@ class ImagerX extends Plugin
                     }
                 });
         }
+    }
+
+    /**
+     * Register event listeners for removing transforms automatically.
+     */
+    private function registerRemoveTransformsListeners()
+    {
+        /** @var ConfigModel $config */
+        $config = ImagerService::getConfig();
+        
+        Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT,
+            static function (ElementEvent $event) use ($config) {
+                if ($event->element && $event->element instanceof Asset) {
+                    /** @var Asset $asset */
+                    $asset = $event->element;
+
+                    ImagerX::$plugin->imagerx->removeTransformsForAsset($asset);
+
+                    // If Imgix purging is possible, do that too
+                    if ($config->imgixEnableAutoPurging && ImgixService::getCanPurge()) {
+                        ImagerX::$plugin->imgix->purgeAssetFromImgix($asset);
+                    }
+                }
+            }
+        );
+        
+        Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT,
+            static function (ElementEvent $event) use ($config) {
+                /** @var Element $element */
+                $element = $event->element;
+                
+                if ($element && $element instanceof Asset && $element->scenario === Asset::SCENARIO_FILEOPS) {
+                    ImagerX::$plugin->imagerx->removeTransformsForAsset($element);
+
+                    // If Imgix purging is possible, do that too
+                    if ($config->imgixEnableAutoPurging && ImgixService::getCanPurge()) {
+                        ImagerX::$plugin->imgix->purgeAssetFromImgix($element);
+                    }
+                }
+            }
+        );
     }
 
     /**
