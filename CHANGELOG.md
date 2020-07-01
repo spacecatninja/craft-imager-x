@@ -1,5 +1,12 @@
 # Imager X Changelog
 
+## 3.1.0 - 2020-07-01
+
+### Added
+- Added generate transforms utility (addresses #29).
+- Added `getPalette()` to `ImgixTransformedImageModel` which adds the ability to request color palette information directly from Imgix (adresses #33).
+- Added support for deleting transforms when assets are deleted or moved, hidden behind config setting `removeTransformsOnAssetFileops` (adresses #21).
+
 ## 3.0.11 - 2020-06-17
 
 ### Added
