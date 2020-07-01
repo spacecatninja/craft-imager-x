@@ -96,8 +96,6 @@ class ImgixTransformer extends Component implements TransformerInterface
 
         $imgixConfig = new ImgixSettings($imgixConfigArr[$profile]);
         
-        $domain = $imgixConfig->domain;
-
         if (($imgixConfig->sourceIsWebProxy === true) && ($imgixConfig->signKey === '')) {
             $msg = Craft::t('imager-x', 'Your Imgix source is a web proxy according to config setting “sourceIsWebProxy”, but no sign key/security token has been given in imgix config setting “signKey”. You`ll find this in your Imgix source details page.');
             Craft::error($msg, __METHOD__);
@@ -105,10 +103,7 @@ class ImgixTransformer extends Component implements TransformerInterface
         }
 
         try {
-            $builder = new UrlBuilder($domain,
-                $imgixConfig->useHttps,
-                $imgixConfig->signKey,
-                false);
+            $builder = ImgixHelpers::getBuilder($imgixConfig);
         } catch (\InvalidArgumentException $e) {
             Craft::error($e->getMessage(), __METHOD__);
             throw new ImagerException($e->getMessage(), $e->getCode(), $e);

@@ -12,14 +12,15 @@ namespace spacecatninja\imagerx\helpers;
 
 use Craft;
 
-use spacecatninja\imagerx\models\ImgixSettings;
 use craft\base\LocalVolumeInterface;
 use craft\base\Volume;
-
 use craft\elements\Asset;
 use craft\helpers\FileHelper;
 use craft\volumes\Local;
+
 use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\models\ImgixSettings;
+use Imgix\UrlBuilder;
 
 use yii\base\InvalidConfigException;
 
@@ -71,6 +72,18 @@ class ImgixHelpers
         $path = str_replace('\\', '/', $path);
 
         return $path;
+    }
+
+    /**
+     * @param ImgixSettings $config
+     * @return UrlBuilder
+     */
+    public static function getBuilder($config): UrlBuilder
+    {
+        return new UrlBuilder($config->domain,
+            $config->useHttps,
+            $config->signKey,
+            false);
     }
     
 }

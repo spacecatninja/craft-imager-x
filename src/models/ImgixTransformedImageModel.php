@@ -12,6 +12,7 @@ namespace spacecatninja\imagerx\models;
 
 use craft\elements\Asset;
 use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\helpers\ImgixHelpers;
 
 class ImgixTransformedImageModel extends BaseTransformedImageModel implements TransformedImageInterface
 {
@@ -20,6 +21,17 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
      * @var ImgixSettings|null
      */
     private $profileConfig;
+
+    /**
+     * @var array|null
+     */
+    private $params;
+
+    /**
+     * @var string
+     */
+    private $imgixPath;
+    
 
     /**
      * ImgixTransformedImageModel constructor.
@@ -34,6 +46,8 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
     public function __construct($imageUrl = null, $source = null, $params = null, $config = null)
     {
         $this->profileConfig = $config;
+        $this->params = $params;
+        $this->imgixPath = ImgixHelpers::getImgixFilePath($source, $config);
 
         $this->path = '';
         $this->extension = '';
@@ -215,6 +229,39 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
     {
         return false;
     }
-    
 
+    /**
+     * @param string $format
+     * @param int $numColors
+     * @param string $cssPrefix
+     * @return string|null
+     */
+    public function getPalette($format='json', $numColors=6, $cssPrefix='')
+    {
+        $builder = ImgixHelpers::getBuilder($this->profileConfig);
+        
+        $params = $this->params ?? [];
+        $params['palette'] = $format;
+        $params['colors'] = $numColors;
+        
+        if ($cssPrefix !== '') {
+            $params['prefix'] = $cssPrefix;
+        }
+        
+        $paletteUrl = $builder->createURL($this->imgixPath, $params);
+        $key = 'imager-x-imgix-palette-' . base64_encode($paletteUrl);
+        
+        $cache = \Craft::$app->getCache();
+        $paletteData = $cache->getOrSet($key, static function () use ($paletteUrl) {
+            return @file_get_contents($paletteUrl);
+        });
+        
+        if (!$paletteData) {
+            \Craft::error('An error occured when trying to get palette data from Imgix. The URL was: ' . $paletteUrl);
+            return null;
+        }
+        
+        return $format === 'json' ? json_decode($paletteData, false) : $paletteData;
+    }
+    
 }
