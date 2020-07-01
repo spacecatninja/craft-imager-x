@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.1.0.1 - 2020-07-01
+
+### Fixed
+- Fixed an issue where the new generate transforms utility would be available when using the Lite edition, even though the generate functionality isn't.
+
 ## 3.1.0 - 2020-07-01
 
 ### Added
