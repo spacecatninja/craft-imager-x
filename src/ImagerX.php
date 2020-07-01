@@ -202,11 +202,13 @@ class ImagerX extends Plugin
         );
 
         // Register utility
-        Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITY_TYPES,
-            static function (RegisterComponentTypesEvent $event) {
-                $event->types[] = GenerateTransformsUtility::class;
-            }
-        );
+        if (ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
+            Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITY_TYPES,
+                static function (RegisterComponentTypesEvent $event) {
+                    $event->types[] = GenerateTransformsUtility::class;
+                }
+            );
+        }
 
         // Event listener for clearing caches when an asset is replaced
         Event::on(Assets::class, Assets::EVENT_AFTER_REPLACE_ASSET,
