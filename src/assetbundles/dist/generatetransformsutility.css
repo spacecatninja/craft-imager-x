@@ -1,0 +1,13 @@
+.generate-transforms-utility__label {
+    font-weight: bold;
+    color: #606d7b;
+    margin-bottom: 10px;
+}
+
+.generate-transforms-utility__block {
+    margin-bottom: 20px;
+}
+
+.generate-transforms-utility__block .instructions {
+    margin-bottom: 10px;
+}

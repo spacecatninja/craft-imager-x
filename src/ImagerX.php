@@ -19,6 +19,7 @@ use craft\events\ElementEvent;
 use craft\events\GetAssetThumbUrlEvent;
 use craft\events\GetAssetUrlEvent;
 use craft\events\RegisterCacheOptionsEvent;
+use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterElementActionsEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlTypesEvent;
@@ -30,11 +31,13 @@ use craft\services\Assets;
 use craft\services\Elements;
 use craft\services\Gql;
 use craft\services\Plugins;
+use craft\services\Utilities;
 use craft\utilities\ClearCaches;
 use craft\web\twig\variables\CraftVariable;
 use craft\events\RegisterGqlDirectivesEvent;
 
 use spacecatninja\imagerx\effects\OpacityEffect;
+use spacecatninja\imagerx\utilities\GenerateTransformsUtility;
 use yii\base\Event;
 
 use spacecatninja\imagerx\models\ConfigModel;
@@ -197,6 +200,14 @@ class ImagerX extends Plugin
                 $variable->set('imagerx', ImagerVariable::class);
             }
         );
+
+        // Register utility
+        Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITY_TYPES,
+            static function (RegisterComponentTypesEvent $event) {
+                $event->types[] = GenerateTransformsUtility::class;
+            }
+        );
+
 
         // Event listener for clearing caches when an asset is replaced
         Event::on(Assets::class, Assets::EVENT_AFTER_REPLACE_ASSET,
@@ -458,31 +469,31 @@ class ImagerX extends Plugin
                 static function (ElementEvent $event) {
                     /** @var GenerateSettings $config */
                     $config = ImagerService::$generateConfig;
-                    
+
                     /** @var Element $element */
                     $element = $event->element;
-                    
+
                     if ($element !== null) {
                         if ($element instanceof Asset && $element->scenario === Asset::SCENARIO_INDEX) {
                             return;
                         }
-                        
+
                         if (ImagerX::$plugin->generate->shouldGenerateByVolumes($element)) {
                             ImagerX::$plugin->generate->processAssetByVolumes($element);
                         }
-    
+
                         if ($element->getIsRevision()) {
                             return;
                         }
-    
+
                         if (!$config->generateForDrafts && $element->getIsDraft()) {
                             return;
                         }
-    
+
                         if (ImagerX::$plugin->generate->shouldGenerateByElements($element)) {
                             ImagerX::$plugin->generate->processElementByElements($element);
                         }
-    
+
                         if (ImagerX::$plugin->generate->shouldGenerateByFields($element)) {
                             ImagerX::$plugin->generate->processElementByFields($element);
                         }

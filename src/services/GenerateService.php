@@ -37,6 +37,50 @@ use yii\base\InvalidConfigException;
  */
 class GenerateService extends Component
 {
+    
+    /**
+     * @param array $volumeIds
+     * @param bool $useConfig
+     * @param null|array $transforms
+     */
+    public function generateByUtility($volumeIds, $useConfig = true, $transforms = null)
+    {
+        $volumesConfig = ImagerService::$generateConfig->volumes ?? [];
+        
+        foreach ($volumeIds as $volumeId) {
+            $volume = Craft::$app->volumes->getVolumeById($volumeId);
+            
+            if (!$volume) {
+                Craft::error("Couldn't find volume with ID $volumeId.", __METHOD__);
+                continue;
+            }
+            
+            if ($useConfig && isset($volumesConfig[$volume->handle]) && !empty($volumesConfig[$volume->handle])) {
+                $transforms = $volumesConfig[$volume->handle];
+            } 
+            
+            if (empty($transforms)) {
+                Craft::error("Couldn't find any transforms for volume with ID $volumeId.", __METHOD__);
+                continue;
+            }
+            
+            $assets = Asset::find()
+                ->volumeId($volumeId)
+                ->kind('image')
+                ->includeSubfolders(true)
+                ->limit(null)
+                ->all();
+
+            foreach ($assets as $asset) {
+                if (self::shouldTransformElement($asset)) {
+                    $this->createTransformJob($asset, $transforms);
+                }
+            }
+            
+            return;
+        }
+    }
+    
     /**
      * @param ElementInterface|Asset $asset
      */
@@ -227,7 +271,7 @@ class GenerateService extends Component
         $queue = Craft::$app->getQueue();
 
         $jobId = $queue->push(new TransformJob([
-            'description' => Craft::t('imager-x', 'Generating transforms for asset with id ' . $asset->id),
+            'description' => Craft::t('imager-x', 'Generating transforms for asset "' . $asset->filename . '" (ID ' . $asset->id . ')'),
             'assetId' => $asset->id,
             'transforms' => $transforms,
         ]));

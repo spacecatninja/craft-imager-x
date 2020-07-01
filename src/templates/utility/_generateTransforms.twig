@@ -1,0 +1,43 @@
+{% import "_includes/forms" as forms %}
+
+<form id="imager-x-generate-utility" class="utility" method="post" accept-charset="UTF-8" data-action-url="{{ actionUrl('imager-x/generate-utility/generate-transforms') }}" data-queue-url="{{ queueUrl }}">
+    {{ actionInput('imagerx/generate-utility/generate-transforms') }}
+    {{ csrfInput() }}
+
+    <div class="generate-transforms-utility__block field">
+        <div class="heading">
+            <div class="generate-transforms-utility__label">{{ 'Choose volumes' | t('imager-x') }}</div>
+        </div>
+        {{ volumesCheckboxSelectHtml|raw }}
+    </div>
+
+    {{ forms.lightswitchField({
+        name: 'useConfiguredTransforms',
+        label: 'Use configured transforms'|t('imager-x'),
+        instructions: 'Use the transforms configured in imager-x-generate.php for each volume. Disable to pick transforms manually.'|t('imager-x'),
+        on: true,
+    }) }}
+
+    <div id="imager-x-generate-utility-transforms" class="generate-transforms-utility__block field" style="display: none;">
+        <div class="heading">
+            <div class="generate-transforms-utility__label">{{ "Choose transforms" | t('imager-x') }}</div>
+
+            {% if showDisplayNameInfo %}
+                <div class="instructions">
+                    <p>{{ 'It appears that one or more of your named transforms doesn\'t have a display name. If you add this to your transforms in imager-x-transforms.php, those will be shown instead of the handle.' }}</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        {{ transformsCheckboxSelectHtml|raw }}
+    </div>
+
+    <div class="buttons">
+        <input type="submit" class="btn big submit" value="{{ 'Generate transforms'|t('imager-x') }}" data-imager-x-generate-btn/>
+        <span class="spinner invisible" data-imager-x-generate-spinner></span>
+    </div>
+
+    <p class="light" data-imager-x-generate-status>
+        &nbsp;
+    </p>
+</form>
