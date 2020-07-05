@@ -48,7 +48,7 @@ class GenerateUtilityController extends Controller
         
         $hasErrors = false;
         $errors = [];
-        if (empty($volumes)) {
+        if (empty($volumes) || !is_array($volumes)) {
             $hasErrors = true;
             $errors[] = Craft::t('imager-x', 'No volumes selected.');
         }
