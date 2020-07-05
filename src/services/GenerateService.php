@@ -76,8 +76,6 @@ class GenerateService extends Component
                     $this->createTransformJob($asset, $transforms);
                 }
             }
-            
-            return;
         }
     }
     
