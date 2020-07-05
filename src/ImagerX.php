@@ -202,7 +202,7 @@ class ImagerX extends Plugin
         );
 
         // Register utility
-        if (ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
+        if (self::getInstance()->is(self::EDITION_PRO)) {
             Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITY_TYPES,
                 static function (RegisterComponentTypesEvent $event) {
                     $event->types[] = GenerateTransformsUtility::class;
