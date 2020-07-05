@@ -1,5 +1,11 @@
 # Imager X Changelog
 
+## 3.1.1 - 2020-07-05
+
+### Fixed
+- Fixed unnecessary exceptions that could be thrown when trying to delete files that had already been deleted (fixes #35).
+- Fixed an issue where only the first selected volume from the generate utility would be used to generate transforms (fixes #29). 
+
 ## 3.1.0.1 - 2020-07-01
 
 ### Fixed
