@@ -160,7 +160,7 @@ class LocalSourceImageModel
                     
                     if (file_exists($this->getTemporaryFilePath())) {
                         copy($this->getTemporaryFilePath(), $this->getFilePath());
-                        unlink($this->getTemporaryFilePath());
+                        @unlink($this->getTemporaryFilePath());
                     }
                 }
 
@@ -365,7 +365,7 @@ class LocalSourceImageModel
             fclose(/** @scrutinizer ignore-type */ $fp);
 
             if ($curlErrorNo !== 0) {
-                unlink($this->getTemporaryFilePath());
+                @unlink($this->getTemporaryFilePath());
                 $msg = Craft::t('imager-x', 'cURL error “{curlErrorNo}” encountered while attempting to download “{imageUrl}”. The error was: “{curlError}”', ['imageUrl' => $imageUrl, 'curlErrorNo' => $curlErrorNo, 'curlError' => $curlError]);
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg);
@@ -373,7 +373,7 @@ class LocalSourceImageModel
 
             if ($httpStatus !== 200) {
                 if (!($httpStatus === 404 && strrpos(mime_content_type($this->getTemporaryFilePath()), 'image') !== false)) { // remote server returned a 404, but the contents was a valid image file
-                    unlink($this->getTemporaryFilePath());
+                    @unlink($this->getTemporaryFilePath());
                     $msg = Craft::t('imager-x', 'HTTP status “{httpStatus}” encountered while attempting to download “{imageUrl}”', ['imageUrl' => $imageUrl, 'httpStatus' => $httpStatus]);
                     Craft::error($msg, __METHOD__);
                     throw new ImagerException($msg);
@@ -381,7 +381,7 @@ class LocalSourceImageModel
             }
         } elseif (ini_get('allow_url_fopen')) {
             if (!@copy($imageUrl, $this->getTemporaryFilePath())) {
-                unlink($this->getTemporaryFilePath());
+                @unlink($this->getTemporaryFilePath());
                 $errors = error_get_last();
                 $msg = Craft::t('imager-x', 'Error “{errorType}” encountered while attempting to download “{imageUrl}”: {errorMessage}', ['imageUrl' => $imageUrl, 'errorType' => $errors['type'], 'errorMessage' => $errors['message']]);
                 Craft::error($msg, __METHOD__);
@@ -395,7 +395,7 @@ class LocalSourceImageModel
         
         if (file_exists($this->getTemporaryFilePath())) {
             copy($this->getTemporaryFilePath(), $this->getFilePath());
-            unlink($this->getTemporaryFilePath());
+            @unlink($this->getTemporaryFilePath());
         }
     }
 }
