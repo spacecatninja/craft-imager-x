@@ -16,6 +16,7 @@ use craft\base\Utility;
 use craft\base\Volume;
 use craft\elements\Asset;
 use craft\helpers\Html;
+use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use spacecatninja\imagerx\assetbundles\GenerateTransformsUtilityAssets;
 use spacecatninja\imagerx\ImagerX;
@@ -78,7 +79,7 @@ class GenerateTransformsUtility extends Utility
                 ->count();
 
             $volumeOptions[] = [
-                'label' => Html::encode($volume->name) . " <span class='light'>($assetsCount images)</span>",
+                'label' => Template::raw(Html::encode($volume->name) . " <span class='light'>($assetsCount images)</span>"),
                 'value' => $volume->id
             ];
         }
