@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.1.2 - 2020-07-22
+
+### Fixed
+- Fixed an issue where checkbox labels in the generate utility would be HTML-encoded due to a breaking change in Craft 3.5 (fixes #37).
+
 ## 3.1.1 - 2020-07-05
 
 ### Fixed
