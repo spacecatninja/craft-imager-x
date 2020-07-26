@@ -36,6 +36,7 @@ use craft\utilities\ClearCaches;
 use craft\web\twig\variables\CraftVariable;
 use craft\events\RegisterGqlDirectivesEvent;
 
+use spacecatninja\imagerx\effects\BrightnessEffect;
 use spacecatninja\imagerx\effects\OpacityEffect;
 use spacecatninja\imagerx\utilities\GenerateTransformsUtility;
 use yii\base\Event;
@@ -588,6 +589,7 @@ class ImagerX extends Plugin
             'sharpen' => SharpenEffect::class,
             'gamma' => GammaEffect::class,
             'colorize' => ColorizeEffect::class,
+            'brightness' => BrightnessEffect::class,
 
             // Imagick only
             'colorblend' => ColorBlendEffect::class,
