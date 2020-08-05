@@ -161,7 +161,7 @@ class ImgixTransformer extends Component implements TransformerInterface
 
                 if (\is_string($image)) {
                     $pathParts = pathinfo($image);
-                    $ext = $pathParts['extension'];
+                    $ext = $pathParts['extension'] ?? '';
                 }
 
                 $r['q'] = $this->getQualityFromExtension($ext, $transform);

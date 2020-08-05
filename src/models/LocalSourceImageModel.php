@@ -263,7 +263,7 @@ class LocalSourceImageModel
         $this->url = $image;
         $this->filename = $pathParts['basename'];
         $this->basename = $pathParts['filename'];
-        $this->extension = $pathParts['extension'];
+        $this->extension = $pathParts['extension'] ?? '';
     }
 
     /**
@@ -280,7 +280,7 @@ class LocalSourceImageModel
         $this->url = $image;
         $this->filename = $pathParts['basename'];
         $this->basename = $pathParts['filename'];
-        $this->extension = $pathParts['extension'];
+        $this->extension = $pathParts['extension'] ?? '';
     }
 
     /**
@@ -313,7 +313,7 @@ class LocalSourceImageModel
         $this->url = $image;
         $this->basename = str_replace(' ', '-', $pathParts['filename']).($queryString !== '' ? '_'.md5($queryString) : '');
         $this->extension = $pathParts['extension'] ?? '';
-        $this->filename = FileHelper::sanitizeFilename($this->basename.'.'.$this->extension);
+        $this->filename = FileHelper::sanitizeFilename($this->basename . ($this->extension !== ''  ? '.'.$this->extension : ''));
 
         try {
             FileHelper::createDirectory($this->path);
