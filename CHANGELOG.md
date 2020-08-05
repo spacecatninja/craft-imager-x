@@ -1,5 +1,14 @@
 # Imager X Changelog
 
+## 3.1.3 - 2020-08-05
+
+### Added
+- Added brightness effect.
+
+### Fixed
+- Fixed an issue that could occur if a local or external image didn't have an extension (related to #41).
+- Fixed an issue where `'transparent'` wasn't parsed correctly when used in `pad` transform parameter.
+
 ## 3.1.2 - 2020-07-22
 
 ### Fixed
