@@ -626,7 +626,12 @@ class CraftTransformer extends Component implements TransformerInterface
             }
 
             $palette = new RGB();
-            $color = $palette->color($bgColor);
+            
+            if ($bgColor === 'transparent') {
+                $color = $palette->color('#000', 0);
+            } else {
+                $color = $palette->color($bgColor);
+            }
 
             if ($this->imagineInstance !== null) {
                 $backgroundImage = $this->imagineInstance->create($size, $color);
