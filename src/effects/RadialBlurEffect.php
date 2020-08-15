@@ -29,7 +29,11 @@ class RadialBlurEffect implements ImagerEffectsInterface
             $imagickInstance = $imageInstance->getImagick();
             
             if (\is_int($params) || \is_float($params)) {
-                $imagickInstance->radialBlurImage($params);
+                if (method_exists($imagickInstance, 'rotationalBlurImage')) { // ImageMagick >= 7
+                    $imagickInstance->rotationalBlurImage($params);
+                } else {
+                    $imagickInstance->radialBlurImage($params);
+                }
             }
         }
     }

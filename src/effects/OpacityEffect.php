@@ -75,7 +75,12 @@ class OpacityEffect implements ImagerEffectsInterface
             $clone->setImageOpacity($alpha);
         }
         
-        $imagickInstance->setImageAlphaChannel(Imagick::ALPHACHANNEL_OPAQUE);
+        if (defined('\Imagick::ALPHACHANNEL_OFF')) { // ImageMagick >= 7
+            $imagickInstance->setImageAlphaChannel(Imagick::ALPHACHANNEL_OFF);
+        } else {
+            $imagickInstance->setImageAlphaChannel(Imagick::ALPHACHANNEL_OPAQUE);
+        }
+        
         $imagickInstance->compositeImage($temporary, Imagick::COMPOSITE_REPLACE, 0, 0);
         $imagickInstance->compositeImage($clone, Imagick::COMPOSITE_DEFAULT, 0, 0);
     }
