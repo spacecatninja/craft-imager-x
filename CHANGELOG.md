@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.1.4 - 2020-08-19
+
+### Fixed
+- Fixed issues with radial blur and opacity filters when Imagick was compiled with ImageMagick 7+. 
+
 ## 3.1.3 - 2020-08-05
 
 ### Added
