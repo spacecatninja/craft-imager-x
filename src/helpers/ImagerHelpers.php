@@ -10,6 +10,7 @@
 
 namespace spacecatninja\imagerx\helpers;
 
+use craft\helpers\ArrayHelper;
 use spacecatninja\imagerx\models\LocalTargetImageModel;
 use Craft;
 use craft\base\Volume;
@@ -389,7 +390,9 @@ class ImagerHelpers
             if ($k === 'effects' || $k === 'preEffects') {
                 $effectString = '';
                 foreach ($v as $eff => $param) {
-                    if (\is_array($param)) {
+                    if (ArrayHelper::isAssociative($param)) {
+                        $effectString .= '_' . $eff . self::encodeTransformObject($param);
+                    } elseif (\is_array($param)) {
                         if (\is_array($param[0])) {
                             $effectString .= '_' . $eff;
                             foreach ($param as $paramArr) {
@@ -594,5 +597,16 @@ class ImagerHelpers
     public static function stripTrailingSlash($str): string
     {
         return rtrim($str, '/');
+    }
+
+    /**
+     * @param array $obj
+     * @return string
+     */
+    public static function encodeTransformObject($obj): string
+    {
+        ksort($obj);
+        $json = json_encode($obj);
+        return mb_strtolower(str_replace(['{', '}', '/', '"', ':', ','], ['-', '', '', '', '-', '_'], $json));
     }
 }
