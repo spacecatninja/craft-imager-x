@@ -1,5 +1,11 @@
 # Imager X Changelog
 
+## 3.1.5 - 2020-08-26
+
+### Added
+- Added support for providing the key file contents to the `keyFile` config setting in Google Cloud external storage, with support for environment variables (closes #38).
+- Added support for passing objects as parameters to effects.
+
 ## 3.1.4 - 2020-08-19
 
 ### Fixed
