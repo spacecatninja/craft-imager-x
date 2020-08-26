@@ -41,10 +41,18 @@ class GcsStorage implements ImagerStorageInterface
         // Always use forward slashes
         $uri = str_replace('\\', '/', $uri);
         
-        $keyFilePath = FileHelper::normalizePath($settings['keyFile']);
+        $keyFileSetting = Craft::parseEnv($settings['keyFile']);
+        
+        if (strpos($keyFileSetting, '{') === 0) {
+            $configKey = 'keyFile';
+            $configValue = json_decode($keyFileSetting, true);
+        } else {
+            $configKey = 'keyFilePath';
+            $configValue = FileHelper::normalizePath($keyFileSetting);
+        }
         
         $storage = new StorageClient([
-            'keyFilePath' => $keyFilePath 
+            $configKey => $configValue 
         ]);
         
         $bucket = $storage->bucket($settings['bucket']);
