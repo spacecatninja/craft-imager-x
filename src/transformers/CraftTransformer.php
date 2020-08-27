@@ -652,7 +652,12 @@ class CraftTransformer extends Component implements TransformerInterface
     private function applyBackgroundColor(&$imageInstance, $bgColor)
     {
         $palette = new RGB();
-        $color = $palette->color($bgColor);
+
+        if ($bgColor === 'transparent') {
+            $color = $palette->color('#000', 0);
+        } else {
+            $color = $palette->color($bgColor);
+        }
 
         try {
             $topLeft = new Point(0, 0);
