@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.1.6 - 2020-08-27
+
+### Fixed
+- Fixed an issue where using `'transparent'` as background color would throw an error.
+
 ## 3.1.5 - 2020-08-26
 
 ### Added
