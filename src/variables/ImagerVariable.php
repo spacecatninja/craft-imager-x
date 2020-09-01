@@ -271,13 +271,23 @@ class ImagerVariable
     }
 
     /**
-     * Checks for webp support in image driver
+     * Checks for server webp support
      *
      * @return bool
      */
     public function serverSupportsWebp(): bool
     {
         return ImagerService::hasSupportForWebP();
+    }
+
+    /**
+     * Checks for server avif support
+     *
+     * @return bool
+     */
+    public function serverSupportsAvif(): bool
+    {
+        return ImagerService::hasSupportForAvif();
     }
 
     /**
