@@ -21,7 +21,7 @@ use Imagine\Image\Box;
 
 use yii\base\InvalidConfigException;
 
-class NoopImageModel implements TransformedImageInterface
+class NoopImageModel extends BaseTransformedImageModel implements TransformedImageInterface
 {
     public $path;
     public $filename;
