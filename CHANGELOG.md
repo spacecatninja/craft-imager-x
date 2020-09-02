@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.1.7 - 2020-09-02
+
+### Fixed
+- Fixed an error that would occur when using `NoopImageModel` because it didn't extend `BaseTransformedImageModel` (Thanks, @boboldehampsink).
+
 ## 3.1.6 - 2020-08-27
 
 ### Fixed
