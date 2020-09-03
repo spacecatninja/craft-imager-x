@@ -262,6 +262,20 @@ class ImagerService extends Component
     }
 
     /**
+     * @return bool
+     */
+    public static function hasSupportForAvif(): bool
+    {
+        $config = self::getConfig();
+
+        if ($config->avifEncoderPath !== '' && file_exists($config->avifEncoderPath)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param string $handle
      * @param string $class
      */

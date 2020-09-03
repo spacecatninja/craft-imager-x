@@ -248,7 +248,7 @@ class CraftTransformer extends Component implements TransformerInterface
             if (ImagerService::$imageDriver === 'imagick' && $config->getSetting('removeMetadata', $transform)) {
                 ImagerHelpers::processMetaData($this->imageInstance, $transform);
             }
-            
+
             // Convert the image to RGB before converting to webp/saving
             if ($config->getSetting('convertToRGB', $transform)) {
                 $this->imageInstance->usePalette(new RGB());
@@ -260,6 +260,14 @@ class CraftTransformer extends Component implements TransformerInterface
                     $this->saveAsWebp($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $saveOptions);
                 } else {
                     $msg = Craft::t('imager-x', 'This version of {imageDriver} does not support the webp format, and cwebp does not seem to be configured. You should use “craft.imager.serverSupportsWebp” in your templates to test for it.', ['imageDriver' => ImagerService::$imageDriver === 'gd' ? 'GD' : 'Imagick']);
+                    Craft::error($msg, __METHOD__);
+                    throw new ImagerException($msg);
+                }
+            } elseif ($targetModel->extension === 'avif') {
+                if (ImagerService::hasSupportForAvif()) {
+                    $this->saveAsAvif($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension);
+                } else {
+                    $msg = Craft::t('imager-x', 'You have not configured support for AVIF yet.');
                     Craft::error($msg, __METHOD__);
                     throw new ImagerException($msg);
                 }
@@ -301,7 +309,7 @@ class CraftTransformer extends Component implements TransformerInterface
             $cropSize = ImagerHelpers::getCropSize($originalSize, $transform, $config->getSetting('allowUpscale', $transform));
             $resizeSize = ImagerHelpers::getResizeSize($originalSize, $transform, $config->getSetting('allowUpscale', $transform));
             $filterMethod = $this->getFilterMethod($transform);
-            
+
             // Do the resize
             if (ImagerService::$imageDriver === 'imagick' && $config->getSetting('smartResizeEnabled', $transform)) {
                 /** @var ImagickImage $layer */
@@ -320,12 +328,12 @@ class CraftTransformer extends Component implements TransformerInterface
         } catch (RuntimeException $e) {
             throw new ImagerException($e->getMessage(), $e->getCode(), $e);
         }
-        
+
         // Apply post resize effects
         if (isset($transform['effects'])) {
             $this->applyEffects($layer, $transform['effects']);
         }
-        
+
         // Letterbox, add padding
         if (isset($transform['mode']) && mb_strtolower($transform['mode']) === 'letterbox') {
             $this->applyLetterbox($layer, $transform);
@@ -351,7 +359,7 @@ class CraftTransformer extends Component implements TransformerInterface
         if (($sourceExtension !== 'jpg') && ($config->getSetting('bgColor', $transform) !== '')) {
             $this->applyBackgroundColor($layer, $config->getSetting('bgColor', $transform));
         }
-        
+
         // Add padding
         if (isset($transform['pad'])) {
             $this->applyPadding($layer, $transform, $sourceExtension);
@@ -474,6 +482,55 @@ class CraftTransformer extends Component implements TransformerInterface
     }
 
     /**
+     * Saves image as webp
+     *
+     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
+     * @param string $path
+     * @param string $sourceExtension
+     *
+     * @throws ImagerException
+     * @throws Exception
+     */
+    private function saveAsAvif($imageInstance, $path, $sourceExtension)
+    {
+        /** @var ConfigModel $settings */
+        $config = ImagerService::getConfig();
+
+        // Save temp file
+        $tempFile = $this->saveTemporaryFile($imageInstance, $sourceExtension);
+
+        $opts = array_merge([
+            '{src}' => $tempFile,
+            '{dest}' => $path
+        ], $config->getSetting('avifEncoderOptions'));
+
+        $r = [];
+
+        foreach ($opts as $k => $v) {
+            if (strpos($k, '{') !== 0) {
+                $r['{' . $k . '}'] = $v;
+            } else {
+                $r[$k] = $v;
+            }
+        }
+        
+        $opts = $r;
+        
+        // Convert to avif
+        $command = escapeshellcmd($config->getSetting('avifEncoderPath') . ' ' . strtr($config->getSetting('avifConvertString'), $opts));
+        $r = shell_exec($command);
+
+        if (!file_exists($path)) {
+            $msg = Craft::t('imager-x', "Creation of avif failed with error:\n" . $r . "\nThe executed command was \"$command\"");
+            Craft::error($msg, __METHOD__);
+            throw new ImagerException($msg);
+        }
+
+        // Delete temp file
+        unlink($tempFile);
+    }
+
+    /**
      * Save temporary file and return filename
      *
      * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
@@ -564,7 +621,7 @@ class CraftTransformer extends Component implements TransformerInterface
                 $padding = $transform['pad'] ?? [0, 0, 0, 0];
                 $padWidth = $padding[1] + $padding[3];
                 $padHeight = $padding[0] + $padding[2];
-                
+
                 $size = new Box($transform['width'] - $padWidth, $transform['height'] - $padHeight);
 
                 $position = new Point(
@@ -601,22 +658,22 @@ class CraftTransformer extends Component implements TransformerInterface
      */
     private function applyPadding(&$imageInstance, $transform, $sourceExtension)
     {
-        if (isset($transform['pad'])) { 
+        if (isset($transform['pad'])) {
             /** @var ConfigModel $settings */
             $config = ImagerService::getConfig();
-            
+
             $bgColor = $config->getSetting('bgColor', $transform);
-            
+
             if (empty($bgColor)) {
                 $bgColor = ($sourceExtension !== 'jpg' ? 'transparent' : '#000');
             }
-            
-            $imageWidth = $imageInstance->getSize()->getWidth(); 
+
+            $imageWidth = $imageInstance->getSize()->getWidth();
             $imageHeight = $imageInstance->getSize()->getHeight();
             $padding = $transform['pad'];
             $padWidth = $padding[1] + $padding[3];
             $padHeight = $padding[0] + $padding[2];
-            
+
             try {
                 $size = new Box($imageWidth + $padWidth, $imageHeight + $padHeight);
                 $position = new Point($padding[3], $padding[0]);
@@ -626,7 +683,7 @@ class CraftTransformer extends Component implements TransformerInterface
             }
 
             $palette = new RGB();
-            
+
             if ($bgColor === 'transparent') {
                 $color = $palette->color('#000', 0);
             } else {

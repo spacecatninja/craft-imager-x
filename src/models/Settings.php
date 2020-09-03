@@ -158,6 +158,10 @@ class Settings extends Model
             'folder' => '',
         ],
     ];
+    
+    public $avifEncoderPath = '';
+    public $avifEncoderOptions = [];
+    public $avifConvertString = '{src} {dest}';
 
     /**
      * Settings constructor.
