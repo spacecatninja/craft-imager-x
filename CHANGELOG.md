@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.2.0 - 2020-09-03
+
+### Added
+- Added support for [AVIF encoding](https://imager-x.spacecat.ninja/usage/avif.html) (closes #42).
+
 ## 3.1.7 - 2020-09-02
 
 ### Fixed
