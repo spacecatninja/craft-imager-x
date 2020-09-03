@@ -516,7 +516,7 @@ class CraftTransformer extends Component implements TransformerInterface
         
         $opts = $r;
         
-        // Convert to webp with cwebp
+        // Convert to avif
         $command = escapeshellcmd($config->getSetting('avifEncoderPath') . ' ' . strtr($config->getSetting('avifConvertString'), $opts));
         $r = shell_exec($command);
 
