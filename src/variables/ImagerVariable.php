@@ -12,6 +12,7 @@ namespace spacecatninja\imagerx\variables;
 
 use Craft;
 
+use spacecatninja\imagerx\helpers\NamedTransformHelpers;
 use spacecatninja\imagerx\ImagerX as Plugin;
 use spacecatninja\imagerx\services\ImagerColorService;
 use spacecatninja\imagerx\services\ImagerService;
@@ -334,5 +335,23 @@ class ImagerVariable
     public function transformer(): bool
     {
         return Plugin::$plugin->getSettings()->transformer;
+    }
+
+    /**
+     * @param string $name
+     * @return bool
+     */
+    public function hasNamedTransform($name): bool
+    {
+        return NamedTransformHelpers::getNamedTransform($name) !== null;
+    }
+    
+    /**
+     * @param string $name
+     * @return array|null
+     */
+    public function getNamedTransform($name)
+    {
+        return NamedTransformHelpers::getNamedTransform($name);
     }
 }
