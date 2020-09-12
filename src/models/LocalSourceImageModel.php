@@ -17,6 +17,7 @@ use craft\base\Volume;
 use craft\helpers\FileHelper;
 use craft\elements\Asset;
 use craft\helpers\StringHelper;
+use craft\helpers\Assets as AssetsHelper;
 
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\services\ImagerService;
@@ -216,12 +217,7 @@ class LocalSourceImageModel
      */
     private function getPathsForVolumeAsset($image)
     {
-        try {
-            $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
-        } catch (InvalidConfigException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
-        }
+        $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
 
         try {
             $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath().'/imager/';
@@ -230,7 +226,13 @@ class LocalSourceImageModel
             throw new ImagerException($e->getMessage(), $e->getCode(), $e);
         }
 
-        $this->url = $image->getUrl();
+        try {
+            $this->url = AssetsHelper::generateUrl($image->getVolume(), $image);
+        } catch (InvalidConfigException $e) {
+            Craft::error($e->getMessage(), __METHOD__);
+            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        }   
+            
         $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
         $this->filename = $image->getFilename();
         $this->basename = $image->getFilename(false);
