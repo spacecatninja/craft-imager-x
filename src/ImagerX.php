@@ -385,6 +385,10 @@ class ImagerX extends Plugin
                             }
 
                             if (is_array($transform)) {
+                                // We need to reset the transform here to avoid an infinite loop
+                                $event->asset->setTransform(null);
+                                
+                                // Do the transform
                                 $transformedImage = ImagerX::$plugin->imagerx->transformImage($event->asset, $transform);
 
                                 if ($transformedImage !== null) {
