@@ -298,9 +298,22 @@ class ImagerVariable
      */
     public function clientSupportsWebp(): bool
     {
-        $request = Craft::$app->getRequest();
+        return Craft::$app->getRequest()->accepts('image/webp');
+    }
 
-        return $request->accepts('image/webp');
+    /**
+     * Checks if the browser accepts a given format.
+     *
+     * @param string $format
+     * @return bool
+     */
+    public function clientSupports($format): bool
+    {
+        if (strpos($format, 'image/') === false) {
+            $format = "image/$format";
+        }
+        
+        return Craft::$app->getRequest()->accepts($format);
     }
 
     /**
