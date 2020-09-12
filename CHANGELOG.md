@@ -1,5 +1,14 @@
 # Imager X Changelog
 
+## 3.2.1 - 2020-09-12
+
+### Added
+- Added `hasNamedTransform` and `getNamedTransform` template variables (closes #51).
+- Added new `clientSupports` template variable.
+
+### Fixed
+- Fixed an issue where `useForNativeTransforms` could cause an infinite loop (fixes #50).
+
 ## 3.2.0 - 2020-09-03
 
 ### Added
