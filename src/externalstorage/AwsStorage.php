@@ -57,11 +57,14 @@ class AwsStorage implements ImagerStorageInterface
         }
         
         if (isset($settings['folder']) && $settings['folder'] !== '') {
-            $uri = ltrim(FileHelper::normalizePath($settings['folder'].'/'.$uri), '/');
+            $uri = FileHelper::normalizePath($settings['folder'].'/'.$uri);
         }
 
         // Always use forward slashes for S3
         $uri = str_replace('\\', '/', $uri);
+
+        // Dont start with forward slashes
+        $uri = ltrim($uri, '/');
 
         $opts = $settings['requestHeaders'] ?? [];
         $cacheDuration = $isFinal ? $config->cacheDurationExternalStorage : $config->cacheDurationNonOptimized;
