@@ -75,7 +75,12 @@ class ImagerColorService extends Component
             return null;
         }
 
-        $dominantColor = ColorThief::getColor($source->getFilePath(), $quality);
+        try {
+            $dominantColor = ColorThief::getColor($source->getFilePath(), $quality);
+        } catch (\RuntimeException $e) {
+            \Craft::error('Couldn\'t get dominant color for "' . $source->getFilePath() . '". Error was: ' . $e->getMessage());
+            return null;
+        }
 
         ImagerService::cleanSession();
 
@@ -105,7 +110,12 @@ class ImagerColorService extends Component
             return null;
         }
 
-        $palette = ColorThief::getPalette($source->getFilePath(), $colorCount, $quality);
+        try {
+            $palette = ColorThief::getPalette($source->getFilePath(), $colorCount, $quality);
+        } catch (\RuntimeException $e) {
+            \Craft::error('Couldn\'t get palette for "' . $source->getFilePath() . '". Error was: ' . $e->getMessage());
+            return null;
+        }
 
         ImagerService::cleanSession();
 
