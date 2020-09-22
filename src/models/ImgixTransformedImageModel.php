@@ -62,20 +62,25 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
         $this->height = 0;
 
         if (isset($params['w'], $params['h'])) {
+            $this->width = (int)$params['w'];
+            $this->height = (int)$params['h'];
+            
             if (($source !== null) && ($params['fit'] === 'min' || $params['fit'] === 'max')) {
                 list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
 
                 $paramsW = (int)$params['w'];
                 $paramsH = (int)$params['h'];
 
-                if ($sourceWidth / $sourceHeight < $paramsW / $paramsH) {
-                    $useW = min($paramsW, $sourceWidth);
-                    $this->width = $useW;
-                    $this->height = round($useW * ($paramsH / $paramsW));
-                } else {
-                    $useH = min($paramsH, $sourceHeight);
-                    $this->width = round($useH * ($paramsW / $paramsH));
-                    $this->height = $useH;
+                if ($sourceWidth !== 0 && $sourceHeight !== 0) {
+                    if ($sourceWidth / $sourceHeight < $paramsW / $paramsH) {
+                        $useW = min($paramsW, $sourceWidth);
+                        $this->width = $useW;
+                        $this->height = round($useW * ($paramsH / $paramsW));
+                    } else {
+                        $useH = min($paramsH, $sourceHeight);
+                        $this->width = round($useH * ($paramsW / $paramsH));
+                        $this->height = $useH;
+                    }
                 }
             } elseif ($source !== null && $params['fit'] === 'clip') {
                 list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
@@ -83,18 +88,17 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                 $paramsW = (int)$params['w'];
                 $paramsH = (int)$params['h'];
 
-                if ($sourceWidth / $sourceHeight > $paramsW / $paramsH) {
-                    $useW = min($paramsW, $sourceWidth);
-                    $this->width = $useW;
-                    $this->height = round($useW * ($sourceHeight / $sourceWidth));
-                } else {
-                    $useH = min($paramsH, $sourceHeight);
-                    $this->width = round($useH * ($sourceWidth / $sourceHeight));
-                    $this->height = $useH;
-                }
-            } else {
-                $this->width = (int)$params['w'];
-                $this->height = (int)$params['h'];
+                if ($sourceWidth !== 0 && $sourceHeight !== 0) {
+                    if ($sourceWidth / $sourceHeight > $paramsW / $paramsH) {
+                        $useW = min($paramsW, $sourceWidth);
+                        $this->width = $useW;
+                        $this->height = round($useW * ($sourceHeight / $sourceWidth));
+                    } else {
+                        $useH = min($paramsH, $sourceHeight);
+                        $this->width = round($useH * ($sourceWidth / $sourceHeight));
+                        $this->height = $useH;
+                    }
+                } 
             }
         } else {
             if (isset($params['w']) || isset($params['h'])) {
