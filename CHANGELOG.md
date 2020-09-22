@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 3.2.2 - 2020-09-22
+
+### Fixed
+- Fixed an issue where uploads to AWS storage would be placed in the wrong path if no subfolder was present due to an initial `/` (Thanks, @JoshCoady).
+- Fixed an issue that would result in a division by zero exception if an external source image could not be downloaded and/or read (fixes #52).
+- Fixed an issue where an exception was thrown if ColorThief could not analyse an image.
+- Fixed how asset URL is retrieved to avoid `Assets::EVENT_GET_ASSET_URL` being called unnecessarily.
+
 ## 3.2.1 - 2020-09-12
 
 ### Added
