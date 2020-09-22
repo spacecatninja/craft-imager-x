@@ -19,47 +19,47 @@ class BaseTransformedImageModel
     /**
      * @var string
      */
-    public $path;
+    public $path = '';
     
     /**
      * @var string
      */
-    public $filename;
+    public $filename = '';
     
     /**
      * @var string
      */
-    public $url;
+    public $url = '';
     
     /**
      * @var string
      */
-    public $extension;
+    public $extension = '';
     
     /**
      * @var string
      */
-    public $mimeType;
+    public $mimeType = '';
     
     /**
      * @var int
      */
-    public $width;
+    public $width = 0;
     
     /**
      * @var int
      */
-    public $height;
+    public $height = 0;
     
     /**
      * @var int|float
      */
-    public $size;
+    public $size = 0;
     
     /**
      * @var bool
      */
-    public $isNew;
+    public $isNew = false;
 
     /**
      * @return string
@@ -118,13 +118,24 @@ class BaseTransformedImageModel
     }
     
     /**
+     * @param string $unit
+     * @param int    $precision
+     *
+     * @return float|int
+     */
+    public function getSize($unit = 'b', $precision = 2)
+    {
+        return 0;
+    }
+    
+    /**
      * @return bool
      */
     public function getIsNew(): bool 
     {
         return $this->isNew;
     }
-
+    
     /**
      * @return string
      */
