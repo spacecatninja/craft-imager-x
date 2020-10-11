@@ -195,10 +195,14 @@ class CraftTransformer extends Component implements TransformerInterface
                 throw new ImagerException($msg);
             }
 
-            if (!Craft::$app->images->checkMemoryForImage($sourceModel->getFilePath())) {
-                $msg = Craft::t('imager-x', 'Not enough memory available to perform this image operation.');
-                Craft::error($msg, __METHOD__);
-                throw new ImagerException($msg);
+            try {
+                if (!Craft::$app->images->checkMemoryForImage($sourceModel->getFilePath())) {
+                    $msg = Craft::t('imager-x', 'Not enough memory available to perform this image operation.');
+                    Craft::error($msg, __METHOD__);
+                    throw new ImagerException($msg);
+                }
+            } catch (ErrorException $e) {
+                // Do nothing, assume we have enough memory.
             }
 
             // Create the imageInstance. only once if reuse is enabled, or always
