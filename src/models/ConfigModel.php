@@ -12,6 +12,7 @@ namespace spacecatninja\imagerx\models;
 
 use craft\base\Model;
 
+use craft\helpers\ConfigHelper;
 use craft\helpers\FileHelper;
 use spacecatninja\imagerx\services\ImagerService;
 
@@ -57,6 +58,13 @@ class ConfigModel extends Settings
 
         $this->position = str_replace('%', '', $this->position);
 
+        // Replace localized settings
+        $localizables = ['imagerUrl'];
+        
+        foreach ($localizables as $localizable) {
+            $this->{$localizable} = ConfigHelper::localizedValue($this->{$localizable});
+        }
+        
         // Replace aliases
         $parseables = ['imagerSystemPath', 'imagerUrl'];
 

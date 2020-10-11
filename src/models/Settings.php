@@ -10,6 +10,7 @@
 
 namespace spacecatninja\imagerx\models;
 
+use craft\helpers\ConfigHelper;
 use craft\helpers\FileHelper;
 use craft\base\Model;
 use Yii;
