@@ -334,16 +334,19 @@ class LocalSourceImageModel
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
-
+        $imageUrl = $this->url;
+        
         // url encode filename to account for non-ascii characters in filenames.
-        $imageUrlArr = explode('?', $this->url);
+        if (!$config->useRawExternalUrl) {
+            $imageUrlArr = explode('?', $this->url);
 
-        $imageUrlArr[0] = preg_replace_callback('#://([^/]+)/([^?]+)#', function($match) {
-            return '://'.$match[1].'/'.implode('/', array_map('rawurlencode', explode('/', $match[2])));
-        }, urldecode($imageUrlArr[0]));
+            $imageUrlArr[0] = preg_replace_callback('#://([^/]+)/([^?]+)#', function ($match) {
+                return '://' . $match[1] . '/' . implode('/', array_map('rawurlencode', explode('/', $match[2])));
+            }, urldecode($imageUrlArr[0]));
 
-        $imageUrl = implode('?', $imageUrlArr);
-
+            $imageUrl = implode('?', $imageUrlArr);
+        }
+        
         if (\function_exists('curl_init')) {
             $ch = curl_init($imageUrl);
             $fp = fopen($this->getTemporaryFilePath(), 'wb');

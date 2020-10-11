@@ -63,6 +63,7 @@ class Settings extends Model
     public $fillInterval = '200';
     public $fallbackImage = null;
     public $mockImage = null;
+    public $useRawExternalUrl = true;
     public $clearKey = '';
     
     public $useForNativeTransforms = false;
