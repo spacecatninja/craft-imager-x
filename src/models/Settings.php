@@ -163,6 +163,8 @@ class Settings extends Model
     public $avifEncoderPath = '';
     public $avifEncoderOptions = [];
     public $avifConvertString = '{src} {dest}';
+    
+    public $transformerConfig = null;
 
     /**
      * Settings constructor.
@@ -176,6 +178,7 @@ class Settings extends Model
         if (!empty($config)) {
             Yii::configure($this, $config);
         }
+        
         $this->init();
     }
 
