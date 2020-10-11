@@ -1,5 +1,15 @@
 # Imager X Changelog
 
+## 3.2.3 - 2020-10-11
+
+### Added
+- Added support for localizing `imagerUrl` config setting (closes #55).
+- Added `useRawExternalUrl` config setting which can be used to opt out of the default external URL encoding (fixes #57).
+- Added `transformerConfig` that can be used to pass config settings directly to a custom transformer.
+
+### Fixed
+- Fixed issue where `checkMemoryForImage` could throw an exception (fixes #54).
+
 ## 3.2.2 - 2020-09-22
 
 ### Fixed
