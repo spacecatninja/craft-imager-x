@@ -11,3 +11,7 @@
 .generate-transforms-utility__block .instructions {
     margin-bottom: 10px;
 }
+
+.generate-transforms-utility__block fieldset{
+    margin-top: 0 !important;
+}
