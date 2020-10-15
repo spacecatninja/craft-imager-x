@@ -1,5 +1,17 @@
 # Imager X Changelog
 
+## 3.2.4 - 2020-10-15
+
+### Added
+- Added `source` to transformed images, which can be used to inspect the source model used to generate the transform (closes #58).
+
+### Fixed
+- Fixed top margins on fieldset's in generate utility (fixes #59).
+
+### Changed
+- Changed default value of registered transformers, the default `craft` transformer is now added statically to alleviate issues that could occur if an error occured, and the necessary events didn't fire (adresses #56).
+
+
 ## 3.2.3 - 2020-10-11
 
 ### Added
