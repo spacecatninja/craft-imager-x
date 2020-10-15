@@ -26,6 +26,7 @@ use spacecatninja\imagerx\models\TransformedImageInterface;
 use spacecatninja\imagerx\models\LocalSourceImageModel;
 use spacecatninja\imagerx\models\LocalTargetImageModel;
 use spacecatninja\imagerx\models\ConfigModel;
+use spacecatninja\imagerx\transformers\CraftTransformer;
 use spacecatninja\imagerx\transformers\TransformerInterface;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
@@ -59,7 +60,9 @@ class ImagerService extends Component
     /**
      * @var array
      */
-    public static $transformers = [];
+    public static $transformers = [
+        'craft' => CraftTransformer::class
+    ];
 
     /**
      * @var array
