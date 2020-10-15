@@ -59,6 +59,7 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
      */
     public function __construct($sourceModel, $transform)
     {
+        $this->source = $sourceModel;
         $this->path = $sourceModel->getFilePath();
         $this->filename = $sourceModel->filename;
         $this->url = $sourceModel->url;

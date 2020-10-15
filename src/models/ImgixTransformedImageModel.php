@@ -45,6 +45,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
      */
     public function __construct($imageUrl = null, $source = null, $params = null, $config = null)
     {
+        $this->source = $source;
         $this->profileConfig = $config;
         $this->params = $params;
         $this->imgixPath = ImgixHelpers::getImgixFilePath($source, $config);

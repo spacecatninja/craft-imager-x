@@ -34,6 +34,7 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
      */
     public function __construct($targetModel, $sourceModel, $transform)
     {
+        $this->source = $sourceModel;
         $this->path = $targetModel->getFilePath();
         $this->filename = $targetModel->filename;
         $this->url = $targetModel->url;

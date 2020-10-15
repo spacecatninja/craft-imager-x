@@ -17,6 +17,11 @@ use spacecatninja\imagerx\exceptions\ImagerException;
 class BaseTransformedImageModel
 {
     /**
+     * @var mixed
+     */
+    public $source = null;
+    
+    /**
      * @var string
      */
     public $path = '';
