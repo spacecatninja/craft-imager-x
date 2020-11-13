@@ -271,7 +271,8 @@ class ImgixTransformer extends Component implements TransformerInterface
             $r['smartResizeEnabled'],
             $r['removeMetadata'],
             $r['hashFilename'],
-            $r['hashRemoteUrl']
+            $r['hashRemoteUrl'],
+            $r['watermark']
         );
 
         // Remove any empty values in return array, since these will result in 
