@@ -168,7 +168,12 @@ class ImgixTransformer extends Component implements TransformerInterface
             }
         }
 
-        unset($transform['jpegQuality'], $transform['pngCompressionLevel'], $transform['webpQuality']);
+        // unset quality
+        unset(
+            $transform['jpegQuality'], 
+            $transform['pngCompressionLevel'], 
+            $transform['webpQuality']
+        );
 
         // Deal with resize mode, called fit in Imgix
         if (!isset($transform['fit'])) {
@@ -195,8 +200,6 @@ class ImgixTransformer extends Component implements TransformerInterface
                         $r['fit'] = 'crop';
                         break;
                 }
-
-                unset($transform['mode']);
             } else {
                 if (isset($r['w'], $r['h'])) {
                     $r['fit'] = 'crop';
@@ -206,7 +209,6 @@ class ImgixTransformer extends Component implements TransformerInterface
             }
         } else {
             $r['fit'] = $transform['fit'];
-            unset($transform['fit']);
         }
 
         // If fit is crop, and crop isn't specified, use position as focal point.
@@ -219,11 +221,18 @@ class ImgixTransformer extends Component implements TransformerInterface
 
             if (isset($transform['cropZoom'])) {
                 $r['fp-z'] = $transform['cropZoom'];
-                unset($transform['cropZoom']);
             }
 
-            unset($transform['position']);
         }
+        
+        // unset everything that has to do with mode and crop
+        unset(
+            $transform['mode'], 
+            $transform['fit'], 
+            $transform['cropZoom'], 
+            $transform['position'],
+            $transform['letterbox']
+        );
 
         // Add any explicitly set Imgix params
         if (isset($transform['imgixParams'])) {
