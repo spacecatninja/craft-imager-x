@@ -66,7 +66,7 @@ class ImagerColorService extends Component
      *
      * @return string|array|boolean|null
      */
-    public function getDominantColor($image, $quality, $colorValue)
+    public function getDominantColor($image, $quality = 10, $colorValue = 'hex')
     {
         try {
             $source = new LocalSourceImageModel($image);
@@ -101,7 +101,7 @@ class ImagerColorService extends Component
      *
      * @return array|null
      */
-    public function getColorPalette($image, $colorCount, $quality, $colorValue)
+    public function getColorPalette($image, $colorCount = 8, $quality = 10, $colorValue = 'hex')
     {
         try {
             $source = new LocalSourceImageModel($image);
