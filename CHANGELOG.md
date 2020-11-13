@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 3.2.5 - 2020-11-13
+
+### Added
+- Added default values for optional parameters in `getDominantColor` and `getColorPalette`.
+
+### Fixed
+- Fixed an issue where unused/irrelevant parameters wasn't unset before generating the Imgix transform string.
+
 ## 3.2.4 - 2020-10-15
 
 ### Added
