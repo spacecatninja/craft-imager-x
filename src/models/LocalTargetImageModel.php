@@ -123,6 +123,6 @@ class LocalTargetImageModel
         $patternFilename = mb_ereg_replace('{fullname\|shorthash}', substr(md5($fullname), 0, $shortHashLength), $patternFilename);
         $patternFilename = mb_ereg_replace('{transformString\|shorthash}', substr(md5($transformFileString), 0, $shortHashLength), $patternFilename);
 
-        return $patternFilename;
+        return rtrim($patternFilename, '.');
     }
 }
