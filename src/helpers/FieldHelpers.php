@@ -46,31 +46,35 @@ class FieldHelpers
     {
         if (strpos($handle, ':') !== false) {
             $segments = self::getFieldHandleSegments($handle);
-            
+
             if (empty($segments)) {
                 return null;
             }
 
-            list($matrixFieldHandle, $matrixBlockType, $matrixBlockFieldHandle) = $segments;
+            list($parentFieldHandle, $parentBlockType, $parentBlockFieldHandle) = $segments;
 
-            $matrixField = $element->{$matrixFieldHandle} ?? null;
+            $parentField = $element->{$parentFieldHandle} ?? null;
 
-            if (!$matrixField || !$matrixField instanceof MatrixBlockQuery) {
+            if (!$parentField) {
+                return null;
+            }
+            
+            if (!($parentField instanceof MatrixBlockQuery || $parentField instanceof \verbb\supertable\elements\db\SuperTableBlockQuery)) {
                 return null;
             }
 
-            $blockQuery = clone $matrixField;
+            $blockQuery = clone $parentField;
             $blocks = $blockQuery->all();
             
             $fields = [];
 
             /* @var MatrixBlock $block */
             foreach ($blocks as $block) {
-                if ($block->type->handle !== $matrixBlockType || !($block->{$matrixBlockFieldHandle} ?? null)) {
+                if (($block->type->handle !== $parentBlockType && $parentBlockType !== '*') || !($block->{$parentBlockFieldHandle} ?? null)) {
                     continue;
                 }
                 
-                $fields[] = $block->{$matrixBlockFieldHandle};
+                $fields[] = $block->{$parentBlockFieldHandle};
             }
 
             return !empty($fields) ? $fields : null;
