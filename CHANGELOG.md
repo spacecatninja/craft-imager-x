@@ -1,5 +1,17 @@
 # Imager X Changelog
 
+## 3.2.6 - 2020-11-22
+
+### Added
+- Added detection of extension from mime type for files without an extension, when no format is given.
+- Added support for targeting assets fields inside SuperTable fields in auto generate config, ie `'superTableField:*.myAssetsField'` (closes #75).
+- Added support for wildcards in type parameter when targeting matrix fields in auto generate config, ie `'matrixField:*.myAssetsField'`. 
+- Added `hideClearCachesForUserGroups` config setting which can be used to disable the clear cache paths for Imager for certain user groups (closes #68).
+
+### Fixed
+- Fixed an issue that would occur if no file extension and no transform format was set (fixes #74).
+- Fixed an issue where `getColorPalette` would return an incorrect number of colors. This hack mitigates an error in the underlying ColorThief library (fixes #69).
+
 ## 3.2.5 - 2020-11-13
 
 ### Added
