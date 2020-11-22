@@ -225,9 +225,6 @@ class ImagerX extends Plugin
             }
         );
 
-        // Register cache options
-        $this->registerCacheOptions();
-
         // Register element actions
         $this->registerElementActions();
 
@@ -250,6 +247,9 @@ class ImagerX extends Plugin
             Plugins::EVENT_AFTER_LOAD_PLUGINS,
 
             function () {
+                // Register cache options
+                $this->registerCacheOptions();
+
                 // Register transformers
                 $this->registerTransformers();
 
@@ -305,6 +305,18 @@ class ImagerX extends Plugin
      */
     private function registerCacheOptions()
     {
+        // Let's check if the user should see clear cache options 
+        $config = ImagerService::getConfig();
+        $identity = Craft::$app->getUser()->getIdentity();
+        
+        if ($identity && count($config->hideClearCachesForUserGroups) > 0) {
+            foreach ($config->hideClearCachesForUserGroups as $userGroup) {
+                if ($identity->isInGroup($userGroup)) {
+                    return;
+                }
+            }
+        }
+        
         // Adds Imager paths to the list of things the Clear Caches tool can delete
         Event::on(ClearCaches::class, ClearCaches::EVENT_REGISTER_CACHE_OPTIONS,
             static function (RegisterCacheOptionsEvent $event) {
@@ -330,7 +342,6 @@ class ImagerX extends Plugin
         // Register element action to assets for clearing transforms
         Event::on(Asset::class, Element::EVENT_REGISTER_ACTIONS,
             static function (RegisterElementActionsEvent $event) {
-                /** @var ConfigModel $config */
                 $config = ImagerService::getConfig();
 
                 $event->actions[] = ClearTransformsElementAction::class;
@@ -518,7 +529,6 @@ class ImagerX extends Plugin
      */
     private function registerRemoveTransformsListeners()
     {
-        /** @var ConfigModel $config */
         $config = ImagerService::getConfig();
         
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT,

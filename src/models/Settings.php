@@ -69,6 +69,7 @@ class Settings extends Model
     
     public $useForNativeTransforms = false;
     public $useForCpThumbs = false;
+    public $hideClearCachesForUserGroups = [];
 
     public $imgixProfile = 'default';
     public $imgixApiKey = '';
