@@ -111,12 +111,18 @@ class ImagerColorService extends Component
         }
 
         try {
-            $palette = ColorThief::getPalette($source->getFilePath(), $colorCount, $quality);
+            // Hack for count error in ColorThief
+            // See: https://github.com/lokesh/color-thief/issues/19 and https://github.com/lokesh/color-thief/pull/84
+            $adjustedColorCount = $colorCount > 7 ? $colorCount + 1 : $colorCount;
+            
+            $palette = ColorThief::getPalette($source->getFilePath(), $adjustedColorCount, $quality);
+            
+            $palette = array_slice($palette, 0, $colorCount);
         } catch (\RuntimeException $e) {
             \Craft::error('Couldn\'t get palette for "' . $source->getFilePath() . '". Error was: ' . $e->getMessage());
             return null;
         }
-
+        
         ImagerService::cleanSession();
 
         return $colorValue === 'hex' ? $this->paletteToHex($palette) : $palette;
