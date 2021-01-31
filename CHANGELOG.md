@@ -1,5 +1,19 @@
 # Imager X Changelog
 
+
+## 3.3.0 - 2021-01-31
+
+> {warning} If you're using the Imgix transformer, and have added an API key to enable purging, you need to create a new one since [Imgix is deprecating their old API in March](https://blog.imgix.com/2020/10/16/api-deprecation). This version of Imager X supports both the old and the new version, but you will get a deprecation error if you use an old API key.
+
+### Added 
+- Added support for the new Imgix API for purging. Deprecation notices are shown if the old API key appear to be for the old API (fixes #64).
+
+### Changed
+- Changed Imgix purging to remove the dependency on Guzzle.
+
+### Fixed
+- Fixed a typo that made it impossible to override CacheControl request headers for AWS external storage (fixes #82).
+
 ## 3.2.6 - 2020-11-22
 
 ### Added
