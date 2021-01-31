@@ -70,7 +70,7 @@ class AwsStorage implements ImagerStorageInterface
         $cacheDuration = $isFinal ? $config->cacheDurationExternalStorage : $config->cacheDurationNonOptimized;
         $visibility = !isset($settings['public']) || $settings['public'] === true ? 'public-read' : 'private'; 
 
-        if (!isset($opts['Cache-Control'])) {
+        if (!isset($opts['CacheControl'])) {
             $opts['CacheControl'] = 'max-age='.$cacheDuration.', must-revalidate';
         }
 
