@@ -66,7 +66,7 @@ class Settings extends Model
     public $mockImage = null;
     public $useRawExternalUrl = true;
     public $clearKey = '';
-    
+
     public $useForNativeTransforms = false;
     public $useForCpThumbs = false;
     public $hideClearCachesForUserGroups = [];
@@ -88,7 +88,7 @@ class Settings extends Model
             'excludeFromPurge' => false,
         ]
     ];
-    
+
     public $optimizeType = 'job';
     public $optimizers = [];
     public $optimizerConfig = [
@@ -123,7 +123,7 @@ class Settings extends Model
             'optionString' => '--optimize=3 --colors 256',
         ],
         'tinypng' => [
-            'extensions' => ['png','jpg'],
+            'extensions' => ['png', 'jpg'],
             'apiKey' => '',
         ],
         'kraken' => [
@@ -140,7 +140,7 @@ class Settings extends Model
             'quality' => 'medium'
         ],
     ];
-    
+
     public $storages = [];
     public $storageConfig = [
         'aws' => [
@@ -161,11 +161,11 @@ class Settings extends Model
             'folder' => '',
         ],
     ];
-    
+
     public $avifEncoderPath = '';
     public $avifEncoderOptions = [];
     public $avifConvertString = '{src} {dest}';
-    
+
     public $transformerConfig = null;
 
     /**
@@ -176,11 +176,11 @@ class Settings extends Model
     public function __construct($config = [])
     {
         parent::__construct($config);
-        
+
         if (!empty($config)) {
             Yii::configure($this, $config);
         }
-        
+
         $this->init();
     }
 

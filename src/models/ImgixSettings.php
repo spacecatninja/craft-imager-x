@@ -44,5 +44,9 @@ class ImgixSettings extends Model
                 $this->domain = $this->domains[0];
             }
         }
+        
+        if ($this->apiKey !== '' && strlen($this->apiKey)<50) {
+            \Craft::$app->deprecator->log(__METHOD__, 'You appear to be using an API key for the old version of the Imgix API. You need to acquire a new one, with permissions to purge, and replace the old one in your imager-x.php config file with it. See https://blog.imgix.com/2020/10/16/api-deprecation for more information.');
+        }
     }
 }

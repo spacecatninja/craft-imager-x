@@ -42,7 +42,8 @@ class ImgixService extends Component
     /**
      *  The Imgix API endpoint for purging images
      */
-    const PURGE_ENDPOINT = 'https://api.imgix.com/v2/image/purger';
+    const PURGE_ENDPOINT_OLD = 'https://api.imgix.com/v2/image/purger';
+    const PURGE_ENDPOINT = 'https://api.imgix.com/api/v1/purge';
 
     /**
      * @var bool If purging is enabled or not
@@ -92,13 +93,31 @@ class ImgixService extends Component
      */
     public function purgeUrlFromImgix(string $url, string $apiKey)
     {
+        $isOld = strlen($apiKey)<50;
+        
         try {
-            $headers = array(
-                'Content-Type:application/json',
-                'Authorization: Basic ' . base64_encode("{$apiKey}:")
-            );
-            $payload = json_encode(array("url" => $url));
-            $curl = curl_init(self::PURGE_ENDPOINT);
+            if ($isOld) {
+                $headers = [
+                    'Content-Type:application/json',
+                    'Authorization: Basic ' . base64_encode("{$apiKey}:")
+                ];
+                $payload = json_encode(["url" => $url]);
+            } else {
+                $headers = [
+                    'Content-Type:application/json',
+                    'Authorization: Bearer ' . $apiKey
+                ];
+                $payload = json_encode([
+                    'data' => [
+                        'attributes' => [
+                            'url' => $url
+                        ],
+                        'type' => 'purges'
+                    ]
+                ]);
+            }
+            
+            $curl = curl_init($isOld ? self::PURGE_ENDPOINT_OLD : self::PURGE_ENDPOINT);
             
             $opts = [
                 CURLOPT_HTTPHEADER => $headers,
@@ -125,7 +144,7 @@ class ImgixService extends Component
                 $msg = Craft::t('imager-x', 'An error occured when trying to purge “{url}”, status was “{httpStatus}” and respose was “{response}”', ['url' => $url, 'httpStatus' => $httpStatus, 'response' => $response]);
                 Craft::error($msg);
             }
-
+            
         } catch (\Throwable $e) {
             Craft::error($e->getMessage(), __METHOD__);
             // We don't continue to throw this error, since it could be caused by a duplicated request.
