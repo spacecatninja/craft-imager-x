@@ -1,5 +1,9 @@
 # Imager X Changelog
 
+## 3.3.1 - 2021-03-31
+
+### Fixed
+- Fixed an issue that would create double slashes if `addVolumeToPath` was set to `false`.
 
 ## 3.3.0 - 2021-01-31
 
