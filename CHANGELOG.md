@@ -1,6 +1,21 @@
 # Imager X Changelog
 
-## 3.3.1 - 2021-03-31
+## 3.4.0 - 2021-03-31
+
+> {warning} Imager X now requires PHP 7.2.5 or newer.
+
+> {warning} If you're using the ImageOptim optimizer, it have now been removed from core due to lack of support for PHP 8.0 in a required library. It is instead available as [a separate plugin](https://github.com/spacecatninja/craft-imager-x-imageoptim-optimizer). All you need to do is install it, no code or config changes needed.
+
+### Changed
+- Imager X now requires PHP 7.2.5 or higher.
+- ImageOptim optimizer was removed to ensure compability with PHP 8.0 (fixes #94). The optimizer has been split out into a separate package, `spacecatninja/imager-x-imageoptim-optimizer`, which can be installed to make the optimizer continue working.
+
+### Added 
+- Added support for blurhash encoding both for local transforms (adresses #67), and through Imgix (adresses #86).
+- Added support for returning a transform in blurhash "format" when using the GraphQL transformImage directive.
+
+
+## 3.3.1 - 2021-03-30
 
 ### Fixed
 - Fixed an issue that would create double slashes if `addVolumeToPath` was set to `false`.
