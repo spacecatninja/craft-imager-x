@@ -19,6 +19,8 @@ use spacecatninja\imagerx\exceptions\ImagerException;
 use Imagine\Exception\InvalidArgumentException;
 use Imagine\Image\Box;
 
+use kornrunner\Blurhash\Blurhash;
+
 use yii\base\InvalidConfigException;
 
 class LocalTransformedImageModel extends BaseTransformedImageModel implements TransformedImageInterface
@@ -114,5 +116,43 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
         return base64_encode($image);
     }
 
+    /**
+     * @return string
+     */
+    public function getBlurhash()
+    {
+        $blurhashFile = $this->getPath();
+        $key = 'imager-x-local-blurhash-' . base64_encode($blurhashFile);
+        $cache = \Craft::$app->getCache();
+        
+        $blurhashData = $cache->getOrSet($key, static function () use ($blurhashFile) {
+            $image = imagecreatefromstring(file_get_contents($blurhashFile));
+            $width = imagesx($image);
+            $height = imagesy($image);
+            
+            $pixels = [];
+            for ($y = 0; $y < $height; ++$y) {
+                $row = [];
+                for ($x = 0; $x < $width; ++$x) {
+                    $index = imagecolorat($image, $x, $y);
+                    $colors = imagecolorsforindex($image, $index);
+            
+                    $row[] = [$colors['red'], $colors['green'], $colors['blue']];
+                }
+                $pixels[] = $row;
+            }
+            
+            $components_x = 4;
+            $components_y = 3;
+            return Blurhash::encode($pixels, $components_x, $components_y);
+        });
+        
+        if (!$blurhashData) {
+            \Craft::error('An error occured when trying to create blurhash from local file. The file path was: ' . $blurhashFile);
+            return '';
+        }
+        
+        return (string)$blurhashData;
+    }
     
 }

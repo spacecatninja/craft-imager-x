@@ -159,6 +159,30 @@ class BaseTransformedImageModel
     {
         return $this->isNew;
     }
+    
+    /**
+     * @return string
+     */
+    public function getDataUri(): string
+    {
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getBase64Encoded(): string
+    {
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getBlurhash()
+    {
+        return '';
+    }
 
     /**
      * @return string

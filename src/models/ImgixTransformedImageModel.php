@@ -270,7 +270,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getBlurhash()
     {
@@ -290,7 +290,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
         
         if (!$blurhashData) {
             \Craft::error('An error occured when trying to get blurhash data from Imgix. The URL was: ' . $blurhashUrl);
-            return null;
+            return '';
         }
         
         return (string)$blurhashData;
