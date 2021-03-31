@@ -253,20 +253,47 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
             $params['prefix'] = $cssPrefix;
         }
         
-        $paletteUrl = $builder->createURL($this->imgixPath, $params);
-        $key = 'imager-x-imgix-palette-' . base64_encode($paletteUrl);
+        $blurhashUrl = $builder->createURL($this->imgixPath, $params);
+        $key = 'imager-x-imgix-palette-' . base64_encode($blurhashUrl);
         
         $cache = \Craft::$app->getCache();
-        $paletteData = $cache->getOrSet($key, static function () use ($paletteUrl) {
-            return @file_get_contents($paletteUrl);
+        $blurhashData = $cache->getOrSet($key, static function () use ($blurhashUrl) {
+            return @file_get_contents($blurhashUrl);
         });
         
-        if (!$paletteData) {
-            \Craft::error('An error occured when trying to get palette data from Imgix. The URL was: ' . $paletteUrl);
+        if (!$blurhashData) {
+            \Craft::error('An error occured when trying to get palette data from Imgix. The URL was: ' . $blurhashUrl);
             return null;
         }
         
-        return $format === 'json' ? json_decode($paletteData, false) : $paletteData;
+        return $format === 'json' ? json_decode($blurhashData, false) : $blurhashData;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getBlurhash()
+    {
+        $builder = ImgixHelpers::getBuilder($this->profileConfig);
+        
+        $params = $this->params ?? [];
+        $params['fm'] = 'blurhash';
+        
+        $blurhashUrl = $builder->createURL($this->imgixPath, $params);
+        
+        $key = 'imager-x-imgix-blurhash-' . base64_encode($blurhashUrl);
+        
+        $cache = \Craft::$app->getCache();
+        $blurhashData = $cache->getOrSet($key, static function () use ($blurhashUrl) {
+            return @file_get_contents($blurhashUrl);
+        });
+        
+        if (!$blurhashData) {
+            \Craft::error('An error occured when trying to get blurhash data from Imgix. The URL was: ' . $blurhashUrl);
+            return null;
+        }
+        
+        return (string)$blurhashData;
     }
     
 }

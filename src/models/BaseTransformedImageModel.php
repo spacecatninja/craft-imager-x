@@ -20,47 +20,47 @@ class BaseTransformedImageModel
      * @var mixed
      */
     public $source = null;
-    
+
     /**
      * @var string
      */
     public $path = '';
-    
+
     /**
      * @var string
      */
     public $filename = '';
-    
+
     /**
      * @var string
      */
     public $url = '';
-    
+
     /**
      * @var string
      */
     public $extension = '';
-    
+
     /**
      * @var string
      */
     public $mimeType = '';
-    
+
     /**
      * @var int
      */
     public $width = 0;
-    
+
     /**
      * @var int
      */
     public $height = 0;
-    
+
     /**
      * @var int|float
      */
     public $size = 0;
-    
+
     /**
      * @var bool
      */
@@ -121,10 +121,10 @@ class BaseTransformedImageModel
     {
         return (int)$this->height;
     }
-    
+
     /**
      * @param string $unit
-     * @param int    $precision
+     * @param int $precision
      *
      * @return float|int
      */
@@ -132,29 +132,13 @@ class BaseTransformedImageModel
     {
         return 0;
     }
-    
-    /**
-     * @return bool
-     */
-    public function getIsNew(): bool 
-    {
-        return $this->isNew;
-    }
-    
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return (string)$this->url;
-    }
-    
+
     /**
      * @param array $settings
      * @return string
      * @throws ImagerException
      */
-    public function getPlaceholder($settings = []):string
+    public function getPlaceholder($settings = []): string
     {
         if ($settings) {
             if (!isset($settings['width'])) {
@@ -164,7 +148,24 @@ class BaseTransformedImageModel
                 $settings['height'] = $this->height;
             }
         }
-        
+
         return ImagerX::$plugin->placeholder->placeholder($settings);
     }
+
+    /**
+     * @return bool
+     */
+    public function getIsNew(): bool
+    {
+        return $this->isNew;
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return (string)$this->url;
+    }
+
 }
