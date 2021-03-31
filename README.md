@@ -7,7 +7,7 @@ Installation
 To install Imager X, follow these steps:
 
 1. Install with composer via `composer require spacecatninja/imager-x` from your project directory.
-2. Install the plugin in the Craft Control Panel under Settings > Plugins, or from the command line via `./craft install/plugin imager-x`.
+2. Install the plugin in the Craft Control Panel under Settings > Plugins, or from the command line via `./craft plugin/install imager-x`.
 3. [Configure it](http://imager-x.spacecat.ninja/configuration.html).
 
 Imager X requires Craft 3.3 or higher. 
