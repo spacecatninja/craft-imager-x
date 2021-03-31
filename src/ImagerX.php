@@ -92,7 +92,6 @@ use spacecatninja\imagerx\effects\OilPaintEffect;
 use spacecatninja\imagerx\effects\RadialBlurEffect;
 
 use spacecatninja\imagerx\optimizers\GifsicleOptimizer;
-use spacecatninja\imagerx\optimizers\ImageoptimOptimizer;
 use spacecatninja\imagerx\optimizers\JpegoptimOptimizer;
 use spacecatninja\imagerx\optimizers\JpegtranOptimizer;
 use spacecatninja\imagerx\optimizers\KrakenOptimizer;
@@ -655,7 +654,6 @@ class ImagerX extends Plugin
             'gifsicle' => GifsicleOptimizer::class,
             'tinypng' => TinypngOptimizer::class,
             'kraken' => KrakenOptimizer::class,
-            'imageoptim' => ImageoptimOptimizer::class,
         ];
 
         $event = new RegisterOptimizersEvent([
