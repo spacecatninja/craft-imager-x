@@ -110,16 +110,6 @@ class ImagerTransformedImageInterface extends BaseInterfaceType
                 'type' => Type::int(),
                 'description' => 'Size of transformed image.',
             ],
-            'dataUri' => [
-                'name' => 'dataUri',
-                'type' => Type::string(),
-                'description' => 'Data URI of transformed image.',
-            ],
-            'base64Encoded' => [
-                'name' => 'base64Encoded',
-                'type' => Type::string(),
-                'description' => 'base64 encoded version of the image.',
-            ],
             'isNew' => [
                 'name' => 'isNew',
                 'type' => Type::boolean(),

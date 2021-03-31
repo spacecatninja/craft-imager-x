@@ -106,6 +106,10 @@ class ImagerTransform extends Directive
             return $transformedImage->getDataUri();
         }
         
+        if ($returnType === 'blurhash') {
+            return $transformedImage->getBlurhash();
+        }
+        
         return $transformedImage->getUrl();
     }
 }
