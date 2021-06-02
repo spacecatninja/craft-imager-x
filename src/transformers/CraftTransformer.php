@@ -233,7 +233,7 @@ class CraftTransformer extends Component implements TransformerInterface
                     $gif->layers()->remove(0);
                 }
 
-                list($startFrame, $endFrame, $interval) = $this->getFramesVars($layers, $transform);
+                [$startFrame, $endFrame, $interval] = $this->getFramesVars($layers, $transform);
 
                 for ($i = $startFrame; $i <= $endFrame; $i += $interval) {
                     if (isset($layers[$i])) {
@@ -305,6 +305,10 @@ class CraftTransformer extends Component implements TransformerInterface
         // Apply any pre resize filters
         if (isset($transform['preEffects'])) {
             $this->applyEffects($layer, $transform['preEffects']);
+        }
+
+        if (isset($transform['trim'])) {
+            $this->trim($layer, $transform['trim']);
         }
 
         try {
@@ -857,6 +861,20 @@ class CraftTransformer extends Component implements TransformerInterface
                 $effectClass = ImagerService::$effects[$effect];
                 $effectClass::apply($image, $value);
             }
+        }
+    }
+
+    /**
+     * Applies trim to image.
+     *
+     * @param GdImage|ImagickImage $image
+     * @param float $fuzz
+     */
+    private function trim($image, $fuzz)
+    {
+        if (ImagerService::$imageDriver === 'imagick') {
+            $image->getImagick()->trimImage($fuzz);
+            $image->getImagick()->setImagePage(0, 0, 0, 0);
         }
     }
 
