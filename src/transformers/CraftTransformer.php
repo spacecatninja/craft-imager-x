@@ -873,7 +873,7 @@ class CraftTransformer extends Component implements TransformerInterface
     private function trim($image, $fuzz)
     {
         if (ImagerService::$imageDriver === 'imagick') {
-            $image->getImagick()->trimImage($fuzz);
+            $image->getImagick()->trimImage(\Imagick::getQuantum() * $fuzz);
             $image->getImagick()->setImagePage(0, 0, 0, 0);
         }
     }
