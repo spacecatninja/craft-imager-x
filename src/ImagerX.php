@@ -25,7 +25,6 @@ use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\ReplaceAssetEvent;
 use craft\helpers\FileHelper;
-use craft\helpers\Image;
 use craft\models\AssetTransform;
 use craft\services\Assets;
 use craft\services\Elements;
@@ -41,7 +40,6 @@ use spacecatninja\imagerx\effects\OpacityEffect;
 use spacecatninja\imagerx\utilities\GenerateTransformsUtility;
 use yii\base\Event;
 
-use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\models\TransformedImageInterface;
 use spacecatninja\imagerx\elementactions\ClearTransformsElementAction;
 use spacecatninja\imagerx\elementactions\ImgixPurgeElementAction;
@@ -120,30 +118,30 @@ use spacecatninja\imagerx\events\RegisterOptimizersEvent;
  * @package   Imager X
  * @since     2.0.0
  *
- * @property  ImagerService $imager
- * @property  ImagerService $imagerx
+ * @property  ImagerService      $imager
+ * @property  ImagerService      $imagerx
  * @property  ImagerColorService $color
  * @property  PlaceholderService $placeholder
- * @property  ImgixService $imgix
- * @property  GenerateService $generate
- * @property  StorageService $storage
- * @property  OptimizerService $optimizer
+ * @property  ImgixService       $imgix
+ * @property  GenerateService    $generate
+ * @property  StorageService     $storage
+ * @property  OptimizerService   $optimizer
  */
 class ImagerX extends Plugin
 {
     // Events
     // =========================================================================
 
-    const EVENT_REGISTER_TRANSFORMERS = 'imagerxRegisterTransformers';
-    const EVENT_REGISTER_EXTERNAL_STORAGES = 'imagerxRegisterExternalStorages';
-    const EVENT_REGISTER_EFFECTS = 'imagerxRegisterEffects';
-    const EVENT_REGISTER_OPTIMIZERS = 'imagerxRegisterOptimizers';
+    public const EVENT_REGISTER_TRANSFORMERS = 'imagerxRegisterTransformers';
+    public const EVENT_REGISTER_EXTERNAL_STORAGES = 'imagerxRegisterExternalStorages';
+    public const EVENT_REGISTER_EFFECTS = 'imagerxRegisterEffects';
+    public const EVENT_REGISTER_OPTIMIZERS = 'imagerxRegisterOptimizers';
 
     // Static Properties
     // =========================================================================
 
-    const EDITION_LITE = 'lite';
-    const EDITION_PRO = 'pro';
+    public const EDITION_LITE = 'lite';
+    public const EDITION_PRO = 'pro';
 
     /**
      * Static property that is an instance of this plugin class so that it can be accessed via
@@ -185,7 +183,7 @@ class ImagerX extends Plugin
         // Load additional config files
         $this->loadAdditionalConfigs();
 
-        /** @var ConfigModel $config */
+        // Create config model
         $config = ImagerService::getConfig();
 
         // Add our Twig extensions
@@ -193,7 +191,7 @@ class ImagerX extends Plugin
 
         // Register our variables
         Event::on(CraftVariable::class, CraftVariable::EVENT_INIT,
-            static function (Event $event) {
+            static function(Event $event) {
                 /** @var CraftVariable $variable */
                 $variable = $event->sender;
                 $variable->set('imager', ImagerVariable::class);
@@ -204,7 +202,7 @@ class ImagerX extends Plugin
         // Register utility
         if (self::getInstance()->is(self::EDITION_PRO)) {
             Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITY_TYPES,
-                static function (RegisterComponentTypesEvent $event) {
+                static function(RegisterComponentTypesEvent $event) {
                     $event->types[] = GenerateTransformsUtility::class;
                 }
             );
@@ -212,7 +210,7 @@ class ImagerX extends Plugin
 
         // Event listener for clearing caches when an asset is replaced
         Event::on(Assets::class, Assets::EVENT_AFTER_REPLACE_ASSET,
-            static function (ReplaceAssetEvent $event) use ($config) {
+            static function(ReplaceAssetEvent $event) use ($config) {
                 if ($event->asset) {
                     ImagerX::$plugin->imagerx->removeTransformsForAsset($event->asset);
 
@@ -245,7 +243,7 @@ class ImagerX extends Plugin
             Plugins::class,
             Plugins::EVENT_AFTER_LOAD_PLUGINS,
 
-            function () {
+            function() {
                 // Register cache options
                 $this->registerCacheOptions();
 
@@ -280,7 +278,7 @@ class ImagerX extends Plugin
     /**
      * Load additional config files
      */
-    private function loadAdditionalConfigs()
+    private function loadAdditionalConfigs(): void
     {
         // Named transforms
         $transformsConfig = Craft::$app->config->getConfigFromFile('imager-x-transforms');
@@ -302,12 +300,12 @@ class ImagerX extends Plugin
     /**
      * Register cache options
      */
-    private function registerCacheOptions()
+    private function registerCacheOptions(): void
     {
         // Let's check if the user should see clear cache options 
         $config = ImagerService::getConfig();
         $identity = Craft::$app->getUser()->getIdentity();
-        
+
         if ($identity && count($config->hideClearCachesForUserGroups) > 0) {
             foreach ($config->hideClearCachesForUserGroups as $userGroup) {
                 if ($identity->isInGroup($userGroup)) {
@@ -315,10 +313,10 @@ class ImagerX extends Plugin
                 }
             }
         }
-        
+
         // Adds Imager paths to the list of things the Clear Caches tool can delete
         Event::on(ClearCaches::class, ClearCaches::EVENT_REGISTER_CACHE_OPTIONS,
-            static function (RegisterCacheOptionsEvent $event) {
+            static function(RegisterCacheOptionsEvent $event) {
                 $event->options[] = [
                     'key' => 'imager-transform-cache',
                     'label' => Craft::t('imager-x', 'Imager image transform cache'),
@@ -327,7 +325,7 @@ class ImagerX extends Plugin
                 $event->options[] = [
                     'key' => 'imager-remote-images-cache',
                     'label' => Craft::t('imager-x', 'Imager remote images cache'),
-                    'action' => FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/')
+                    'action' => FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath().'/imager/')
                 ];
             }
         );
@@ -336,11 +334,11 @@ class ImagerX extends Plugin
     /**
      * Register element actions
      */
-    private function registerElementActions()
+    private function registerElementActions(): void
     {
         // Register element action to assets for clearing transforms
         Event::on(Asset::class, Element::EVENT_REGISTER_ACTIONS,
-            static function (RegisterElementActionsEvent $event) {
+            static function(RegisterElementActionsEvent $event) {
                 $config = ImagerService::getConfig();
 
                 $event->actions[] = ClearTransformsElementAction::class;
@@ -365,14 +363,14 @@ class ImagerX extends Plugin
     /**
      * Register events for overriding native functionality
      */
-    private function registerNativeOverrides()
+    private function registerNativeOverrides(): void
     {
         $config = ImagerService::getConfig();
 
         // Event listener for overriding Craft's internal transform functionality
         if ($config->useForNativeTransforms) {
             Event::on(Assets::class, Assets::EVENT_GET_ASSET_URL,
-                static function (GetAssetUrlEvent $event) {
+                static function(GetAssetUrlEvent $event) {
                     if ($event->asset !== null && $event->transform !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
                             $transform = $event->transform;
@@ -397,7 +395,7 @@ class ImagerX extends Plugin
                             if (is_array($transform)) {
                                 // We need to reset the transform here to avoid an infinite loop
                                 $event->asset->setTransform(null);
-                                
+
                                 // Do the transform
                                 $transformedImage = ImagerX::$plugin->imagerx->transformImage($event->asset, $transform);
 
@@ -416,7 +414,7 @@ class ImagerX extends Plugin
         // Event listener for overriding Craft's internal thumb url
         if ($config->useForCpThumbs) {
             Event::on(Assets::class, Assets::EVENT_GET_ASSET_THUMB_URL,
-                static function (GetAssetThumbUrlEvent $event) {
+                static function(GetAssetThumbUrlEvent $event) {
                     if ($event->asset !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
                             /** @var TransformedImageInterface $transformedImage */
@@ -437,14 +435,14 @@ class ImagerX extends Plugin
     /**
      * Register GraphQL event listeners
      */
-    private function registerGraphQL()
+    private function registerGraphQL(): void
     {
         if (self::getInstance()->is(self::EDITION_PRO)) {
             // Register types
             Event::on(
                 Gql::class,
                 Gql::EVENT_REGISTER_GQL_TYPES,
-                static function (RegisterGqlTypesEvent $event) {
+                static function(RegisterGqlTypesEvent $event) {
                     Craft::debug(
                         'Gql::EVENT_REGISTER_GQL_TYPES',
                         __METHOD__
@@ -456,7 +454,7 @@ class ImagerX extends Plugin
             // Register query
             Event::on(Gql::class,
                 Gql::EVENT_REGISTER_GQL_QUERIES,
-                static function (RegisterGqlQueriesEvent $event) {
+                static function(RegisterGqlQueriesEvent $event) {
                     $queries = ImagerQuery::getQueries();
                     foreach ($queries as $key => $value) {
                         $event->queries[$key] = $value;
@@ -467,7 +465,7 @@ class ImagerX extends Plugin
             // Register directives
             Event::on(Gql::class,
                 Gql::EVENT_REGISTER_GQL_DIRECTIVES,
-                static function (RegisterGqlDirectivesEvent $event) {
+                static function(RegisterGqlDirectivesEvent $event) {
                     $event->directives[] = ImagerTransform::class;
                     $event->directives[] = ImagerSrcset::class;
                 }
@@ -478,7 +476,7 @@ class ImagerX extends Plugin
     /**
      * Register event listeners for generate functionality
      */
-    private function registerGenerateListeners()
+    private function registerGenerateListeners(): void
     {
         if (self::getInstance()->is(self::EDITION_PRO)) {
             if (ImagerService::$generateConfig === null) {
@@ -487,7 +485,7 @@ class ImagerX extends Plugin
 
             Event::on(Elements::class,
                 Elements::EVENT_AFTER_SAVE_ELEMENT,
-                static function (ElementEvent $event) {
+                static function(ElementEvent $event) {
                     /** @var GenerateSettings $config */
                     $config = ImagerService::$generateConfig;
 
@@ -526,12 +524,12 @@ class ImagerX extends Plugin
     /**
      * Register event listeners for removing transforms automatically.
      */
-    private function registerRemoveTransformsListeners()
+    private function registerRemoveTransformsListeners(): void
     {
         $config = ImagerService::getConfig();
-        
+
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT,
-            static function (ElementEvent $event) use ($config) {
+            static function(ElementEvent $event) use ($config) {
                 if ($event->element && $event->element instanceof Asset) {
                     /** @var Asset $asset */
                     $asset = $event->element;
@@ -545,12 +543,12 @@ class ImagerX extends Plugin
                 }
             }
         );
-        
+
         Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT,
-            static function (ElementEvent $event) use ($config) {
+            static function(ElementEvent $event) use ($config) {
                 /** @var Element $element */
                 $element = $event->element;
-                
+
                 if ($element && $element instanceof Asset && $element->scenario === Asset::SCENARIO_FILEOPS) {
                     ImagerX::$plugin->imagerx->removeTransformsForAsset($element);
 
@@ -566,7 +564,7 @@ class ImagerX extends Plugin
     /**
      * Register built-in transformers
      */
-    private function registerTransformers()
+    private function registerTransformers(): void
     {
         if (self::getInstance()->is(self::EDITION_PRO)) {
             $data = [
@@ -591,7 +589,7 @@ class ImagerX extends Plugin
     /**
      * Register effects
      */
-    private function registerEffects()
+    private function registerEffects(): void
     {
         $data = [
             // Both for GD and Imagick
@@ -643,7 +641,7 @@ class ImagerX extends Plugin
     /**
      * Register optimizers
      */
-    private function registerOptimizers()
+    private function registerOptimizers(): void
     {
         $data = [
             'jpegoptim' => JpegoptimOptimizer::class,
@@ -670,7 +668,7 @@ class ImagerX extends Plugin
     /**
      * Register external storage options
      */
-    private function registerExternalStorages()
+    private function registerExternalStorages(): void
     {
         if (self::getInstance()->is(self::EDITION_PRO)) {
             $data = [
