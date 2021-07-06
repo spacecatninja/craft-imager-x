@@ -570,13 +570,15 @@ class ImagerService extends Component
             $targetModel = new LocalTargetImageModel($sourceModel, []);
 
             if (strpos($targetModel->path, $config->imagerSystemPath) !== false) {
-                try {
-                    FileHelper::clearDirectory(FileHelper::normalizePath($targetModel->path));
-                    FileHelper::removeDirectory(FileHelper::normalizePath($targetModel->path));
-                } catch (ErrorException $e) {
-                    Craft::error('Could not clear directory "' . $targetModel->path . '" (' . $e->getMessage() . ')', __METHOD__);
-                } catch (InvalidArgumentException $e) {
-                    Craft::error('Could not clear directory "' . $targetModel->path . '" (' . $e->getMessage() . ')', __METHOD__);
+                if (is_dir($targetModel->path)) {
+                    try {
+                        FileHelper::clearDirectory(FileHelper::normalizePath($targetModel->path));
+                        FileHelper::removeDirectory(FileHelper::normalizePath($targetModel->path));
+                    } catch (ErrorException $e) {
+                        Craft::error('Could not clear directory "' . $targetModel->path . '" (' . $e->getMessage() . ')', __METHOD__);
+                    } catch (InvalidArgumentException $e) {
+                        Craft::error('Could not clear directory "' . $targetModel->path . '" (' . $e->getMessage() . ')', __METHOD__);
+                    }
                 }
 
                 Craft::$app->templateCaches->deleteCachesByElementId($asset->id);
@@ -598,7 +600,10 @@ class ImagerService extends Component
         $path = Plugin::$plugin->getSettings()->imagerSystemPath;
 
         try {
-            FileHelper::clearDirectory(FileHelper::normalizePath($path));
+            $dir = FileHelper::normalizePath($path);
+            if (is_dir($dir)) {
+                FileHelper::clearDirectory($dir);
+            }
         } catch (ErrorException $e) {
             Craft::error('Could not clear directory "' . $path . '" (' . $e->getMessage() . ')', __METHOD__);
         } catch (InvalidArgumentException $e) {
@@ -619,7 +624,10 @@ class ImagerService extends Component
         }
 
         try {
-            FileHelper::clearDirectory(FileHelper::normalizePath($path));
+            $dir = FileHelper::normalizePath($path);
+            if (is_dir($dir)) {
+                FileHelper::clearDirectory($dir);
+            }
         } catch (ErrorException $e) {
             Craft::error('Could not clear directory "' . $path . '" (' . $e->getMessage() . ')', __METHOD__);
         } catch (InvalidArgumentException $e) {
