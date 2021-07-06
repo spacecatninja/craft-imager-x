@@ -1,5 +1,16 @@
 # Imager X Changelog
 
+
+## 3.4.1 - 2021-07-05
+
+### Added
+- Added trim transform parameter (closes #99).
+
+### Fixed
+- Fixed an issue that could cause errors when trying to clear transforms in environments without an accessible file system (Thanks, @boboldehampsink).
+- Fixed use of deprecated method `deleteCachesByElementId` when removing transformed assets (fixes #107).
+
+
 ## 3.4.0 - 2021-03-31
 
 > {warning} Imager X now requires PHP 7.2.5 or newer.
