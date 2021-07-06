@@ -481,7 +481,7 @@ class ImagerHelpers
      * Returns something that can be used as a fallback image for the transform method.
      *
      * @param string|Asset|int|null $configValue
-     * @return Asset|array|string|null
+     * @return Asset|string|null
      */
     public static function getTransformableFromConfigSetting($configValue)
     {

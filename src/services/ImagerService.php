@@ -227,7 +227,7 @@ class ImagerService extends Component
     /**
      * Detects which image driver to use
      */
-    public static function detectImageDriver()
+    public static function detectImageDriver(): void
     {
         $extension = mb_strtolower(Craft::$app->getConfig()->getGeneral()->imageDriver);
 
@@ -283,7 +283,7 @@ class ImagerService extends Component
      * @param string $handle
      * @param string $class
      */
-    public static function registerTransformer($handle, $class)
+    public static function registerTransformer(string $handle, string $class): void
     {
         self::$transformers[mb_strtolower($handle)] = $class;
     }
@@ -292,7 +292,7 @@ class ImagerService extends Component
      * @param string $handle
      * @param string $class
      */
-    public static function registerEffect($handle, $class)
+    public static function registerEffect(string $handle, string $class): void
     {
         self::$effects[mb_strtolower($handle)] = $class;
     }
@@ -301,7 +301,7 @@ class ImagerService extends Component
      * @param string $handle
      * @param string $class
      */
-    public static function registerOptimizer($handle, $class)
+    public static function registerOptimizer(string $handle, string $class): void
     {
         self::$optimizers[mb_strtolower($handle)] = $class;
     }
@@ -310,7 +310,7 @@ class ImagerService extends Component
      * @param string $handle
      * @param string $class
      */
-    public static function registerExternalStorage($handle, $class)
+    public static function registerExternalStorage(string $handle, string $class): void
     {
         self::$storage[mb_strtolower($handle)] = $class;
     }
@@ -318,7 +318,7 @@ class ImagerService extends Component
     /**
      * @param string $path
      */
-    public static function registerCachedRemoteFile($path)
+    public static function registerCachedRemoteFile(string $path): void
     {
         self::$remoteImageSessionCache[] = $path;
     }
@@ -327,7 +327,7 @@ class ImagerService extends Component
      * @param string $name
      * @param array  $transform
      */
-    public static function registerNamedTransform($name, $transform)
+    public static function registerNamedTransform(string $name, array $transform): void
     {
         self::$namedTransforms[$name] = $transform;
     }
@@ -339,13 +339,13 @@ class ImagerService extends Component
     /**
      * @param Asset|string|null $image
      * @param array|string      $transforms
-     * @param array             $transformDefaults
-     * @param array             $configOverrides
+     * @param array|null        $transformDefaults
+     * @param array|null        $configOverrides
      *
      * @return array|TransformedImageInterface|null
      * @throws ImagerException
      */
-    public function transformImage($image, $transforms, $transformDefaults = null, $configOverrides = null)
+    public function transformImage($image, $transforms, array $transformDefaults = null, array $configOverrides = null)
     {
         if (!$image) {
             return null;
@@ -479,7 +479,7 @@ class ImagerService extends Component
      *
      * @return string
      */
-    public function srcset($images, $descriptor = 'w'): string
+    public function srcset($images, string $descriptor = 'w'): string
     {
         $r = '';
         $generated = [];
@@ -598,7 +598,7 @@ class ImagerService extends Component
     /**
      * Clear all image transforms caches
      */
-    public function deleteImageTransformCaches()
+    public function deleteImageTransformCaches(): void
     {
         $path = Plugin::$plugin->getSettings()->imagerSystemPath;
 
@@ -607,9 +607,7 @@ class ImagerService extends Component
             if (is_dir($dir)) {
                 FileHelper::clearDirectory($dir);
             }
-        } catch (ErrorException $e) {
-            Craft::error('Could not clear directory "'.$path.'" ('.$e->getMessage().')', __METHOD__);
-        } catch (InvalidArgumentException $e) {
+        } catch (\Throwable $e) {
             Craft::error('Could not clear directory "'.$path.'" ('.$e->getMessage().')', __METHOD__);
         }
     }
@@ -617,7 +615,7 @@ class ImagerService extends Component
     /**
      * Clear all remote image caches
      */
-    public function deleteRemoteImageCaches()
+    public function deleteRemoteImageCaches(): void
     {
         try {
             $path = Craft::$app->getPath()->getRuntimePath().'/imager/';
@@ -632,9 +630,7 @@ class ImagerService extends Component
             if (is_dir($dir)) {
                 FileHelper::clearDirectory($dir);
             }
-        } catch (ErrorException $e) {
-            Craft::error('Could not clear directory "'.$path.'" ('.$e->getMessage().')', __METHOD__);
-        } catch (InvalidArgumentException $e) {
+        } catch (\Throwable $e) {
             Craft::error('Could not clear directory "'.$path.'" ('.$e->getMessage().')', __METHOD__);
         }
     }
@@ -642,7 +638,7 @@ class ImagerService extends Component
     /**
      * Clears any remote images downloaded during session if `cacheRemoteFiles` is `false`
      */
-    public static function cleanSession()
+    public static function cleanSession(): void
     {
         $config = self::getConfig();
 
@@ -654,5 +650,4 @@ class ImagerService extends Component
             }
         }
     }
-
 }
