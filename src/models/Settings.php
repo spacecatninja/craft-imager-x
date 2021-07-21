@@ -20,19 +20,21 @@ class Settings extends Model
     public $transformer = 'craft';
     public $imagerSystemPath = '@webroot/imager/';
     public $imagerUrl = '/imager/';
+    
     public $cacheEnabled = true;
     public $cacheRemoteFiles = true;
     public $cacheDuration = 1209600;
     public $cacheDurationRemoteFiles = 1209600;
     public $cacheDurationExternalStorage = 1209600;
     public $cacheDurationNonOptimized = 300;
+    
     public $jpegQuality = 80;
     public $pngCompressionLevel = 2;
     public $webpQuality = 80;
+    public $avifQuality = 80;
+    public $jxlQuality = 80;
+    
     public $webpImagickOptions = [];
-    public $useCwebp = false;
-    public $cwebpPath = '/usr/bin/cwebp';
-    public $cwebpOptions = '';
     public $interlace = false;
     public $allowUpscale = true;
     public $resizeFilter = 'lanczos';
@@ -162,12 +164,18 @@ class Settings extends Model
         ],
     ];
 
+    public $customEncoders = [];
+    public $transformerConfig = null;
+    
+    /* deprecated */
+    public $useCwebp = false;
+    public $cwebpPath = '/usr/bin/cwebp';
+    public $cwebpOptions = '';
     public $avifEncoderPath = '';
     public $avifEncoderOptions = [];
     public $avifConvertString = '{src} {dest}';
-
-    public $transformerConfig = null;
-
+    
+    
     /**
      * Settings constructor.
      *

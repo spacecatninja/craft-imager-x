@@ -117,6 +117,7 @@ class ImagerService extends Component
         'letterbox' => 'LB',
         'frames' => 'FR',
         'pad' => 'PAD',
+        'customEncoderOptions' => 'CEOPTS',
     ];
 
     /**
@@ -249,7 +250,7 @@ class ImagerService extends Component
 
         $config = self::getConfig();
 
-        if ($config->useCwebp && $config->cwebpPath !== '' && file_exists($config->cwebpPath)) {
+        if (isset($config->customEncoders['webp']['path']) && file_exists($config->customEncoders['webp']['path'])) {
             return true;
         }
 
@@ -272,9 +273,41 @@ class ImagerService extends Component
     {
         $config = self::getConfig();
 
-        if ($config->avifEncoderPath !== '' && file_exists($config->avifEncoderPath)) {
+        if (isset($config->customEncoders['avif']['path']) && file_exists($config->customEncoders['avif']['path'])) {
             return true;
         }
+
+        if (self::$imageDriver === 'gd' && \function_exists('imageavif')) {
+            return true;
+        }
+
+        if (self::$imageDriver === 'imagick' && (\count(\Imagick::queryFormats('AVIF')) > 0)) {
+            return true;
+        }
+
+
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public static function hasSupportForJxl(): bool
+    {
+        $config = self::getConfig();
+
+        if (isset($config->customEncoders['jxl']['path']) && file_exists($config->customEncoders['jxl']['path'])) {
+            return true;
+        }
+
+        if (self::$imageDriver === 'gd' && \function_exists('imagejxl')) {
+            return true;
+        }
+
+        if (self::$imageDriver === 'imagick' && (\count(\Imagick::queryFormats('JXL')) > 0)) {
+            return true;
+        }
+
 
         return false;
     }

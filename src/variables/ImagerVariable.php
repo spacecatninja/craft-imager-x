@@ -292,6 +292,16 @@ class ImagerVariable
     }
 
     /**
+     * Checks for server jxl support
+     *
+     * @return bool
+     */
+    public function serverSupportsJxl(): bool
+    {
+        return ImagerService::hasSupportForJxl();
+    }
+
+    /**
      * Checks for webp support in browser
      *
      * @return bool

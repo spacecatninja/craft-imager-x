@@ -258,8 +258,12 @@ class CraftTransformer extends Component implements TransformerInterface
                 $this->imageInstance->usePalette(new RGB());
             }
 
+            $customEncoders = $config->getSetting('customEncoders', $transform);
+
             // Save the transform
-            if ($targetModel->extension === 'webp') {
+            if (isset($customEncoders[$targetModel->extension])) {
+                $this->saveWithCustomEncoder($customEncoders[$targetModel->extension], $this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $transform);
+            } elseif ($targetModel->extension === 'webp') {
                 if (ImagerService::hasSupportForWebP()) {
                     $this->saveAsWebp($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $saveOptions);
                 } else {
@@ -269,9 +273,17 @@ class CraftTransformer extends Component implements TransformerInterface
                 }
             } elseif ($targetModel->extension === 'avif') {
                 if (ImagerService::hasSupportForAvif()) {
-                    $this->saveAsAvif($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension);
+                    $this->saveAsAvif($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $saveOptions);
                 } else {
                     $msg = Craft::t('imager-x', 'You have not configured support for AVIF yet.');
+                    Craft::error($msg, __METHOD__);
+                    throw new ImagerException($msg);
+                }
+            } elseif ($targetModel->extension === 'jxl') {
+                if (ImagerService::hasSupportForJxl()) {
+                    $this->saveAsJxl($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $saveOptions);
+                } else {
+                    $msg = Craft::t('imager-x', 'You have not configured support for JXL yet.');
                     Craft::error($msg, __METHOD__);
                     throw new ImagerException($msg);
                 }
@@ -407,6 +419,60 @@ class CraftTransformer extends Component implements TransformerInterface
         return ImagerService::$imageDriver === 'imagick' ? ImagerService::$filterKeyTranslate[(string)$config->getSetting('resizeFilter', $transform)] : ImageInterface::FILTER_UNDEFINED;
     }
 
+    /**
+     * @param array                                      $encoder
+     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
+     * @param string                                     $path
+     * @param string                                     $sourceExtension
+     * @param array                                      $transform
+     *
+     * @throws Exception
+     * @throws ImagerException
+     */
+    private function saveWithCustomEncoder(array $encoder, $imageInstance, string $path, string $sourceExtension, array $transform)
+    {
+        if (!empty($encoder['path']) && file_exists($encoder['path'])) {
+            // Save temp file
+            $tempFile = $this->saveTemporaryFile($imageInstance, $sourceExtension);
+
+            $customEncoderOptions = $transform['customEncoderOptions'] ?? [];
+
+            $opts = array_merge([
+                '{src}' => $tempFile,
+                '{dest}' => $path
+            ], $encoder['options'], $customEncoderOptions);
+
+            $r = [];
+
+            foreach ($opts as $k => $v) {
+                if (strpos($k, '{') !== 0) {
+                    $r['{'.$k.'}'] = $v;
+                } else {
+                    $r[$k] = $v;
+                }
+            }
+
+            $opts = $r;
+
+            // Convert to avif
+            $command = escapeshellcmd($encoder['path'].' '.strtr($encoder['paramsString'], $opts));
+            $r = shell_exec($command);
+
+            if (!file_exists($path)) {
+                $msg = Craft::t('imager-x', "Custom encoder failed. Output was:\n".$r."\nThe executed command was \"$command\"");
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
+            }
+
+            // Delete temp file
+            unlink($tempFile);
+        } else {
+            $msg = Craft::t('imager-x', "Custom encoder path is missing or invalid.");
+            Craft::error($msg, __METHOD__);
+            throw new ImagerException($msg);
+        }
+    }
+
 
     /**
      * Saves image as webp
@@ -424,126 +490,184 @@ class CraftTransformer extends Component implements TransformerInterface
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
-        if ($config->getSetting('useCwebp')) {
 
-            // Save temp file
-            $tempFile = $this->saveTemporaryFile($imageInstance, $sourceExtension);
+        if (ImagerService::$imageDriver === 'gd') {
+            /** @var GdImage $imageInstance */
+            $instance = $imageInstance->getGdResource();
 
-            // Convert to webp with cwebp
-            $command = escapeshellcmd($config->getSetting('cwebpPath').' '.$config->getSetting('cwebpOptions').' -q '.$saveOptions['webp_quality'].' "'.$tempFile.'" -o "'.$path.'"');
-            $r = shell_exec($command);
-
-            if (!file_exists($path)) {
-                $msg = Craft::t('imager-x', 'Creation of webp with cwebp failed with error "'.$r.'". The executed command was "'.$command.'"');
+            if (false === /** @scrutinizer ignore-call */ \imagewebp($instance, $path, $saveOptions['webp_quality'])) {
+                $msg = Craft::t('imager-x', 'GD WebP save operation failed');
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg);
             }
 
-            // Delete temp file
-            unlink($tempFile);
-        } else {
-            if (ImagerService::$imageDriver === 'gd') {
-                /** @var GdImage $imageInstance */
-                $instance = $imageInstance->getGdResource();
+            // Fix for corrupt file bug (http://stackoverflow.com/questions/30078090/imagewebp-php-creates-corrupted-webp-files)
+            if (filesize($path) % 2 === 1) {
+                file_put_contents($path, "\0", FILE_APPEND);
+            }
+        }
 
-                if (false === /** @scrutinizer ignore-call */ \imagewebp($instance, $path, $saveOptions['webp_quality'])) {
-                    $msg = Craft::t('imager-x', 'GD WebP save operation failed');
-                    Craft::error($msg, __METHOD__);
-                    throw new ImagerException($msg);
+        if (ImagerService::$imageDriver === 'imagick') {
+            /** @var ImagickImage $imageInstance */
+            $instance = $imageInstance->getImagick();
+
+            try {
+                $instance->setImageFormat('webp');
+
+                $hasTransparency = $instance->getImageAlphaChannel();
+
+                if ($hasTransparency) {
+                    $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
+                    $instance->setBackgroundColor(new \ImagickPixel('transparent'));
                 }
 
-                // Fix for corrupt file bug (http://stackoverflow.com/questions/30078090/imagewebp-php-creates-corrupted-webp-files)
-                if (filesize($path) % 2 === 1) {
-                    file_put_contents($path, "\0", FILE_APPEND);
+                $instance->setImageCompressionQuality($saveOptions['webp_quality']);
+                $imagickOptions = $saveOptions['webp_imagick_options'];
+
+                if ($imagickOptions && \count($imagickOptions) > 0) {
+                    foreach ($imagickOptions as $key => $val) {
+                        $instance->setOption('webp:'.$key, $val);
+                    }
                 }
+            } catch (\Throwable $e) {
+                $msg = Craft::t('imager-x', 'An error occured when trying to set WebP options in Imagick instance.');
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
             }
 
-            if (ImagerService::$imageDriver === 'imagick') {
-                /** @var ImagickImage $imageInstance */
-                $instance = $imageInstance->getImagick();
-
-                try {
-                    $instance->setImageFormat('webp');
-    
-                    $hasTransparency = $instance->getImageAlphaChannel();
-    
-                    if ($hasTransparency) {
-                        $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
-                        $instance->setBackgroundColor(new \ImagickPixel('transparent'));
-                    }
-    
-                    $instance->setImageCompressionQuality($saveOptions['webp_quality']);
-                    $imagickOptions = $saveOptions['webp_imagick_options'];
-    
-                    if ($imagickOptions && \count($imagickOptions) > 0) {
-                        foreach ($imagickOptions as $key => $val) {
-                            $instance->setOption('webp:'.$key, $val);
-                        }
-                    }
-                } catch (\Throwable $e) {
-                    $msg = Craft::t('imager-x', 'An error occured when trying to set WebP options in Imagick instance.');
-                    Craft::error($msg, __METHOD__);
-                    throw new ImagerException($msg);
-                }
-    
-                try {
-                    $instance->writeImage($path);
-                } catch (\Throwable $e) {
-                    $msg = Craft::t('imager-x', 'Imageick WebP save operation failed');
-                    Craft::error($msg, __METHOD__);
-                    throw new ImagerException($msg);
-                } 
+            try {
+                $instance->writeImage($path);
+            } catch (\Throwable $e) {
+                $msg = Craft::t('imager-x', 'Imageick WebP save operation failed');
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
             }
         }
     }
 
     /**
-     * Saves image as webp
+     * Saves image as avif
      *
      * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
      * @param string                                     $path
      * @param string                                     $sourceExtension
+     * @param array                                      $saveOptions
      *
-     * @throws ImagerException
      * @throws Exception
+     * @throws ImagerException
      */
-    private function saveAsAvif($imageInstance, string $path, string $sourceExtension): void
+    private function saveAsAvif($imageInstance, string $path, string $sourceExtension, array $saveOptions): void
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
-        // Save temp file
-        $tempFile = $this->saveTemporaryFile($imageInstance, $sourceExtension);
 
-        $opts = array_merge([
-            '{src}' => $tempFile,
-            '{dest}' => $path
-        ], $config->getSetting('avifEncoderOptions'));
+        if (ImagerService::$imageDriver === 'gd') {
+            /** @var GdImage $imageInstance */
+            $instance = $imageInstance->getGdResource();
 
-        $r = [];
-
-        foreach ($opts as $k => $v) {
-            if (strpos($k, '{') !== 0) {
-                $r['{'.$k.'}'] = $v;
-            } else {
-                $r[$k] = $v;
+            // Support coming in PHP 8.1 (https://php.watch/versions/8.1/gd-avif)
+            if (false === /** @scrutinizer ignore-call */ \imageavif($instance, $path, $saveOptions['avif_quality'])) {
+                $msg = Craft::t('imager-x', 'GD AVIF save operation failed');
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
             }
         }
 
-        $opts = $r;
+        if (ImagerService::$imageDriver === 'imagick') {
+            /** @var ImagickImage $imageInstance */
+            $instance = $imageInstance->getImagick();
 
-        // Convert to avif
-        $command = escapeshellcmd($config->getSetting('avifEncoderPath').' '.strtr($config->getSetting('avifConvertString'), $opts));
-        $r = shell_exec($command);
+            try {
+                $instance->setImageFormat('avif');
 
-        if (!file_exists($path)) {
-            $msg = Craft::t('imager-x', "Creation of avif failed with error:\n".$r."\nThe executed command was \"$command\"");
-            Craft::error($msg, __METHOD__);
-            throw new ImagerException($msg);
+                $hasTransparency = $instance->getImageAlphaChannel();
+
+                if ($hasTransparency) {
+                    $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
+                    $instance->setBackgroundColor(new \ImagickPixel('transparent'));
+                }
+
+                // For some reason, setImageCompressionQuality doesn't work here, but setCompressionQuality does.
+                // Setting both, just to be sure. ¯\_(ツ)_/¯
+                $instance->setCompressionQuality($saveOptions['avif_quality']);
+                $instance->setImageCompressionQuality($saveOptions['avif_quality']);
+            } catch (\Throwable $e) {
+                $msg = Craft::t('imager-x', 'An error occured when trying to set AVIF options in Imagick instance.');
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
+            }
+
+            try {
+                $instance->writeImage($path);
+            } catch (\Throwable $e) {
+                $msg = Craft::t('imager-x', 'Imagick AVIF save operation failed');
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
+            }
+        }
+    }
+
+    /**
+     * Saves image as JPEG XL
+     *
+     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
+     * @param string                                     $path
+     * @param string                                     $sourceExtension
+     * @param array                                      $saveOptions
+     *
+     * @throws Exception
+     * @throws ImagerException
+     */
+    private function saveAsJxl($imageInstance, string $path, string $sourceExtension, array $saveOptions): void
+    {
+        /** @var ConfigModel $settings */
+        $config = ImagerService::getConfig();
+
+        if (ImagerService::$imageDriver === 'gd') {
+            /** @var GdImage $imageInstance */
+            $instance = $imageInstance->getGdResource();
+
+            // No support yet, but let's guess
+            if (false === /** @scrutinizer ignore-call */ \imagejxl($instance, $path, $saveOptions['jxl_quality'])) {
+                $msg = Craft::t('imager-x', 'GD JPEG XL save operation failed');
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
+            }
         }
 
-        // Delete temp file
-        unlink($tempFile);
+        if (ImagerService::$imageDriver === 'imagick') {
+            /** @var ImagickImage $imageInstance */
+            $instance = $imageInstance->getImagick();
+
+            try {
+                $instance->setImageFormat('jxl');
+
+                $hasTransparency = $instance->getImageAlphaChannel();
+
+                if ($hasTransparency) {
+                    $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
+                    $instance->setBackgroundColor(new \ImagickPixel('transparent'));
+                }
+
+                // For some reason, setImageCompressionQuality doesn't work here, but setCompressionQuality does.
+                // Setting both, just to be sure. ¯\_(ツ)_/¯
+                $instance->setCompressionQuality($saveOptions['jxl_quality']);
+                $instance->setImageCompressionQuality($saveOptions['jxl_quality']);
+            } catch (\Throwable $e) {
+                $msg = Craft::t('imager-x', 'An error occured when trying to set JPEG XL options in Imagick instance.');
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
+            }
+
+            try {
+                $instance->writeImage($path);
+            } catch (\Throwable $e) {
+                $msg = Craft::t('imager-x', 'Imagick JPEG XL save operation failed');
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
+            }
+        }
     }
 
     /**
@@ -612,6 +736,8 @@ class CraftTransformer extends Component implements TransformerInterface
                 return ['png_compression_level' => $config->getSetting('pngCompressionLevel', $transform)];
             case 'webp':
                 return ['webp_quality' => $config->getSetting('webpQuality', $transform), 'webp_imagick_options' => $config->getSetting('webpImagickOptions', $transform)];
+            case 'avif':
+                return ['avif_quality' => $config->getSetting('avifQuality', $transform)];
         }
 
         return [];

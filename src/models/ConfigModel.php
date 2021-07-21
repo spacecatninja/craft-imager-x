@@ -79,6 +79,34 @@ class ConfigModel extends Settings
         if ($this->imgixApiKey !== '' && strlen($this->imgixApiKey) < 50) {
             \Craft::$app->deprecator->log(__METHOD__, 'You appear to be using an API key for the old version of the Imgix API. You need to acquire a new one, with permissions to purge, and replace the old one in your imager-x.php config file with it. See https://blog.imgix.com/2020/10/16/api-deprecation for more information.');
         }
+        
+        // avifEncoderPath deprecation error
+        if ($this->avifEncoderPath !== '') {
+            \Craft::$app->deprecator->log(__METHOD__, 'Configuring encoder for AVIF through `avifEncoderPath` and the related config settings has been deprecated. Please use `customEncoders` instead ([see documentation](https://imager-x.spacecat.ninja/configuration.html#customencoders-array)).');
+            
+            if (!isset($this->customEncoders['avif'])) {
+                $this->customEncoders['avif'] = [
+                    'path' => $this->avifEncoderPath,
+                    'options' => $this->avifEncoderOptions,
+                    'paramsString' => $this->avifConvertString,
+                ];
+            }
+        }
+        
+        // useCwebp deprecation error
+        if ($this->useCwebp === true) {
+            \Craft::$app->deprecator->log(__METHOD__, 'Configuring encoder for WebP through `useCwebp` and `cwebpPath` config settings has been deprecated. Please use `customEncoders` instead ([see documentation](https://imager-x.spacecat.ninja/configuration.html#customencoders-array)).');
+            
+            if (!isset($this->customEncoders['webp'])) {
+                $this->customEncoders['webp'] = [
+                    'path' => $this->cwebpPath,
+                    'options' => [
+                        'quality' => $this->webpQuality
+                    ],
+                    'paramsString' => '-q {quality} -m {effort} {src} -o {dest}',
+                ];
+            }
+        }
     }
 
     /**
