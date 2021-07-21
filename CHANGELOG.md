@@ -1,6 +1,18 @@
 # Imager X Changelog
 
 
+## 3.5.0 - 2021-07-21
+
+### Added
+- Added support for `customEncoders`.
+- Added support for AVIF encoding through GD (PHP 8.1) and Imagick.
+- Added support for JPEG XL.
+- Added `avifQuality` and `jxlQuality` config settings.
+
+### Deprecated
+- Deprecated `useCwebp`, `cwebpPath`, `cwebpOptions`, `avifEncoderPath`, `avifEncoderOptions` and `avifConvertString` config settings. Use `customEncoders` instead.  
+
+
 ## 3.4.1 - 2021-07-05
 
 ### Added
