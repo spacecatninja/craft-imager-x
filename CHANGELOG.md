@@ -1,6 +1,12 @@
 # Imager X Changelog
 
 
+## 3.5.1 - 2021-07-23
+
+### Fixed
+- Fixed an issue that would throw an error if a non-existing handle was used in auto generate config (addresses #109).
+
+
 ## 3.5.0 - 2021-07-21
 
 ### Added
