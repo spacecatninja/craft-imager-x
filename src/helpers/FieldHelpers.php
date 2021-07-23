@@ -80,7 +80,7 @@ class FieldHelpers
             return !empty($fields) ? $fields : null;
         }
         
-        if ($element->{$handle}) {
+        if (isset($element->{$handle})) {
             return [$element->{$handle}];
         }
 
