@@ -15,6 +15,7 @@ use craft\base\Element;
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
 use craft\elements\Asset;
+use craft\events\DefineGqlTypeFieldsEvent;
 use craft\events\ElementEvent;
 use craft\events\GetAssetThumbUrlEvent;
 use craft\events\GetAssetUrlEvent;
@@ -24,6 +25,7 @@ use craft\events\RegisterElementActionsEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\ReplaceAssetEvent;
+use craft\gql\TypeManager;
 use craft\helpers\FileHelper;
 use craft\models\AssetTransform;
 use craft\services\Assets;
@@ -35,8 +37,10 @@ use craft\utilities\ClearCaches;
 use craft\web\twig\variables\CraftVariable;
 use craft\events\RegisterGqlDirectivesEvent;
 
+use GraphQL\Type\Definition\Type;
 use spacecatninja\imagerx\effects\BrightnessEffect;
 use spacecatninja\imagerx\effects\OpacityEffect;
+use spacecatninja\imagerx\gql\resolvers\ImagerResolver;
 use spacecatninja\imagerx\utilities\GenerateTransformsUtility;
 use yii\base\Event;
 
@@ -468,6 +472,28 @@ class ImagerX extends Plugin
                 static function(RegisterGqlDirectivesEvent $event) {
                     $event->directives[] = ImagerTransform::class;
                     $event->directives[] = ImagerSrcset::class;
+                }
+            );
+
+            Event::on(TypeManager::class,
+                TypeManager::EVENT_DEFINE_GQL_TYPE_FIELDS,
+                static function(DefineGqlTypeFieldsEvent $event) {
+                    if ($event->typeName != 'AssetInterface') {
+                        return;
+                    }
+                    $event->fields['imagerTransform'] = [
+                        'name' => 'imagerTransform',
+                        'type' => Type::listOf(ImagerTransformedImageInterface::getType()),
+                        'args' => [
+                            'transform' => [
+                                'name' => 'transform',
+                                'type' => Type::string(),
+                                'description' => 'The handle of the named transform you want to generate.'
+                            ],
+                        ],
+                        'resolve' => ImagerResolver::class . '::resolve',
+                        'description' => 'Returns a list of images produced from the named Imager X transform.',
+                    ];
                 }
             );
         }
