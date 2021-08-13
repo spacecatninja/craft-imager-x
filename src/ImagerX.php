@@ -36,7 +36,9 @@ use craft\web\twig\variables\CraftVariable;
 use craft\events\RegisterGqlDirectivesEvent;
 
 use spacecatninja\imagerx\effects\BrightnessEffect;
+use spacecatninja\imagerx\effects\FloodFillPaintEffect;
 use spacecatninja\imagerx\effects\OpacityEffect;
+use spacecatninja\imagerx\effects\TransparentPaintEffect;
 use spacecatninja\imagerx\gql\resolvers\ImagerResolver;
 use spacecatninja\imagerx\helpers\VersionHelpers;
 use spacecatninja\imagerx\utilities\GenerateTransformsUtility;
@@ -654,6 +656,8 @@ class ImagerX extends Plugin
             'enhance' => EnhanceEffect::class,
             'equalize' => EqualizeEffect::class,
             'opacity' => OpacityEffect::class,
+            'floodfillpaint' => FloodFillPaintEffect::class,
+            'transparentpaint' => TransparentPaintEffect::class,
         ];
 
         $event = new RegisterEffectsEvent([
