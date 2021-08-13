@@ -37,6 +37,8 @@ use craft\events\RegisterGqlDirectivesEvent;
 
 use spacecatninja\imagerx\effects\BrightnessEffect;
 use spacecatninja\imagerx\effects\OpacityEffect;
+use spacecatninja\imagerx\gql\resolvers\ImagerResolver;
+use spacecatninja\imagerx\helpers\VersionHelpers;
 use spacecatninja\imagerx\utilities\GenerateTransformsUtility;
 use yii\base\Event;
 
@@ -470,6 +472,33 @@ class ImagerX extends Plugin
                     $event->directives[] = ImagerSrcset::class;
                 }
             );
+            
+            if (VersionHelpers::craftIs('3.4')) {
+                /*
+                 * Adds queries to AssetInterface, see https://github.com/spacecatninja/craft-imager-x/pull/111
+                 */
+                Event::on(\craft\gql\TypeManager::class,
+                    \craft\gql\TypeManager::EVENT_DEFINE_GQL_TYPE_FIELDS,
+                    static function(\craft\events\DefineGqlTypeFieldsEvent $event) {
+                        if ($event->typeName !== 'AssetInterface') {
+                            return;
+                        }
+                        $event->fields['imagerTransform'] = [
+                            'name' => 'imagerTransform',
+                            'type' => \GraphQL\Type\Definition\Type::listOf(ImagerTransformedImageInterface::getType()),
+                            'args' => [
+                                'transform' => [
+                                    'name' => 'transform',
+                                    'type' => \GraphQL\Type\Definition\Type::string(),
+                                    'description' => 'The handle of the named transform you want to generate.'
+                                ],
+                            ],
+                            'resolve' => ImagerResolver::class . '::resolve',
+                            'description' => 'Returns a list of images produced from the named Imager X transform.',
+                        ];
+                    }
+                );
+            }
         }
     }
 
