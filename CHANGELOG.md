@@ -1,6 +1,12 @@
 # Imager X Changelog
 
 
+## 3.5.2 - 2021-07-23
+
+### Added
+- Added `imagerTransform` field to `AssetInterface` to enable named transforms in any GraphQL query (thanks, @JoshCoady).
+- Added `floodfillpaint` and `transparentpaint` effects (closes #100 , closes #115).
+
 ## 3.5.1 - 2021-07-23
 
 ### Fixed
