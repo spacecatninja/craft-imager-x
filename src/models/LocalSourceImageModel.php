@@ -16,6 +16,7 @@ use craft\base\LocalVolumeInterface;
 use craft\base\Volume;
 use craft\helpers\FileHelper;
 use craft\elements\Asset;
+use craft\errors\AssetException;
 use craft\helpers\StringHelper;
 use craft\helpers\Assets as AssetsHelper;
 
