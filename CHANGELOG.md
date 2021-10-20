@@ -1,11 +1,19 @@
 # Imager X Changelog
 
 
+## 3.5.3 - 2021-10-20
+
+### Fixed
+- Fixed an issue in the Imgix transformer where `defaultParams` would not be possible to override in an intuitive manner.
+- Fixed an issue where an AssetException was not handled (Thanks, @GaryReckard)
+
+
 ## 3.5.2 - 2021-07-23
 
 ### Added
 - Added `imagerTransform` field to `AssetInterface` to enable named transforms in any GraphQL query (thanks, @JoshCoady).
 - Added `floodfillpaint` and `transparentpaint` effects (closes #100 , closes #115).
+
 
 ## 3.5.1 - 2021-07-23
 
