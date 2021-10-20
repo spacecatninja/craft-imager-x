@@ -131,12 +131,18 @@ class ImgixTransformer extends Component implements TransformerInterface
         $config = ImagerService::getConfig();
 
         $r = [];
-
+        
+        if (isset($transform['imgixParams'])) {
+            $transform['transformerParams'] = array_merge($transform['transformerParams'] ?? [], $transform['imgixParams']);
+            unset($transform['imgixParams']);
+            // Deprecate use of imgixParams in 4.0, remove in 5.0
+        }
+        
         // Merge in default values
         if (\is_array($imgixConfig->defaultParams)) {
-            $transform = array_merge($imgixConfig->defaultParams, $transform);
+            $transform['transformerParams'] = array_merge($imgixConfig->defaultParams, $transform['transformerParams'] ?? []);
         }
-
+        
         // Directly translate some keys
         foreach (self::$transformKeyTranslate as $key => $val) {
             if (isset($transform[$key])) {
@@ -234,13 +240,14 @@ class ImgixTransformer extends Component implements TransformerInterface
             $transform['letterbox']
         );
 
+        
         // Add any explicitly set Imgix params
-        if (isset($transform['imgixParams'])) {
-            foreach ($transform['imgixParams'] as $key => $val) {
+        if (isset($transform['transformerParams'])) {
+            foreach ($transform['transformerParams'] as $key => $val) {
                 $r[$key] = $val;
             }
 
-            unset($transform['imgixParams']);
+            unset($transform['transformerParams']);
         }
 
         // Assume that the reset of the values left in the transform object is Imgix specific 
@@ -272,7 +279,8 @@ class ImgixTransformer extends Component implements TransformerInterface
             $r['removeMetadata'],
             $r['hashFilename'],
             $r['hashRemoteUrl'],
-            $r['watermark']
+            $r['watermark'],
+            $r['customEncoderOptions']
         );
 
         // Remove any empty values in return array, since these will result in 
@@ -295,9 +303,7 @@ class ImgixTransformer extends Component implements TransformerInterface
      */
     private function transformHasAutoCompressionEnabled(array $transform): bool
     {
-        return
-            isset($transform['auto'])
-            && strstr($transform['auto'], 'compress');
+        return isset($transform['auto']) && strpos($transform['auto'], 'compress') !== false;
     }
 
     /**
