@@ -16,6 +16,7 @@ use craft\base\LocalVolumeInterface;
 use craft\base\Volume;
 use craft\helpers\FileHelper;
 use craft\elements\Asset;
+use craft\errors\AssetException;
 use craft\helpers\StringHelper;
 use craft\helpers\Assets as AssetsHelper;
 
@@ -157,7 +158,12 @@ class LocalSourceImageModel
                         throw new ImagerException($e->getMessage(), $e->getCode(), $e);
                     }
 
-                    $volume->saveFileLocally($this->asset->getPath(), $this->getTemporaryFilePath());
+                    // catch any AssetException and rethrow as ImagerException
+                    try {
+                        $volume->saveFileLocally($this->asset->getPath(), $this->getTemporaryFilePath());
+                    } catch (AssetException $e){
+                        throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+                    }
                     
                     if (file_exists($this->getTemporaryFilePath())) {
                         copy($this->getTemporaryFilePath(), $this->getFilePath());
