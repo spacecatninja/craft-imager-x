@@ -459,6 +459,7 @@ class CraftTransformer extends Component implements TransformerInterface
             $r = shell_exec($command);
 
             if (!file_exists($path)) {
+                unlink($tempFile);
                 $msg = Craft::t('imager-x', "Custom encoder failed. Output was:\n".$r."\nThe executed command was \"$command\"");
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg);
