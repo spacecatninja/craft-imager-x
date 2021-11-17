@@ -101,7 +101,8 @@ class ConfigModel extends Settings
                 $this->customEncoders['webp'] = [
                     'path' => $this->cwebpPath,
                     'options' => [
-                        'quality' => $this->webpQuality
+                        'quality' => $this->webpQuality,
+                        'effort' => 4
                     ],
                     'paramsString' => '-q {quality} -m {effort} {src} -o {dest}',
                 ];
