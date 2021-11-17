@@ -207,7 +207,13 @@ class CraftTransformer extends Component implements TransformerInterface
 
             // Create the imageInstance. only once if reuse is enabled, or always
             if ($this->imageInstance === null || !$config->getSetting('instanceReuseEnabled', $transform)) {
-                $this->imageInstance = $this->imagineInstance->open($sourceModel->getFilePath());
+                try {
+                    $this->imageInstance = $this->imagineInstance->open($sourceModel->getFilePath());
+                } catch (\Throwable $e) {
+                    $msg = Craft::t('imager-x', 'An error occured when trying to open image: ' . $e->getMessage());
+                    Craft::error($msg, __METHOD__);
+                    throw new ImagerException($msg);
+                }
             }
 
             $animated = false;
