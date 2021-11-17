@@ -1,5 +1,15 @@
 # Imager X Changelog
 
+## 3.5.4 - 2021-11-17
+
+### Added
+- Added console command to clean `imagerSystemPath` based on `cacheDuration` (closes #116).
+
+### Fixed
+- Fixed an issue where temporary files were not deleted if an error occured when using a custom encoder (fixes #125).
+- Fixed an issue where using cwebp to convert to Webp would fail when using the new custom encoders concept (fixes #125).
+- Fixed an issue where opening corrupted images would throw an exception that was not caught properly (fixes #124).
+
 
 ## 3.5.3 - 2021-10-20
 
