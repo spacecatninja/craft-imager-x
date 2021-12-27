@@ -69,9 +69,8 @@ class LocalSourceImageModel
      *
      * @throws ImagerException
      */
-    private function init($image)
+    private function init($image): void
     {
-        /** @var ConfigModel $settings */
         $settings = ImagerService::getConfig();
 
         if (\is_string($image)) {
@@ -142,13 +141,13 @@ class LocalSourceImageModel
      *
      * @throws ImagerException
      */
-    public function getLocalCopy()
+    public function getLocalCopy(): void
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         if ($this->type !== 'local') {
-            if (!file_exists($this->getFilePath()) || (($config->cacheDurationRemoteFiles !== false) && ((FileHelper::lastModifiedTime($this->getFilePath()) + $config->cacheDurationRemoteFiles) < time()))) {
+            if (!$this->isValidFile($this->getFilePath()) || (($config->cacheDurationRemoteFiles !== false) && ((FileHelper::lastModifiedTime($this->getFilePath()) + $config->cacheDurationRemoteFiles) < time()))) {
                 if ($this->asset && $this->type === 'volume') {
                     /** @var Volume $volume */
                     try {
@@ -160,6 +159,11 @@ class LocalSourceImageModel
 
                     // catch any AssetException and rethrow as ImagerException
                     try {
+                        // If a temp file already exists, something went wrong last time, let's delete it and not assume that the Volume will handle it
+                        if (file_exists($this->getTemporaryFilePath())) {
+                            @unlink($this->getTemporaryFilePath());
+                        }
+                        
                         $volume->saveFileLocally($this->asset->getPath(), $this->getTemporaryFilePath());
                     } catch (AssetException $e){
                         throw new ImagerException($e->getMessage(), $e->getCode(), $e);
@@ -188,6 +192,27 @@ class LocalSourceImageModel
         }
     }
 
+    /**
+     * Checks if a file exists and is valid, or should be overwritten
+     * 
+     * @param $file
+     *
+     * @return bool
+     */
+    private function isValidFile($file): bool
+    {
+        if (!file_exists($file)) {
+            return false;
+        }
+        
+        $size = filesize($file);
+
+        if ($size === false || $size < 1024) {
+            return false;
+        }
+        
+        return true;
+    }
 
     /**
      * Get paths for a local asset
@@ -196,22 +221,21 @@ class LocalSourceImageModel
      *
      * @throws ImagerException
      */
-    private function getPathsForLocalAsset(Asset $image)
+    private function getPathsForLocalAsset(Asset $image): void
     {
         try {
             /** @var LocalVolumeInterface $volume */
             $volume = $image->getVolume();
             $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
+            $this->path = FileHelper::normalizePath($volume->getRootPath().'/'.$image->folderPath);
+            $this->url = $image->getUrl();
+            $this->filename = $image->getFilename();
+            $this->basename = $image->getFilename(false);
+            $this->extension = $image->getExtension();
         } catch (InvalidConfigException $e) {
             Craft::error($e->getMessage(), __METHOD__);
             throw new ImagerException($e->getMessage(), $e->getCode(), $e);
         }
-
-        $this->path = FileHelper::normalizePath($volume->getRootPath().'/'.$image->folderPath);
-        $this->url = $image->getUrl();
-        $this->filename = $image->getFilename();
-        $this->basename = $image->getFilename(false);
-        $this->extension = $image->getExtension();
     }
 
     /**
@@ -221,7 +245,7 @@ class LocalSourceImageModel
      *
      * @throws ImagerException
      */
-    private function getPathsForVolumeAsset($image)
+    private function getPathsForVolumeAsset(Asset $image): void
     {
         $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
 
@@ -257,7 +281,7 @@ class LocalSourceImageModel
      *
      * @param $image
      */
-    private function getPathsForLocalImagerFile($image)
+    private function getPathsForLocalImagerFile($image): void
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
@@ -279,7 +303,7 @@ class LocalSourceImageModel
      *
      * @param $image
      */
-    private function getPathsForLocalFile($image)
+    private function getPathsForLocalFile($image): void
     {
         $this->transformPath = ImagerHelpers::getTransformPathForPath($image);
         $pathParts = pathinfo($image);
@@ -298,7 +322,7 @@ class LocalSourceImageModel
      *
      * @throws ImagerException
      */
-    private function getPathsForUrl($image)
+    private function getPathsForUrl($image): void
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
@@ -336,7 +360,7 @@ class LocalSourceImageModel
      *
      * @throws ImagerException
      */
-    private function downloadFile()
+    private function downloadFile(): void
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
