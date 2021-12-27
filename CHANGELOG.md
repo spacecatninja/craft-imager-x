@@ -1,5 +1,15 @@
 # Imager X Changelog
 
+## 3.5.5 - 2021-12-27
+
+### Added
+- Added support for using handle of named transform when using the @imagerTransform GraphQL directive (closes #126).
+
+### Fixed
+- Fixed an issue where partially downloaded/zero-byte files could linger in the remote image cache (fixes #124).
+- Fixed an issue that would prevent auto generation to work for certain propagation settings (fixes #121).
+
+
 ## 3.5.4 - 2021-11-17
 
 ### Added
