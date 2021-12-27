@@ -18,7 +18,6 @@ use craft\base\Volume;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\elements\db\ElementQuery;
-use craft\helpers\Image;
 
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\ImagerX;
@@ -37,33 +36,33 @@ use yii\base\InvalidConfigException;
  */
 class GenerateService extends Component
 {
-    
+
     /**
-     * @param array $volumeIds
-     * @param bool $useConfig
-     * @param null|array $transforms
+     * @param array      $volumeIds
+     * @param bool       $useConfig
+     * @param array|null $transforms
      */
-    public function generateByUtility($volumeIds, $useConfig = true, $transforms = null)
+    public function generateByUtility(array $volumeIds, bool $useConfig = true, array $transforms = null): void
     {
         $volumesConfig = ImagerService::$generateConfig->volumes ?? [];
-        
+
         foreach ($volumeIds as $volumeId) {
             $volume = Craft::$app->volumes->getVolumeById($volumeId);
-            
+
             if (!$volume) {
                 Craft::error("Couldn't find volume with ID $volumeId.", __METHOD__);
                 continue;
             }
-            
+
             if ($useConfig && isset($volumesConfig[$volume->handle]) && !empty($volumesConfig[$volume->handle])) {
                 $transforms = $volumesConfig[$volume->handle];
-            } 
-            
+            }
+
             if (empty($transforms)) {
                 Craft::error("Couldn't find any transforms for volume with ID $volumeId.", __METHOD__);
                 continue;
             }
-            
+
             $assets = Asset::find()
                 ->volumeId($volumeId)
                 ->kind('image')
@@ -78,11 +77,11 @@ class GenerateService extends Component
             }
         }
     }
-    
+
     /**
      * @param ElementInterface|Asset $asset
      */
-    public function processAssetByVolumes($asset)
+    public function processAssetByVolumes($asset): void
     {
         $volumesConfig = ImagerService::$generateConfig->volumes;
 
@@ -98,7 +97,7 @@ class GenerateService extends Component
         }
 
         $volumeHandle = $volume->handle;
-        
+
         if (!isset($volumesConfig[$volumeHandle])) {
             return;
         }
@@ -119,14 +118,14 @@ class GenerateService extends Component
     /**
      * @param ElementInterface|Element $element
      */
-    public function processElementByElements($element)
+    public function processElementByElements($element): void
     {
         $elementsConfig = ImagerService::$generateConfig->elements;
 
         if (empty($elementsConfig)) {
             return;
         }
-        
+
         // Check if any of the defined element configs are of this element type
         foreach ($elementsConfig as $config) {
             /** @var Element|null $elementType */
@@ -134,7 +133,7 @@ class GenerateService extends Component
             $fields = $config['fields'] ?? null;
             $criteria = $config['criteria'] ?? null;
             $transforms = $config['transforms'] ?? null;
-            
+
             if ($elementType && $element instanceof $elementType && is_array($fields) && is_array($transforms) && count($fields) > 0 && count($transforms) > 0) {
                 // Check if criteria matches
                 if ($criteria && is_array($criteria)) {
@@ -149,13 +148,13 @@ class GenerateService extends Component
                     if (ImagerService::$generateConfig->generateForDrafts) {
                         $criteria['drafts'] = true;
                     }
-                    
+
                     if (!isset($criteria['siteId']) && !isset($criteria['site'])) {
                         $criteria['siteId'] = $element->siteId;
                     }
-                    
+
                     Craft::configure($query, $criteria);
-                    
+
                     if ($query->count() === 0) {
                         continue;
                     }
@@ -166,7 +165,7 @@ class GenerateService extends Component
 
                 foreach ($fields as $fieldHandle) {
                     $fields = FieldHelpers::getFieldsInElementByHandle($element, $fieldHandle);
-                    
+
                     if (is_array($fields)) {
                         foreach ($fields as $field) {
                             if ($field instanceof ElementQuery) {
@@ -175,8 +174,8 @@ class GenerateService extends Component
                         }
                     }
                 }
-                
-                if (count($assets)>0) {
+
+                if (count($assets) > 0) {
                     $assets = array_merge(...$assets);
                 }
 
@@ -193,22 +192,22 @@ class GenerateService extends Component
     /**
      * @param ElementInterface|Element $element
      */
-    public function processElementByFields($element)
+    public function processElementByFields($element): void
     {
         $fieldsConfig = ImagerService::$generateConfig->fields;
 
         if (empty($fieldsConfig)) {
             return;
         }
-        
+
         $fieldLayout = $element->getFieldLayout();
-        
+
         foreach ($fieldsConfig as $fieldHandle => $transforms) {
             $field = FieldHelpers::getFieldInFieldLayoutByHandle($element, $fieldLayout, $fieldHandle);
-            
-            if ($field && $field instanceof ElementQuery) {
+
+            if ($field instanceof ElementQuery) {
                 $assets = $field->all();
-                
+
                 foreach ($assets as $asset) {
                     if (self::shouldTransformElement($asset)) {
                         $this->createTransformJob($asset, $transforms);
@@ -216,10 +215,11 @@ class GenerateService extends Component
                 }
             }
         }
-    }   
-    
+    }
+
     /**
      * @param ElementInterface|Element $element
+     *
      * @return bool
      */
     public function shouldGenerateByVolumes($element): bool
@@ -229,6 +229,7 @@ class GenerateService extends Component
 
     /**
      * @param ElementInterface|Element $element
+     *
      * @return bool
      */
     public function shouldGenerateByElements($element): bool
@@ -251,6 +252,7 @@ class GenerateService extends Component
 
     /**
      * @param ElementInterface|Element $element
+     *
      * @return bool
      */
     public function shouldGenerateByFields($element): bool
@@ -260,32 +262,32 @@ class GenerateService extends Component
         if (empty($elementsConfig)) {
             return false;
         }
-        
+
         return true;
     }
-    
+
     /**
      * @param ElementInterface|Asset $asset
-     * @param array $transforms
+     * @param array                  $transforms
      */
-    public function createTransformJob($asset, $transforms)
+    public function createTransformJob($asset, array $transforms): void
     {
         $queue = Craft::$app->getQueue();
 
         $jobId = $queue->push(new TransformJob([
-            'description' => Craft::t('imager-x', 'Generating transforms for asset "' . $asset->filename . '" (ID ' . $asset->id . ')'),
+            'description' => Craft::t('imager-x', 'Generating transforms for asset "'.$asset->filename.'" (ID '.$asset->id.')'),
             'assetId' => $asset->id,
             'transforms' => $transforms,
         ]));
 
-        Craft::info('Created transform job for asset with id ' . $asset->id . ' (job id is ' . $jobId . ')', __METHOD__);
+        Craft::info('Created transform job for asset with id '.$asset->id.' (job id is '.$jobId.')', __METHOD__);
     }
 
     /**
      * @param ElementInterface|Asset $asset
-     * @param array $transforms
+     * @param array                  $transforms
      */
-    public function generateTransformsForAsset($asset, $transforms)
+    public function generateTransformsForAsset($asset, array $transforms): void
     {
         if (self::shouldTransformElement($asset)) {
             foreach ($transforms as $transformName) {
@@ -306,11 +308,12 @@ class GenerateService extends Component
 
     /**
      * @param ElementInterface|Element|Asset $element
+     *
      * @return bool
      */
     public static function shouldTransformElement($element): bool
     {
         return $element instanceof Asset && $element->kind === 'image' && \in_array(strtolower($element->getExtension()), ImagerService::getConfig()->safeFileFormats, true);
     }
-    
+
 }
