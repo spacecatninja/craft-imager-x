@@ -85,7 +85,11 @@ class ImagerTransform extends Directive
             unset($arguments['return']);
         }
 
-        $transform = $arguments;
+        if (isset($arguments['handle'])) {
+            $transform = $arguments['handle'];
+        } else {
+            $transform = $arguments;
+        }
         
         if ($source->kind !== 'image' || !\in_array(strtolower($source->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
             return null;
@@ -95,6 +99,11 @@ class ImagerTransform extends Directive
             $transformedImage = ImagerX::$plugin->imagerx->transformImage($source, $transform);
         } catch (ImagerException $e) {
             Craft::error('An error occured when trying to transform image in GraphQL directive: ' . $e->getMessage(), __METHOD__);
+            return null;
+        }
+        
+        if (is_array($transformedImage)) {
+            Craft::error('The imagerTransform directive can only be used with named transforms that define a single image. The `' . $arguments['handle'] . '` named transform defines ' . count($transformedImage) . ' transforms. Please use the imagerSrcset directive, or the imagerTransform query instead.', __METHOD__);
             return null;
         }
         

@@ -25,6 +25,11 @@ class ImagerTransformArguments extends Arguments
     public static function getArguments(): array
     {
         return [
+            'handle' => [
+                'name' => 'handle',
+                'type' => Type::string(),
+                'description' => 'Handle of named transform'
+            ],
             'width' => [
                 'name' => 'width',
                 'type' => Type::int(),
