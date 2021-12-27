@@ -150,8 +150,12 @@ class GenerateService extends Component
                         $criteria['drafts'] = true;
                     }
                     
+                    if (!isset($criteria['siteId']) && !isset($criteria['site'])) {
+                        $criteria['siteId'] = $element->siteId;
+                    }
+                    
                     Craft::configure($query, $criteria);
-
+                    
                     if ($query->count() === 0) {
                         continue;
                     }
