@@ -11,7 +11,6 @@
 namespace spacecatninja\imagerx\helpers;
 
 use spacecatninja\imagerx\services\ImagerService;
-use Craft;
 use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
 
@@ -22,11 +21,12 @@ class TransformHelpers
      * 
      * TODO : Make recursive, it now only resolves callables at the top level
      *
-     * @param Asset|string $image
-     * @param array|null $transforms
+     * @param string|Asset $image
+     * @param array|null   $transforms
+     *
      * @return array
      */
-    public static function resolveTransforms($image, $transforms): array
+    public static function resolveTransforms(Asset|string $image, ?array $transforms): array
     {
         if (!$transforms) {
             return [];
@@ -55,12 +55,12 @@ class TransformHelpers
      *
      * @return array
      */
-    public static function fillTransforms($transforms): array
+    public static function fillTransforms(array $transforms): array
     {
         $r = [];
 
         $attributeName = ImagerService::$transformConfig->fillAttribute;
-        $interval = ImagerService::$transformConfig->fillInterval;
+        $interval = (int)ImagerService::$transformConfig->fillInterval;
 
         $r[] = $transforms[0];
 
@@ -94,11 +94,11 @@ class TransformHelpers
      * Merges default transform object into an array of transforms
      *
      * @param array $transforms
-     * @param array $defaults
+     * @param array|null $defaults
      *
      * @return array
      */
-    public static function mergeTransforms($transforms, $defaults): array
+    public static function mergeTransforms(array $transforms, ?array $defaults): array
     {
         $r = [];
 
@@ -112,12 +112,12 @@ class TransformHelpers
     /**
      * Normalizes format of transforms
      *
-     * @param array $transforms
-     * @param Asset|string $image
+     * @param array        $transforms
+     * @param string|Asset $image
      *
      * @return array
      */
-    public static function normalizeTransforms($transforms, $image): array
+    public static function normalizeTransforms(array $transforms, Asset|string $image): array
     {
         $r = [];
 
@@ -131,12 +131,12 @@ class TransformHelpers
     /**
      * Normalize transform object and values
      *
-     * @param array $transform
-     * @param Asset|string $image
+     * @param array        $transform
+     * @param string|Asset $image
      *
      * @return array
      */
-    public static function normalizeTransform($transform, $image): array
+    public static function normalizeTransform(array $transform, Asset|string $image): array
     {
         if (isset($transform['mode'])) {
             $transform['mode'] = mb_strtolower($transform['mode']);
@@ -208,10 +208,11 @@ class TransformHelpers
     }
 
     /**
-     * @param string|int|array $val
+     * @param array|int|string $val
+     *
      * @return int[]|null
      */
-    public static function normalizePadding($val)
+    public static function normalizePadding(array|int|string $val): ?array
     {
         if (is_int($val)) {
             return [$val, $val, $val, $val];

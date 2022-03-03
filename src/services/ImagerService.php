@@ -18,9 +18,7 @@ use craft\helpers\FileHelper;
 use Imagine\Image\ImageInterface;
 
 use spacecatninja\imagerx\helpers\VersionHelpers;
-use yii\base\ErrorException;
 use yii\base\Exception;
-use yii\base\InvalidArgumentException;
 
 use spacecatninja\imagerx\ImagerX as Plugin;
 use spacecatninja\imagerx\models\TransformedImageInterface;
@@ -46,56 +44,56 @@ class ImagerService extends Component
     /**
      * @var string
      */
-    public static $imageDriver = 'gd';
+    public static string $imageDriver = 'gd';
 
     /**
      * @var null|ConfigModel
      */
-    public static $transformConfig = null;
+    public static ?ConfigModel $transformConfig = null;
 
     /**
      * @var null|GenerateSettings
      */
-    public static $generateConfig = null;
+    public static ?GenerateSettings $generateConfig = null;
 
     /**
      * @var array
      */
-    public static $transformers = [
+    public static array $transformers = [
         'craft' => CraftTransformer::class
     ];
 
     /**
      * @var array
      */
-    public static $effects = [];
+    public static array $effects = [];
 
     /**
      * @var array
      */
-    public static $optimizers = [];
+    public static array $optimizers = [];
 
     /**
      * @var array
      */
-    public static $storage = [];
+    public static array $storage = [];
 
     /**
      * @var array
      */
-    public static $namedTransforms = [];
+    public static array $namedTransforms = [];
 
     /**
      * @var array
      */
-    public static $remoteImageSessionCache = [];
+    public static array $remoteImageSessionCache = [];
 
     /**
      * Translate dictionary for translating transform keys into filename markers
      *
      * @var array
      */
-    public static $transformKeyTranslate = [
+    public static array $transformKeyTranslate = [
         'width' => 'W',
         'height' => 'H',
         'mode' => 'M',
@@ -125,7 +123,7 @@ class ImagerService extends Component
      *
      * @var array
      */
-    public static $filterKeyTranslate = [
+    public static array $filterKeyTranslate = [
         'point' => ImageInterface::FILTER_POINT,
         'box' => ImageInterface::FILTER_BOX,
         'triangle' => ImageInterface::FILTER_TRIANGLE,
@@ -148,7 +146,7 @@ class ImagerService extends Component
      *
      * @var array
      */
-    public static $interlaceKeyTranslate = [
+    public static array $interlaceKeyTranslate = [
         'none' => \Imagine\Image\ImageInterface::INTERLACE_NONE,
         'line' => \Imagine\Image\ImageInterface::INTERLACE_LINE,
         'plane' => \Imagine\Image\ImageInterface::INTERLACE_PLANE,
@@ -160,21 +158,21 @@ class ImagerService extends Component
      *
      * @var array
      */
-    public static $ditherKeyTranslate = [];
+    public static array $ditherKeyTranslate = [];
 
     /**
      * Translate dictionary for composite modes. set in constructor if driver is imagick.
      *
      * @var array
      */
-    public static $compositeKeyTranslate = [];
+    public static array $compositeKeyTranslate = [];
 
     /**
      * Translate dictionary for translating crafts built in position constants into relative format (width/height offset)
      *
      * @var array
      */
-    public static $craftPositionTranslate = [
+    public static array $craftPositionTranslate = [
         'top-left' => '0% 0%',
         'top-center' => '50% 0%',
         'top-right' => '100% 0%',
@@ -378,7 +376,7 @@ class ImagerService extends Component
      * @return array|TransformedImageInterface|null
      * @throws ImagerException
      */
-    public function transformImage($image, $transforms, array $transformDefaults = null, array $configOverrides = null)
+    public function transformImage($image, $transforms, array $transformDefaults = null, array $configOverrides = null): TransformedImageInterface|array|null
     {
         if (!$image) {
             return null;
@@ -451,7 +449,7 @@ class ImagerService extends Component
         if (!isset(self::$transformers[self::$transformConfig->transformer])) {
             $msg = 'Invalid transformer "'.self::$transformConfig->transformer.'".';
 
-            if (self::$transformConfig->transformer !== 'craft' && !Plugin::getInstance()->is(Plugin::EDITION_PRO)) {
+            if (self::$transformConfig->transformer !== 'craft' && !Plugin::getInstance()?->is(Plugin::EDITION_PRO)) {
                 $msg .= ' Custom transformers are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
             }
 
@@ -507,12 +505,12 @@ class ImagerService extends Component
     /**
      * Creates srcset string
      *
-     * @param array|mixed $images
+     * @param mixed $images
      * @param string      $descriptor
      *
      * @return string
      */
-    public function srcset($images, string $descriptor = 'w'): string
+    public function srcset(mixed $images, string $descriptor = 'w'): string
     {
         $r = '';
         $generated = [];
@@ -603,7 +601,7 @@ class ImagerService extends Component
             $sourceModel = new LocalSourceImageModel($asset);
             $targetModel = new LocalTargetImageModel($sourceModel, []);
 
-            if (strpos($targetModel->path, $config->imagerSystemPath) !== false) {
+            if (str_contains($targetModel->path, $config->imagerSystemPath)) {
                 if (is_dir($targetModel->path)) {
                     try {
                         FileHelper::clearDirectory(FileHelper::normalizePath($targetModel->path));
@@ -613,11 +611,7 @@ class ImagerService extends Component
                     }
                 }
 
-                if (VersionHelpers::craftIs('3.5')) {
-                    Craft::$app->elements->invalidateCachesForElement($asset);
-                } else {
-                    Craft::$app->templateCaches->deleteCachesByElementId($asset->id);
-                }
+                Craft::$app->elements->invalidateCachesForElement($asset);
 
                 if ($sourceModel->type !== 'local' && file_exists($sourceModel->getFilePath())) {
                     FileHelper::unlink($sourceModel->getFilePath());

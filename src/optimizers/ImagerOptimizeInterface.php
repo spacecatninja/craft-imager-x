@@ -13,8 +13,8 @@ namespace spacecatninja\imagerx\optimizers;
 interface ImagerOptimizeInterface
 {
     /**
-     * @param string $file
+     * @param string     $file
      * @param array|null $settings
      */
-    public static function optimize(string $file, array $settings);
+    public static function optimize(string $file, ?array $settings);
 }

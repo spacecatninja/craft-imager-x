@@ -124,15 +124,10 @@ class AwsStorage implements ImagerStorageInterface
      */
     private static function getAWSStorageClass($storageTypeString): string
     {
-        switch (mb_strtolower($storageTypeString)) {
-            case 'standard':
-                return 'STANDARD';
-            case 'rrs':
-                return 'REDUCED_REDUNDANCY';
-            case 'glacier':
-                return 'GLACIER';
-        }
-
-        return 'STANDARD';
+        return match (mb_strtolower($storageTypeString)) {
+            'rrs' => 'REDUCED_REDUNDANCY',
+            'glacier' => 'GLACIER',
+            default => 'STANDARD',
+        };
     }
 }

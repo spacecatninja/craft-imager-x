@@ -102,7 +102,7 @@ class LocalTargetImageModel
         // If $useFilenamePattern is false, use old behavior with hashFilename config setting.
         if (!$useFilenamePattern) { 
             if ($hashFilename) {
-                if (\is_string($hashFilename) && $hashFilename === 'postfix') {
+                if ($hashFilename === 'postfix') {
                     return $basename.'_'.md5($transformFileString).'.'.$extension;
                 }
 

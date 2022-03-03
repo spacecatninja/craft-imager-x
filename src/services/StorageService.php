@@ -35,7 +35,7 @@ class StorageService extends Component
      *
      * @throws ImagerException
      */
-    public function store(string $path, bool $isFinalVersion)
+    public function store(string $path, bool $isFinalVersion): void
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
@@ -70,7 +70,7 @@ class StorageService extends Component
             } else {
                 $msg = 'Could not find a registered storage with handle "' . $storage . '".';
                 
-                if (!ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
+                if (!ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
                     $msg .= ' External storages are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
                 }
                 

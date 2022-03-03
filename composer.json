@@ -2,7 +2,7 @@
     "name": "spacecatninja/imager-x",
     "description": "Ninja powered image transforms.",
     "type": "craft-plugin",
-    "version": "v3.5.5",
+    "version": "4.0.0-alpha.1",
     "license": "proprietary",
     "keywords": [
         "craft",
@@ -26,8 +26,7 @@
         }
     ],
     "require": {
-        "php": ">=7.2.5",
-        "craftcms/cms": "^3.3.0",
+        "craftcms/cms": "^4.0.0-alpha.1",
         "mikehaertl/php-shellcommand": "^1.2",
         "tinify/tinify": ">=1.1.1",
         "ksubileau/color-thief-php": "^1.4.0",
@@ -46,7 +45,7 @@
     "extra": {
         "name": "Imager X",
         "handle": "imager-x",
-        "schemaVersion": "3.0.0",
+        "schemaVersion": "4.0.0",
         "hasCpSettings": false,
         "hasCpSection": false,
         "changelogUrl": "https://raw.githubusercontent.com/spacecatninja/craft-imager-x/master/CHANGELOG.md",

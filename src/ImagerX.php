@@ -12,6 +12,7 @@ namespace spacecatninja\imagerx;
 
 use Craft;
 use craft\base\Element;
+use craft\base\Model;
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
 use craft\elements\Asset;
@@ -153,7 +154,7 @@ class ImagerX extends Plugin
      *
      * @var ImagerX
      */
-    public static $plugin;
+    public static ImagerX $plugin;
 
     // Public Methods
     // =========================================================================
@@ -166,7 +167,7 @@ class ImagerX extends Plugin
         ];
     }
 
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -204,7 +205,7 @@ class ImagerX extends Plugin
         );
 
         // Register utility
-        if (self::getInstance()->is(self::EDITION_PRO)) {
+        if (self::getInstance()?->is(self::EDITION_PRO)) {
             Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITY_TYPES,
                 static function(RegisterComponentTypesEvent $event) {
                     $event->types[] = GenerateTransformsUtility::class;
@@ -274,7 +275,7 @@ class ImagerX extends Plugin
     /**
      * @inheritdoc
      */
-    protected function createSettingsModel()
+    protected function createSettingsModel(): ?Model
     {
         return new Settings();
     }
@@ -347,7 +348,7 @@ class ImagerX extends Plugin
 
                 $event->actions[] = ClearTransformsElementAction::class;
 
-                if (ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
+                if (ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
                     // If Imgix purging is possible, add element action for purging – unless the element action is disabled
                     if ($config->imgixEnablePurgeElementAction && ImgixService::getCanPurge()) {
                         $event->actions[] = ImgixPurgeElementAction::class;
@@ -441,7 +442,7 @@ class ImagerX extends Plugin
      */
     private function registerGraphQL(): void
     {
-        if (self::getInstance()->is(self::EDITION_PRO)) {
+        if (self::getInstance()?->is(self::EDITION_PRO)) {
             // Register types
             Event::on(
                 Gql::class,
@@ -509,7 +510,7 @@ class ImagerX extends Plugin
      */
     private function registerGenerateListeners(): void
     {
-        if (self::getInstance()->is(self::EDITION_PRO)) {
+        if (self::getInstance()?->is(self::EDITION_PRO)) {
             if (ImagerService::$generateConfig === null) {
                 return;
             }
@@ -561,7 +562,7 @@ class ImagerX extends Plugin
 
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT,
             static function(ElementEvent $event) use ($config) {
-                if ($event->element && $event->element instanceof Asset) {
+                if ($event->element instanceof Asset) {
                     /** @var Asset $asset */
                     $asset = $event->element;
 
@@ -580,7 +581,7 @@ class ImagerX extends Plugin
                 /** @var Element $element */
                 $element = $event->element;
 
-                if ($element && $element instanceof Asset && $element->scenario === Asset::SCENARIO_FILEOPS) {
+                if ($element instanceof Asset && $element->scenario === Asset::SCENARIO_FILEOPS) {
                     ImagerX::$plugin->imagerx->removeTransformsForAsset($element);
 
                     // If Imgix purging is possible, do that too
@@ -597,7 +598,7 @@ class ImagerX extends Plugin
      */
     private function registerTransformers(): void
     {
-        if (self::getInstance()->is(self::EDITION_PRO)) {
+        if (self::getInstance()?->is(self::EDITION_PRO)) {
             $data = [
                 'craft' => CraftTransformer::class,
                 'imgix' => ImgixTransformer::class,
@@ -703,7 +704,7 @@ class ImagerX extends Plugin
      */
     private function registerExternalStorages(): void
     {
-        if (self::getInstance()->is(self::EDITION_PRO)) {
+        if (self::getInstance()?->is(self::EDITION_PRO)) {
             $data = [
                 'aws' => AwsStorage::class,
                 'gcs' => GcsStorage::class,

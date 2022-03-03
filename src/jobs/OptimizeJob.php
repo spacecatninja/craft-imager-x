@@ -32,17 +32,17 @@ class OptimizeJob extends BaseJob
     /**
      * @var string
      */
-    public $optimizer = '';
+    public string $optimizer = '';
     
     /**
      * @var array
      */
-    public $optimizerSettings = [];
+    public array $optimizerSettings = [];
     
     /**
      * @var string
      */
-    public $filePath = '';
+    public string $filePath = '';
 
 
     // Public Methods
@@ -52,7 +52,7 @@ class OptimizeJob extends BaseJob
      * @param QueueInterface|Queue $queue
      * @throws ImagerException
      */
-    public function execute($queue)
+    public function execute($queue): void
     {
         if (isset(ImagerService::$optimizers[$this->optimizer])) {
             /** @var ImagerOptimizeInterface $optimizerClass */
@@ -79,9 +79,9 @@ class OptimizeJob extends BaseJob
     /**
      * Returns a default description for [[getDescription()]], if [[description]] isn’t set.
      *
-     * @return string The default task description
+     * @return string|null The default task description
      */
-    protected function defaultDescription(): string
+    protected function defaultDescription(): ?string
     {
         return Craft::t('imager-x', 'Optimizing images');
     }

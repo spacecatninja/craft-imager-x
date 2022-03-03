@@ -17,7 +17,7 @@ use Tinify\Exception;
 class TinypngOptimizer implements ImagerOptimizeInterface
 {
 
-    public static function optimize(string $file, array $settings)
+    public static function optimize(string $file, ?array $settings): void
     {
         try {
             \Tinify\setKey($settings['apiKey']);

@@ -20,5 +20,5 @@ class RegisterOptimizersEvent extends Event
     /**
      * @var array List of optimizers
      */
-    public $optimizers = [];
+    public array $optimizers = [];
 }

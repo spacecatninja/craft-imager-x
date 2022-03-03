@@ -52,7 +52,7 @@ interface TransformedImageInterface
      * @param int $precision
      * @return mixed
      */
-    public function getSize($unit = 'b', $precision = 2);
+    public function getSize(string $unit = 'b', int $precision = 2): mixed;
 
     /**
      * @return string
@@ -68,7 +68,7 @@ interface TransformedImageInterface
      * @param array $settings
      * @return string
      */
-    public function getPlaceholder($settings = []):string;
+    public function getPlaceholder(array $settings = []):string;
 
     /**
      * @return bool

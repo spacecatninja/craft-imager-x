@@ -16,13 +16,13 @@ use craft\elements\Asset;
 interface TransformerInterface
 {
     /**
-     * @param Asset|string $image
+     * @param string|Asset $image
      * @param array        $transforms
      *
      * @return array|null
      *
      * @throws ImagerException
      */
-    public function transform($image, $transforms);
+    public function transform(Asset|string $image, array $transforms): ?array;
 
 }

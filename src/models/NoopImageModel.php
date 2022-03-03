@@ -23,11 +23,11 @@ use yii\base\InvalidConfigException;
 
 class NoopImageModel extends BaseTransformedImageModel implements TransformedImageInterface
 {
-    public $path;
-    public $filename;
-    public $url;
-    public $extension;
-    public $mimeType;
+    public string $path;
+    public string $filename;
+    public string $url;
+    public string $extension;
+    public string $mimeType;
     
     /**
      * @var int
@@ -37,27 +37,27 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
     /**
      * @var int
      */
-    public $height;
+    public int $height;
     
     /**
      * @var int|float
      */
-    public $size;
+    public int|float $size;
     
     /**
      * @var bool
      */
-    public $isNew;
+    public bool $isNew;
 
     /**
      * Constructor
      *
      * @param LocalSourceImageModel $sourceModel
-     * @param array $transform
+     * @param array                 $transform
      *
      * @throws ImagerException
      */
-    public function __construct($sourceModel, $transform)
+    public function __construct(LocalSourceImageModel $sourceModel, array $transform)
     {
         $this->source = $sourceModel;
         $this->path = $sourceModel->getFilePath();
@@ -74,8 +74,6 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
             // just ignore
         }
 
-        $imageInfo = @getimagesize($sourceModel->getFilePath());
-
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
@@ -90,47 +88,7 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
             throw new ImagerException($e->getMessage(), $e->getCode(), $e);
         }
     }
-
-    /**
-     * @return string
-     */
-    public function getPath(): string
-    {
-        return $this->path;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFilename(): string
-    {
-        return $this->filename;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUrl(): string
-    {
-        return $this->url;
-    }
-
-    /**
-     * @return string
-     */
-    public function getExtension(): string
-    {
-        return $this->extension;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMimeType(): string
-    {
-        return $this->mimeType;
-    }
-
+    
     /**
      * @return int
      */
@@ -148,36 +106,21 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
     }
 
     /**
-     * @return bool
-     */
-    public function getIsNew(): bool
-    {
-        return $this->isNew;
-    }
-
-    /**
      * @param string $unit
-     * @param int $precision
+     * @param int    $precision
      *
      * @return float|int
      */
-    public function getSize($unit = 'b', $precision = 2)
+    public function getSize(string $unit = 'b', int $precision = 2): float|int
     {
         $unit = strtolower($unit);
 
-        switch ($unit) {
-            case 'g':
-            case 'gb':
-                return round(((int)$this->size) / 1024 / 1024 / 1024, $precision);
-            case 'm':
-            case 'mb':
-                return round(((int)$this->size) / 1024 / 1024, $precision);
-            case 'k':
-            case 'kb':
-                return round(((int)$this->size) / 1024, $precision);
-        }
-
-        return $this->size;
+        return match ($unit) {
+            'g', 'gb' => round(((int)$this->size) / 1024 / 1024 / 1024, $precision),
+            'm', 'mb' => round(((int)$this->size) / 1024 / 1024, $precision),
+            'k', 'kb' => round(((int)$this->size) / 1024, $precision),
+            default => $this->size,
+        };
     }
 
     /**
@@ -198,8 +141,4 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
         return base64_encode($image);
     }
 
-    public function __toString()
-    {
-        return (string)$this->url;
-    }
 }

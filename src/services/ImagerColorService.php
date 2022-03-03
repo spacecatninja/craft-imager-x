@@ -13,6 +13,7 @@ namespace spacecatninja\imagerx\services;
 use craft\base\Component;
 use craft\elements\Asset;
 
+use JetBrains\PhpStorm\Pure;
 use spacecatninja\imagerx\models\LocalSourceImageModel;
 use spacecatninja\imagerx\exceptions\ImagerException;
 
@@ -60,13 +61,13 @@ class ImagerColorService extends Component
     /**
      * Get dominant color of image
      *
-     * @param Asset|string $image
-     * @param int $quality
-     * @param string $colorValue
+     * @param string|Asset $image
+     * @param int          $quality
+     * @param string       $colorValue
      *
      * @return string|array|boolean|null
      */
-    public function getDominantColor($image, $quality = 10, $colorValue = 'hex')
+    public function getDominantColor(Asset|string $image, int $quality = 10, string $colorValue = 'hex'): bool|array|string|null
     {
         try {
             $source = new LocalSourceImageModel($image);
@@ -94,14 +95,14 @@ class ImagerColorService extends Component
     /**
      * Gets color palette for image
      *
-     * @param Asset|string $image
-     * @param int $colorCount
-     * @param int $quality
-     * @param string $colorValue
+     * @param string|Asset $image
+     * @param int          $colorCount
+     * @param int          $quality
+     * @param string       $colorValue
      *
      * @return array|null
      */
-    public function getColorPalette($image, $colorCount = 8, $quality = 10, $colorValue = 'hex')
+    public function getColorPalette(Asset|string $image, int $colorCount = 8, int $quality = 10, string $colorValue = 'hex'): ?array
     {
         try {
             $source = new LocalSourceImageModel($image);
@@ -131,10 +132,11 @@ class ImagerColorService extends Component
     /**
      * Calculates color brightness (https://www.w3.org/TR/AERT#color-contrast) on a scale from 0 (black) to 255 (white). 
      * 
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getBrightness($color): float
+    public function getBrightness(array|string $color): float
     {
         $c = color($color);
         return brightness($c);
@@ -143,10 +145,11 @@ class ImagerColorService extends Component
     /**
      * Get the hue channel of a color.
      * 
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getHue($color): float
+    public function getHue(array|string $color): float
     {
         $c = color($color);
         return hue($c);
@@ -155,10 +158,11 @@ class ImagerColorService extends Component
     /**
      * Get the lightness channel of a color
      * 
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getLightness($color): float
+    public function getLightness(array|string $color): float
     {
         $c = color($color);
         return lightness($c);
@@ -167,11 +171,12 @@ class ImagerColorService extends Component
     /**
      * Checks brightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 127.5. 
      *
-     * @param string|array $color
-     * @param float $threshold
+     * @param array|string $color
+     * @param float        $threshold
+     *
      * @return bool
      */
-    public function isBright($color, $threshold=127.5): bool
+    public function isBright(array|string $color, float $threshold=127.5): bool
     {
         $c = color($color);
         return is_bright($c, $threshold);
@@ -180,11 +185,12 @@ class ImagerColorService extends Component
     /**
      * Checks lightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 50.0. 
      * 
-     * @param string|array $color
-     * @param int $threshold
+     * @param array|string $color
+     * @param int          $threshold
+     *
      * @return bool
      */
-    public function isLight($color, $threshold=50): bool
+    public function isLight(array|string $color, int $threshold=50): bool
     {
         $c = color($color);
         return is_light($c, $threshold);
@@ -193,11 +199,12 @@ class ImagerColorService extends Component
     /**
      * Checks perceived_brightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 127.5. 
      * 
-     * @param string|array $color
-     * @param float $threshold
+     * @param array|string $color
+     * @param float        $threshold
+     *
      * @return bool
      */
-    public function looksBright($color, $threshold = 127.5): bool
+    public function looksBright(array|string $color, float $threshold = 127.5): bool
     {
         $c = color($color);
         return looks_bright($c, $threshold);
@@ -206,10 +213,11 @@ class ImagerColorService extends Component
     /**
      * Calculates the perceived brightness (http://alienryderflex.com/hsp.html) of a color on a scale from 0 (black) to 255 (white).
      * 
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getPercievedBrightness($color): float 
+    public function getPercievedBrightness(array|string $color): float 
     {
         $c = color($color);
         return perceived_brightness($c);
@@ -218,10 +226,11 @@ class ImagerColorService extends Component
     /**
      * Calculates the relative luminance (https://www.w3.org/TR/WCAG20/#relativeluminancedef) of a color on a scale from 0 (black) to 1 (white).
      * 
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getRelativeLuminance($color): float 
+    public function getRelativeLuminance(array|string $color): float 
     {
         $c = color($color);
         return relative_luminance($c);
@@ -230,10 +239,11 @@ class ImagerColorService extends Component
     /**
      * Get the saturation channel of a color.
      * 
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getSaturation($color): float 
+    public function getSaturation(array|string $color): float 
     {
         $c = color($color);
         return saturation($c);
@@ -242,11 +252,12 @@ class ImagerColorService extends Component
     /**
      * Calculates brightness difference (https://www.w3.org/TR/AERT#color-contrast) on a scale from 0 to 255.
      * 
-     * @param string|array $color1
-     * @param string|array $color2
+     * @param array|string $color1
+     * @param array|string $color2
+     *
      * @return float
      */
-    public function getBrightnessDifference($color1, $color2): float
+    public function getBrightnessDifference(array|string $color1, array|string $color2): float
     {
         $c1 = color($color1);
         $c2 = color($color2);
@@ -256,11 +267,12 @@ class ImagerColorService extends Component
     /**
      * Calculates color difference (https://www.w3.org/TR/AERT#color-contrast) on a scale from 0 to 765.
      * 
-     * @param string|array $color1
-     * @param string|array $color2
+     * @param array|string $color1
+     * @param array|string $color2
+     *
      * @return int
      */
-    public function getColorDifference($color1, $color2): int
+    public function getColorDifference(array|string $color1, array|string $color2): int
     {
         $c1 = color($color1);
         $c2 = color($color2);
@@ -270,11 +282,12 @@ class ImagerColorService extends Component
     /**
      * Calculates the contrast ratio (https://www.w3.org/TR/WCAG20/#contrast-ratiodef) between two colors on a scale from 1 to 21.
      * 
-     * @param string|array $color1
-     * @param string|array $color2
+     * @param array|string $color1
+     * @param array|string $color2
+     *
      * @return float
      */
-    public function getContrastRatio($color1, $color2): float
+    public function getContrastRatio(array|string $color1, array|string $color2): float
     {
         $c1 = color($color1);
         $c2 = color($color2);
@@ -288,7 +301,7 @@ class ImagerColorService extends Component
      *
      * @return string
      */
-    public static function rgb2hex($rgb): string
+    public static function rgb2hex(array $rgb): string
     {
         return '#' . sprintf('%02x', $rgb[0]) . sprintf('%02x', $rgb[1]) . sprintf('%02x', $rgb[2]);
     }
@@ -300,7 +313,7 @@ class ImagerColorService extends Component
      *
      * @return array
      */
-    public static function hex2rgb($hex): array
+    public static function hex2rgb(string $hex): array
     {
         $hex = str_replace('#', '', $hex);
 
@@ -324,7 +337,7 @@ class ImagerColorService extends Component
      *
      * @return array
      */
-    private function paletteToHex($palette): array
+    #[Pure] private function paletteToHex(array $palette): array
     {
         $r = [];
         foreach ($palette as $paletteColor) {

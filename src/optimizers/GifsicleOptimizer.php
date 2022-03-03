@@ -20,7 +20,7 @@ class GifsicleOptimizer implements ImagerOptimizeInterface
 {
     use RunShellCommandTrait;
 
-    public static function optimize(string $file, array $settings)
+    public static function optimize(string $file, ?array $settings): void
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();

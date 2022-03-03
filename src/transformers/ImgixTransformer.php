@@ -22,8 +22,6 @@ use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImgixHelpers;
 
-use Imgix\UrlBuilder;
-
 /**
  * ImgixTransformer
  *
@@ -33,33 +31,23 @@ use Imgix\UrlBuilder;
  */
 class ImgixTransformer extends Component implements TransformerInterface
 {
-    public static $transformKeyTranslate = [
+    public static array $transformKeyTranslate = [
         'width' => 'w',
         'height' => 'h',
         'format' => 'fm',
         'bgColor' => 'bg',
     ];
-
-    /**
-     * ImgixTransformer constructor.
-     *
-     * @param array $config
-     */
-    public function __construct($config = [])
-    {
-        parent::__construct($config);
-    }
-
+    
     /**
      * Main transform method
      *
-     * @param Asset|string $image
+     * @param string|Asset $image
      * @param array        $transforms
      *
      * @return array|null
      * @throws ImagerException
      */
-    public function transform($image, $transforms)
+    public function transform(Asset|string $image, array $transforms): ?array
     {
         $transformedImages = [];
 
@@ -73,14 +61,14 @@ class ImgixTransformer extends Component implements TransformerInterface
     /**
      * Transform one image
      *
-     * @param Asset|string $image
+     * @param string|Asset $image
      * @param array        $transform
      *
      * @return ImgixTransformedImageModel
      *
      * @throws ImagerException
      */
-    private function getTransformedImage($image, $transform): ImgixTransformedImageModel
+    private function getTransformedImage(Asset|string $image, array $transform): ImgixTransformedImageModel
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
@@ -120,12 +108,12 @@ class ImgixTransformer extends Component implements TransformerInterface
      * Create Imgix transform params
      *
      * @param array         $transform
-     * @param Asset|string  $image
+     * @param string|Asset  $image
      * @param ImgixSettings $imgixConfig
      *
      * @return array
      */
-    private function createParams($transform, $image, $imgixConfig): array
+    private function createParams(array $transform, Asset|string $image, ImgixSettings $imgixConfig): array
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
@@ -220,7 +208,7 @@ class ImgixTransformer extends Component implements TransformerInterface
         // If fit is crop, and crop isn't specified, use position as focal point.
         if ($r['fit'] === 'crop' && !isset($transform['crop'])) {
             $position = $config->getSetting('position', $transform);
-            list($left, $top) = explode(' ', $position);
+            [$left, $top] = explode(' ', $position);
             $r['crop'] = 'focalpoint';
             $r['fp-x'] = ((float)$left) / 100;
             $r['fp-y'] = ((float)$top) / 100;
@@ -303,7 +291,7 @@ class ImgixTransformer extends Component implements TransformerInterface
      */
     private function transformHasAutoCompressionEnabled(array $transform): bool
     {
-        return isset($transform['auto']) && strpos($transform['auto'], 'compress') !== false;
+        return isset($transform['auto']) && str_contains($transform['auto'], 'compress');
     }
 
     /**
@@ -346,12 +334,12 @@ class ImgixTransformer extends Component implements TransformerInterface
     /**
      * Gets the quality setting based on the extension.
      *
-     * @param string $ext
-     * @param array|null   $transform
+     * @param string     $ext
+     * @param array|null $transform
      *
      * @return string
      */
-    private function getQualityFromExtension($ext, $transform = null): string
+    private function getQualityFromExtension(string $ext, array $transform = null): string
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();

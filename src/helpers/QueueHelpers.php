@@ -10,16 +10,14 @@
 
 namespace spacecatninja\imagerx\helpers;
 
-use Craft;
 use craft\helpers\UrlHelper;
-
 
 class QueueHelpers
 {
     /**
      * Trigger queue/run immediately
      */
-    public static function triggerQueueNow()
+    public static function triggerQueueNow(): void
     {
         $url = UrlHelper::actionUrl('queue/run');
 

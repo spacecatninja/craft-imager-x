@@ -14,18 +14,12 @@ use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImgixHelpers;
 use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\models\ImgixSettings;
-use spacecatninja\imagerx\services\ImagerService;
 
 use Imgix\UrlBuilder;
 
 use Craft;
 use craft\base\Component;
-use craft\base\LocalVolumeInterface;
-use craft\base\Volume;
 use craft\elements\Asset;
-use craft\volumes\Local;
-
-use yii\base\InvalidConfigException;
 
 /**
  * ImgixService Service
@@ -42,13 +36,13 @@ class ImgixService extends Component
     /**
      *  The Imgix API endpoint for purging images
      */
-    const PURGE_ENDPOINT_OLD = 'https://api.imgix.com/v2/image/purger';
-    const PURGE_ENDPOINT = 'https://api.imgix.com/api/v1/purge';
+    public const PURGE_ENDPOINT_OLD = 'https://api.imgix.com/v2/image/purger';
+    public const PURGE_ENDPOINT = 'https://api.imgix.com/api/v1/purge';
 
     /**
      * @var bool If purging is enabled or not
      */
-    protected static $canPurge;
+    protected static bool $canPurge;
 
     /**
      * Purging is possible if there's an `imgixConfig` map, and all sources/profiles have an API key set
@@ -91,7 +85,7 @@ class ImgixService extends Component
      * @param string $url The base URL to the image you wish to purge (e.g. https://your-imgix-source.imgix.net/image.jpg)
      * @param string $apiKey Imgix API key
      */
-    public function purgeUrlFromImgix(string $url, string $apiKey)
+    public function purgeUrlFromImgix(string $url, string $apiKey): void
     {
         $isOld = strlen($apiKey)<50;
         
@@ -155,7 +149,7 @@ class ImgixService extends Component
      * @param Asset $asset The Asset you wish to purge
      * @throws ImagerException
      */
-    public function purgeAssetFromImgix(Asset $asset)
+    public function purgeAssetFromImgix(Asset $asset): void
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();

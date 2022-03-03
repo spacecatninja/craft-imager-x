@@ -20,6 +20,10 @@ use craft\base\ElementAction;
 
 use spacecatninja\imagerx\ImagerX;
 
+/**
+ *
+ * @property-read string $triggerLabel
+ */
 class GenerateTransformsAction extends ElementAction
 {
 

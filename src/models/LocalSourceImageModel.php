@@ -12,8 +12,8 @@ namespace spacecatninja\imagerx\models;
 
 use Craft;
 
-use craft\base\LocalVolumeInterface;
-use craft\base\Volume;
+use craft\fs\Local;
+use craft\models\Volume;
 use craft\helpers\FileHelper;
 use craft\elements\Asset;
 use craft\errors\AssetException;
@@ -72,7 +72,7 @@ class LocalSourceImageModel
     private function init($image): void
     {
         $settings = ImagerService::getConfig();
-
+        
         if (\is_string($image)) {
             if (strncmp($image, $settings->imagerUrl, \strlen($settings->imagerUrl)) === 0) {
                 // Url to a file that is in the imager library
@@ -98,16 +98,18 @@ class LocalSourceImageModel
                 $this->getPathsForLocalImagerFile($image->url);
             } else {
                 if ($image instanceof Asset) {
+                    
                     $this->asset = $image;
 
                     try {
                         $volumeClass = \get_class($image->getVolume());
+                        $fileSystemClass = \get_class($image->getVolume()->getFs());
                     } catch (InvalidConfigException $e) {
                         Craft::error($e->getMessage(), __METHOD__);
                         throw new ImagerException($e->getMessage(), $e->getCode(), $e);
                     }
-
-                    if ($volumeClass === 'craft\volumes\Local') {
+                    
+                    if ($fileSystemClass === 'craft\fs\Local') {
                         $this->getPathsForLocalAsset($image);
                     } else {
                         $this->type = 'volume';
@@ -224,10 +226,11 @@ class LocalSourceImageModel
     private function getPathsForLocalAsset(Asset $image): void
     {
         try {
-            /** @var LocalVolumeInterface $volume */
-            $volume = $image->getVolume();
+            /** @var Local $fs */
+            $fs = $image->volume->getFs();
+            
             $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
-            $this->path = FileHelper::normalizePath($volume->getRootPath().'/'.$image->folderPath);
+            $this->path = FileHelper::normalizePath($fs->getRootPath().'/'.$image->folderPath);
             $this->url = $image->getUrl();
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
@@ -258,15 +261,15 @@ class LocalSourceImageModel
 
         try {
             $this->url = AssetsHelper::generateUrl($image->getVolume(), $image);
-        } catch (InvalidConfigException $e) {
+            $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
+            $this->filename = $image->getFilename();
+            $this->basename = $image->getFilename(false);
+            $this->extension = $image->getExtension();
+        } catch (\Throwable $e) {
             Craft::error($e->getMessage(), __METHOD__);
             throw new ImagerException($e->getMessage(), $e->getCode(), $e);
         }   
             
-        $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
-        $this->filename = $image->getFilename();
-        $this->basename = $image->getFilename(false);
-        $this->extension = $image->getExtension();
 
         try {
             FileHelper::createDirectory($this->path);

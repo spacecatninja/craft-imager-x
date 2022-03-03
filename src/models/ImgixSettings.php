@@ -14,21 +14,23 @@ use craft\base\Model;
 
 class ImgixSettings extends Model
 {
-    public $domains = [];
-    public $domain = '';
-    public $useHttps = true;
-    public $signKey = '';
-    public $sourceIsWebProxy = false;
-    public $useCloudSourcePath = true;
+    public array $domains = [];
+    public string $domain = '';
+    public bool $useHttps = true;
+    public string $signKey = '';
+    public bool $sourceIsWebProxy = false;
+    public bool $useCloudSourcePath = true;
     public $addPath = null;
     public $shardStrategy = null;
-    public $getExternalImageDimensions = true;
-    public $defaultParams = [];
-    public $excludeFromPurge = false;
-    public $apiKey = '';
+    public bool $getExternalImageDimensions = true;
+    public array $defaultParams = [];
+    public bool $excludeFromPurge = false;
+    public string $apiKey = '';
     
     public function __construct($config = [])
     {
+        parent::__construct($config);
+        
         if (!empty($config)) {
             \Yii::configure($this, $config);
         }

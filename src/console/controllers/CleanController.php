@@ -11,15 +11,9 @@
 namespace spacecatninja\imagerx\console\controllers;
 
 use Craft;
-use craft\base\Field;
-use craft\base\FieldInterface;
-use craft\base\Volume;
-use craft\base\VolumeInterface;
-use craft\db\Query;
-use craft\elements\Asset;
-use craft\elements\db\AssetQuery;
 
 use craft\helpers\FileHelper;
+use JetBrains\PhpStorm\ArrayShape;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\ImagerService;
 
@@ -33,24 +27,24 @@ class CleanController extends Controller
     /**
      * @var string|null Handle of volume to clean transforms for
      */
-    public $volume;
+    public ?string $volume;
     
     /**
      * @var string|null Overrides the default cache duration settings
      */
-    public $duration;
+    public ?string $duration;
     
     
     // Public Methods
     // =========================================================================
 
     /**
-     * @param string $actionsID
-     * @return array|string[]
+     * @param string $actionID
+     * @return array
      */
-    public function options($actionsID): array
+    public function options($actionID): array
     {
-        $options = parent::options($actionsID);
+        $options = parent::options($actionID);
         
         return array_merge($options, [
             'volume',
@@ -71,13 +65,13 @@ class CleanController extends Controller
     }
 
     /**
-     * Generates image transforms by volume/folder or fields.
+     * Cleans image transforms in the local system path.
      *
-     * @return mixed
+     * @return int
      */
-    public function actionIndex()
+    public function actionIndex(): int
     {
-        if (!ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
+        if (!ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
             $this->error('Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it\'s so worth it!).');
             return ExitCode::UNAVAILABLE;
         }
@@ -132,10 +126,8 @@ class CleanController extends Controller
         $this->success("> Found {$numFiles} transformed images.");
 
         foreach ($files as $file) {
-            if (is_file($file)) {
-                if ($this->fileHasExpired($file)) {
-                    $expiredFiles[] = $file;
-                }
+            if (is_file($file) && $this->fileHasExpired($file)) {
+                $expiredFiles[] = $file;
             }
         }
         
@@ -173,7 +165,7 @@ class CleanController extends Controller
     /**
      * @param string $text
      */
-    public function success($text = '')
+    public function success(string $text = ''): void
     {
         $this->stdout("$text\n", BaseConsole::FG_GREEN);
     }
@@ -181,7 +173,7 @@ class CleanController extends Controller
     /**
      * @param string $text
      */
-    public function message($text = '')
+    public function message(string $text = ''): void
     {
         $this->stdout("$text\n", BaseConsole::FG_GREY);
     }
@@ -189,7 +181,7 @@ class CleanController extends Controller
     /**
      * @param string $text
      */
-    public function error($text = '')
+    public function error(string $text = ''): void
     {
         $this->stdout("$text\n", BaseConsole::FG_RED);
     }

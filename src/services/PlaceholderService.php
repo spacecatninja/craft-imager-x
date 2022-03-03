@@ -29,7 +29,7 @@ use Imagine\Image\Box;
  */
 class PlaceholderService extends Component
 {
-    private $defaults = [
+    private array $defaults = [
         'type' => 'svg',
         'width' => 1,
         'height' => 1,
@@ -44,23 +44,20 @@ class PlaceholderService extends Component
      * Main public placeholder method.
      * 
      * @param array|null $config
+     *
      * @return string
      * @throws ImagerException
      */
-    public function placeholder($config = null): string
+    public function placeholder(array $config = null): string
     {
         $config = array_merge($this->defaults, $config ?? []);
 
-        switch ($config['type']) {
-            case 'svg':
-                return $this->placeholderSVG($config);
-            case 'gif':
-                return $this->placeholderGIF($config);
-            case 'silhouette':
-                return $this->placeholderSilhuette($config);
-        }
-
-        return '';
+        return match ($config['type']) {
+            'svg' => $this->placeholderSVG($config),
+            'gif' => $this->placeholderGIF($config),
+            'silhouette' => $this->placeholderSilhuette($config),
+            default => '',
+        };
     }
 
     /**
@@ -141,10 +138,15 @@ class PlaceholderService extends Component
             return '';
         }
         
-        $tracer = new Potracio();
-        $tracer->loadImageFromFile($sourceModel->getFilePath());
-        $tracer->process();
-        $data = $tracer->getSVG($size, $silhouetteType, $color, $fgColor);
+        try {
+            $tracer = new Potracio();
+            $tracer->loadImageFromFile($sourceModel->getFilePath());
+            $tracer->process();
+            $data = $tracer->getSVG($size, $silhouetteType, $color, $fgColor);
+        } catch (\Throwable $e) {
+            \Craft::error($e->getMessage(), __METHOD__);
+            return '';
+        }
         
         return 'data:image/svg+xml;charset=utf-8,' . rawurlencode($data);
     }
@@ -154,7 +156,7 @@ class PlaceholderService extends Component
      *
      * @return \Imagine\Gd\Imagine|\Imagine\Imagick\Imagine|null
      */
-    private function createImagineInstance()
+    private function createImagineInstance(): \Imagine\Imagick\Imagine|\Imagine\Gd\Imagine|null
     {
         $imageDriver = ImagerService::$imageDriver;
         

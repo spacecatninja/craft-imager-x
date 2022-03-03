@@ -34,7 +34,7 @@ class OptimizerService extends Component
      *
      * @return bool Return if the image is the final version or not. If a task was set up, it's not.
      */
-    public function optimize($transformedImage): bool
+    public function optimize(TransformedImageInterface $transformedImage): bool
     {
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
@@ -94,7 +94,7 @@ class OptimizerService extends Component
      * @param string $filePath
      * @param array $settings
      */
-    private function createOptimizeJob(string $handle, string $filePath, array $settings)
+    private function createOptimizeJob(string $handle, string $filePath, array $settings): void
     {
         $queue = Craft::$app->getQueue();
 

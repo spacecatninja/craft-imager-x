@@ -75,27 +75,20 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
     
     /**
      * @param string $unit
-     * @param int $precision
+     * @param int    $precision
      *
      * @return float|int
      */
-    public function getSize($unit = 'b', $precision = 2)
+    public function getSize(string $unit = 'b', int $precision = 2): float|int
     {
         $unit = strtolower($unit);
 
-        switch ($unit) {
-            case 'g':
-            case 'gb':
-                return round(((int)$this->size) / 1024 / 1024 / 1024, $precision);
-            case 'm':
-            case 'mb':
-                return round(((int)$this->size) / 1024 / 1024, $precision);
-            case 'k':
-            case 'kb':
-                return round(((int)$this->size) / 1024, $precision);
-        }
-
-        return $this->size;
+        return match ($unit) {
+            'g', 'gb' => round(((int)$this->size) / 1024 / 1024 / 1024, $precision),
+            'm', 'mb' => round(((int)$this->size) / 1024 / 1024, $precision),
+            'k', 'kb' => round(((int)$this->size) / 1024, $precision),
+            default => $this->size,
+        };
     }
 
     /**
@@ -119,7 +112,7 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
     /**
      * @return string
      */
-    public function getBlurhash()
+    public function getBlurhash(): string
     {
         $blurhashFile = $this->getPath();
         $key = 'imager-x-local-blurhash-' . base64_encode($blurhashFile);

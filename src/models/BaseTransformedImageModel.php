@@ -19,52 +19,52 @@ class BaseTransformedImageModel
     /**
      * @var mixed
      */
-    public $source = null;
+    public mixed $source = null;
 
     /**
      * @var string
      */
-    public $path = '';
+    public string $path = '';
 
     /**
      * @var string
      */
-    public $filename = '';
+    public string $filename = '';
 
     /**
      * @var string
      */
-    public $url = '';
+    public string $url = '';
 
     /**
      * @var string
      */
-    public $extension = '';
+    public string $extension = '';
 
     /**
      * @var string
      */
-    public $mimeType = '';
+    public string $mimeType = '';
 
     /**
      * @var int
      */
-    public $width = 0;
+    public int $width = 0;
 
     /**
      * @var int
      */
-    public $height = 0;
+    public int $height = 0;
 
     /**
      * @var int|float
      */
-    public $size = 0;
+    public int|float $size = 0;
 
     /**
      * @var bool
      */
-    public $isNew = false;
+    public bool $isNew = false;
 
     /**
      * @return string
@@ -124,21 +124,22 @@ class BaseTransformedImageModel
 
     /**
      * @param string $unit
-     * @param int $precision
+     * @param int    $precision
      *
      * @return float|int
      */
-    public function getSize($unit = 'b', $precision = 2)
+    public function getSize(string $unit = 'b', int $precision = 2): float|int
     {
         return 0;
     }
 
     /**
      * @param array $settings
+     *
      * @return string
      * @throws ImagerException
      */
-    public function getPlaceholder($settings = []): string
+    public function getPlaceholder(array $settings = []): string
     {
         if ($settings) {
             if (!isset($settings['width'])) {
@@ -179,7 +180,7 @@ class BaseTransformedImageModel
     /**
      * @return string
      */
-    public function getBlurhash()
+    public function getBlurhash(): string
     {
         return '';
     }

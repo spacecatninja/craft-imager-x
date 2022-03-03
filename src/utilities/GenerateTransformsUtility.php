@@ -13,7 +13,7 @@ namespace spacecatninja\imagerx\utilities;
 use Craft;
 use craft\base\Utility;
 
-use craft\base\Volume;
+use craft\models\Volume;
 use craft\elements\Asset;
 use craft\helpers\Html;
 use craft\helpers\Template;
@@ -53,7 +53,7 @@ class GenerateTransformsUtility extends Utility
     /**
      * @inheritdoc
      */
-    public static function iconPath()
+    public static function iconPath(): ?string
     {
         return Craft::getAlias('@spacecatninja/imagerx/icon-generate-utility.svg');
     }
@@ -66,7 +66,6 @@ class GenerateTransformsUtility extends Utility
         /** @var Settings $settings */
         $settings = ImagerX::$plugin->getSettings();
         
-        /** @var Volume[] $volumes */
         $volumes = Craft::$app->getVolumes()->getAllVolumes();
         $volumeOptions = [];
 
@@ -120,8 +119,6 @@ class GenerateTransformsUtility extends Utility
             return Craft::t('imager-x', 'Could not load asset bundle');
         }
         
-        $is34 = version_compare(Craft::$app->getVersion(), '3.4', '>=');
-        
         return Craft::$app->getView()->renderTemplate(
             'imager-x/utility/_generateTransforms',
             [
@@ -129,7 +126,7 @@ class GenerateTransformsUtility extends Utility
                 'volumesCheckboxSelectHtml' => $volumesCheckboxSelectHtml,
                 'transformsCheckboxSelectHtml' => $transformsCheckboxSelectHtml,
                 'showDisplayNameInfo' => $hasTransformWithoutDisplayName,
-                'queueUrl' => $is34 ? UrlHelper::cpUrl('utilities/queue-manager') : '',
+                'queueUrl' => UrlHelper::cpUrl('utilities/queue-manager'),
             ]
         );
     }

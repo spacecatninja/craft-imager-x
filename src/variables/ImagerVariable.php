@@ -12,8 +12,11 @@ namespace spacecatninja\imagerx\variables;
 
 use Craft;
 
+use JetBrains\PhpStorm\ArrayShape;
+use JetBrains\PhpStorm\Pure;
 use spacecatninja\imagerx\helpers\NamedTransformHelpers;
 use spacecatninja\imagerx\ImagerX as Plugin;
+use spacecatninja\imagerx\models\TransformedImageInterface;
 use spacecatninja\imagerx\services\ImagerColorService;
 use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\exceptions\ImagerException;
@@ -24,31 +27,30 @@ class ImagerVariable
     /**
      * Transforms an image
      *
-     * @param Asset|string $file
+     * @param string|Asset $file
      * @param array|string $transforms
-     * @param array $transformDefaults
-     * @param array $configOverrides
+     * @param array|null   $transformDefaults
+     * @param array|null   $configOverrides
      *
-     * @return mixed
+     * @return array|TransformedImageInterface|null
      *
      * @throws ImagerException
      */
-    public function transformImage($file, $transforms, $transformDefaults = null, $configOverrides = null)
+    public function transformImage(Asset|string $file, array|string $transforms, array $transformDefaults = null, array $configOverrides = null): array|TransformedImageInterface|null
     {
-        $image = Plugin::$plugin->imagerx->transformImage($file, $transforms, $transformDefaults, $configOverrides);
-        return $image;
+        return Plugin::$plugin->imagerx->transformImage($file, $transforms, $transformDefaults, $configOverrides);
     }
 
     /**
      * Takes an array of models that supports getUrl() and getWidth(), and returns a srcset
      * and returns a srcset string
      *
-     * @param array $images
+     * @param array  $images
      * @param string $descriptor
      *
      * @return string
      */
-    public function srcset($images, $descriptor = 'w'): string
+    public function srcset(array $images, string $descriptor = 'w'): string
     {
         return Plugin::$plugin->imagerx->srcset($images, $descriptor);
     }
@@ -62,7 +64,7 @@ class ImagerVariable
      *
      * @return string
      */
-    public function base64Pixel($width = 1, $height = 1, $color = 'transparent'): string
+    public function base64Pixel(int $width = 1, int $height = 1, string $color = 'transparent'): string
     {
         return 'data:image/svg+xml;charset=utf-8,' . rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' width='$width' height='$height' style='background:$color'/>");
     }
@@ -75,7 +77,7 @@ class ImagerVariable
      * @return string
      * @throws ImagerException
      */
-    public function placeholder($config = null): string
+    public function placeholder(array $config = null): string
     {
         return Plugin::$plugin->placeholder->placeholder($config);
     }
@@ -83,13 +85,13 @@ class ImagerVariable
     /**
      * Gets the dominant color of an image
      *
-     * @param Asset|string $image
-     * @param string $colorValue
-     * @param int $quality
+     * @param string|Asset $image
+     * @param int          $quality
+     * @param string       $colorValue
      *
-     * @return mixed
+     * @return string|array|bool|null
      */
-    public function getDominantColor($image, $quality = 10, $colorValue = 'hex')
+    public function getDominantColor(Asset|string $image, int $quality = 10, string $colorValue = 'hex'): string|array|bool|null
     {
         return Plugin::$plugin->color->getDominantColor($image, $quality, $colorValue);
     }
@@ -97,14 +99,14 @@ class ImagerVariable
     /**
      * Gets a palette of colors from an image
      *
-     * @param Asset|string $image
-     * @param string $colorValue
-     * @param int $colorCount
-     * @param int $quality
+     * @param string|Asset $image
+     * @param int          $colorCount
+     * @param int          $quality
+     * @param string       $colorValue
      *
-     * @return mixed
+     * @return array|null
      */
-    public function getColorPalette($image, $colorCount = 8, $quality = 10, $colorValue = 'hex')
+    public function getColorPalette(Asset|string $image, int $colorCount = 8, int $quality = 10, string $colorValue = 'hex'): ?array
     {
         return Plugin::$plugin->color->getColorPalette($image, $colorCount, $quality, $colorValue);
     }
@@ -116,7 +118,7 @@ class ImagerVariable
      *
      * @return array
      */
-    public function hex2rgb($color): array
+    public function hex2rgb(string $color): array
     {
         return ImagerColorService::hex2rgb($color);
     }
@@ -128,7 +130,7 @@ class ImagerVariable
      *
      * @return string
      */
-    public function rgb2hex($color): string
+    #[Pure] public function rgb2hex(array $color): string
     {
         return ImagerColorService::rgb2hex($color);
     }
@@ -136,10 +138,11 @@ class ImagerVariable
     /**
      * Calculates color brightness (https://www.w3.org/TR/AERT#color-contrast) on a scale from 0 (black) to 255 (white).
      *
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getBrightness($color): float
+    public function getBrightness(array|string $color): float
     {
         return Plugin::$plugin->color->getBrightness($color);
     }
@@ -147,10 +150,11 @@ class ImagerVariable
     /**
      * Get the hue channel of a color.
      *
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getHue($color): float
+    public function getHue(array|string $color): float
     {
         return Plugin::$plugin->color->getHue($color);
     }
@@ -158,10 +162,11 @@ class ImagerVariable
     /**
      * Get the lightness channel of a color
      *
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getLightness($color): float
+    public function getLightness(array|string $color): float
     {
         return Plugin::$plugin->color->getLightness($color);
     }
@@ -169,11 +174,12 @@ class ImagerVariable
     /**
      * Checks brightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 127.5.
      *
-     * @param string|array $color
-     * @param float $threshold
+     * @param array|string $color
+     * @param float        $threshold
+     *
      * @return bool
      */
-    public function isBright($color, $threshold = 127.5): bool
+    public function isBright(array|string $color, float $threshold = 127.5): bool
     {
         return Plugin::$plugin->color->isBright($color, $threshold);
     }
@@ -181,11 +187,12 @@ class ImagerVariable
     /**
      * Checks lightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 50.0.
      *
-     * @param string|array $color
-     * @param int $threshold
+     * @param array|string $color
+     * @param int          $threshold
+     *
      * @return bool
      */
-    public function isLight($color, $threshold = 50): bool
+    public function isLight(array|string $color, int $threshold = 50): bool
     {
         return Plugin::$plugin->color->isLight($color, $threshold);
     }
@@ -193,11 +200,12 @@ class ImagerVariable
     /**
      * Checks perceived_brightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 127.5.
      *
-     * @param string|array $color
-     * @param float $threshold
+     * @param array|string $color
+     * @param float        $threshold
+     *
      * @return bool
      */
-    public function looksBright($color, $threshold = 127.5): bool
+    public function looksBright(array|string $color, float $threshold = 127.5): bool
     {
         return Plugin::$plugin->color->looksBright($color, $threshold);
     }
@@ -205,10 +213,11 @@ class ImagerVariable
     /**
      * Calculates the perceived brightness (http://alienryderflex.com/hsp.html) of a color on a scale from 0 (black) to 255 (white).
      *
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getPercievedBrightness($color): float
+    public function getPercievedBrightness(array|string $color): float
     {
         return Plugin::$plugin->color->getPercievedBrightness($color);
     }
@@ -216,10 +225,11 @@ class ImagerVariable
     /**
      * Calculates the relative luminance (https://www.w3.org/TR/WCAG20/#relativeluminancedef) of a color on a scale from 0 (black) to 1 (white).
      *
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getRelativeLuminance($color): float
+    public function getRelativeLuminance(array|string $color): float
     {
         return Plugin::$plugin->color->getRelativeLuminance($color);
     }
@@ -227,10 +237,11 @@ class ImagerVariable
     /**
      * Get the saturation channel of a color.
      *
-     * @param string|array $color
+     * @param array|string $color
+     *
      * @return float
      */
-    public function getSaturation($color): float
+    public function getSaturation(array|string $color): float
     {
         return Plugin::$plugin->color->getSaturation($color);
     }
@@ -238,11 +249,12 @@ class ImagerVariable
     /**
      * Calculates brightness difference (https://www.w3.org/TR/AERT#color-contrast) on a scale from 0 to 255.
      *
-     * @param string|array $color1
-     * @param string|array $color2
+     * @param array|string $color1
+     * @param array|string $color2
+     *
      * @return float
      */
-    public function getBrightnessDifference($color1, $color2): float
+    public function getBrightnessDifference(array|string $color1, array|string $color2): float
     {
         return Plugin::$plugin->color->getBrightnessDifference($color1, $color2);
     }
@@ -250,11 +262,12 @@ class ImagerVariable
     /**
      * Calculates color difference (https://www.w3.org/TR/AERT#color-contrast) on a scale from 0 to 765.
      *
-     * @param string|array $color1
-     * @param string|array $color2
+     * @param array|string $color1
+     * @param array|string $color2
+     *
      * @return int
      */
-    public function getColorDifference($color1, $color2): int
+    public function getColorDifference(array|string $color1, array|string $color2): int
     {
         return Plugin::$plugin->color->getColorDifference($color1, $color2);
     }
@@ -262,11 +275,12 @@ class ImagerVariable
     /**
      * Calculates the contrast ratio (https://www.w3.org/TR/WCAG20/#contrast-ratiodef) between two colors on a scale from 1 to 21.
      *
-     * @param string|array $color1
-     * @param string|array $color2
+     * @param array|string $color1
+     * @param array|string $color2
+     *
      * @return float
      */
-    public function getContrastRatio($color1, $color2): float
+    public function getContrastRatio(array|string $color1, array|string $color2): float
     {
         return Plugin::$plugin->color->getContrastRatio($color1, $color2);
     }
@@ -317,9 +331,9 @@ class ImagerVariable
      * @param string $format
      * @return bool
      */
-    public function clientSupports($format): bool
+    public function clientSupports(string $format): bool
     {
-        if (strpos($format, 'image/') === false) {
+        if (!str_contains($format, 'image/')) {
             $format = "image/$format";
         }
         
@@ -329,13 +343,13 @@ class ImagerVariable
     /**
      * Checks if asset is animated (only gif support atm)
      *
-     * @param Asset|string $asset
+     * @param string|Asset $asset
      *
      * @return bool
      *
      * @throws ImagerException
      */
-    public function isAnimated($asset): bool
+    public function isAnimated(Asset|string $asset): bool
     {
         return Plugin::$plugin->imagerx->isAnimated($asset);
     }
@@ -364,7 +378,7 @@ class ImagerVariable
      * @param string $name
      * @return bool
      */
-    public function hasNamedTransform($name): bool
+    public function hasNamedTransform(string $name): bool
     {
         return NamedTransformHelpers::getNamedTransform($name) !== null;
     }
@@ -373,7 +387,7 @@ class ImagerVariable
      * @param string $name
      * @return array|null
      */
-    public function getNamedTransform($name)
+    public function getNamedTransform(string $name): ?array
     {
         return NamedTransformHelpers::getNamedTransform($name);
     }

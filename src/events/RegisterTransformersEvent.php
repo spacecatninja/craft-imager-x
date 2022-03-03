@@ -20,5 +20,5 @@ class RegisterTransformersEvent extends Event
     /**
      * @var array List of transformers
      */
-    public $transformers = [];
+    public array $transformers = [];
 }

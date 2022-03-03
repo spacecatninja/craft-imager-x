@@ -12,11 +12,10 @@ namespace spacecatninja\imagerx\helpers;
 
 use Craft;
 
-use craft\base\LocalVolumeInterface;
-use craft\base\Volume;
+use craft\helpers\App;
+use craft\models\Volume;
 use craft\elements\Asset;
 use craft\helpers\FileHelper;
-use craft\volumes\Local;
 
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\models\ImgixSettings;
@@ -27,12 +26,13 @@ use yii\base\InvalidConfigException;
 class ImgixHelpers
 {
     /**
-     * @param Asset|string $image
+     * @param string|Asset  $image
      * @param ImgixSettings $config
+     *
      * @return string
      * @throws ImagerException
      */
-    public static function getImgixFilePath($image, $config): string
+    public static function getImgixFilePath(Asset|string $image, ImgixSettings $config): string
     {
         if (\is_string($image)) { // if $image is a string, just pass it to builder, we have to assume the user knows what he's doing (sry) :)
             return $image;
@@ -43,15 +43,15 @@ class ImgixHelpers
         } 
             
         try {
-            /** @var LocalVolumeInterface|Volume|Local $volume */
             $volume = $image->getVolume();
+            $fs = $image->getVolume()->getFs();
         } catch (InvalidConfigException $e) {
             Craft::error($e->getMessage(), __METHOD__);
             throw new ImagerException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if (($config->useCloudSourcePath === true) && isset($volume->subfolder) && \get_class($volume) !== 'craft\volumes\Local') {
-            $path = implode('/', [\Craft::parseEnv($volume->subfolder), $image->getPath()]);
+        if (($config->useCloudSourcePath === true) && isset($fs->subfolder) && \get_class($fs) !== 'craft\fs\Local') {
+            $path = implode('/', [App::parseEnv($fs->subfolder), $image->getPath()]);
         } else {
             $path = $image->getPath();
         }
@@ -78,7 +78,7 @@ class ImgixHelpers
      * @param ImgixSettings $config
      * @return UrlBuilder
      */
-    public static function getBuilder($config): UrlBuilder
+    public static function getBuilder(ImgixSettings $config): UrlBuilder
     {
         return new UrlBuilder($config->domain,
             $config->useHttps,

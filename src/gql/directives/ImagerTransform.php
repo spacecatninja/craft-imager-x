@@ -49,7 +49,7 @@ class ImagerTransform extends Directive
             return $type;
         }
 
-        $type = GqlEntityRegistry::createEntity(static::name(), new self([
+        return GqlEntityRegistry::createEntity(static::name(), new self([
             'name' => static::name(),
             'locations' => [
                 DirectiveLocation::FIELD,
@@ -57,8 +57,6 @@ class ImagerTransform extends Directive
             'args' => ImagerTransformArguments::getArguments(),
             'description' => 'This directive is used to return a URL for an using Imager X.'
         ]));
-
-        return $type;
     }
 
     /**
@@ -72,7 +70,7 @@ class ImagerTransform extends Directive
     /**
      * @inheritdoc
      */
-    public static function apply($source, $value, array $arguments, ResolveInfo $resolveInfo)
+    public static function apply($source, $value, array $arguments, ResolveInfo $resolveInfo): mixed
     {
         if ($resolveInfo->fieldName !== 'url') {
             return $value;
@@ -85,11 +83,7 @@ class ImagerTransform extends Directive
             unset($arguments['return']);
         }
 
-        if (isset($arguments['handle'])) {
-            $transform = $arguments['handle'];
-        } else {
-            $transform = $arguments;
-        }
+        $transform = $arguments['handle'] ?? $arguments;
         
         if ($source->kind !== 'image' || !\in_array(strtolower($source->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
             return null;

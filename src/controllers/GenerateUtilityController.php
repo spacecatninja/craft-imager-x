@@ -27,10 +27,7 @@ class GenerateUtilityController extends Controller
     // Protected Properties
     // =========================================================================
 
-    /**
-     * @var array
-     */
-    protected $allowAnonymous = false;
+    protected int|bool|array $allowAnonymous = false;
 
     // Public Methods
     // =========================================================================
@@ -41,7 +38,6 @@ class GenerateUtilityController extends Controller
     public function actionGenerateTransforms(): \yii\web\Response
     {
         $request = Craft::$app->getRequest();
-        
         $volumes = $request->getParam('volumes');
         $useConfiguredTransforms = $request->getParam('useConfiguredTransforms') === '1';
         $namedTransforms = $request->getParam('namedTransforms');

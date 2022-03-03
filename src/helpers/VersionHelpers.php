@@ -17,7 +17,7 @@ class VersionHelpers
     /**
      * Compares Craft version
      */
-    public static function craftIs($version, $operator = '>=')
+    public static function craftIs($version, $operator = '>='): bool|int
     {
         return version_compare(Craft::$app->getVersion(), $version, $operator);
     }

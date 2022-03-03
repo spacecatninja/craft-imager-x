@@ -11,6 +11,7 @@
 namespace spacecatninja\imagerx\externalstorage;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\FileHelper;
 
 use Google\Cloud\Core\Exception\ServiceException;
@@ -41,9 +42,9 @@ class GcsStorage implements ImagerStorageInterface
         // Always use forward slashes
         $uri = str_replace('\\', '/', $uri);
         
-        $keyFileSetting = Craft::parseEnv($settings['keyFile']);
+        $keyFileSetting = App::parseEnv($settings['keyFile']);
         
-        if (strpos($keyFileSetting, '{') === 0) {
+        if (str_starts_with($keyFileSetting, '{')) {
             $configKey = 'keyFile';
             $configValue = json_decode($keyFileSetting, true);
         } else {
@@ -69,8 +70,8 @@ class GcsStorage implements ImagerStorageInterface
                     ]
                 ]
             );
-        } catch(ServiceException $e) {
-            Craft::error('An error occured while uploading to Google Cloud Storage: ' . $e->getServiceException()->getMessage(), __METHOD__);
+        } catch(\Throwable $e) {
+            Craft::error('An error occured while uploading to Google Cloud Storage: ' . $e->getMessage(), __METHOD__);
             return false;
         }
 

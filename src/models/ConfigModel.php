@@ -12,6 +12,7 @@ namespace spacecatninja\imagerx\models;
 
 use craft\base\Model;
 
+use craft\helpers\App;
 use craft\helpers\ConfigHelper;
 use craft\helpers\FileHelper;
 use spacecatninja\imagerx\services\ImagerService;
@@ -21,16 +22,18 @@ class ConfigModel extends Settings
     /**
      * @var string
      */
-    private $configOverrideString = '';
+    private string $configOverrideString = '';
 
     /**
      * TransformSettings constructor.
      *
      * @param Settings|Model $settings
-     * @param array          $overrides
+     * @param array|null     $overrides
      * @param array          $config
+     *
+     * @throws \craft\errors\DeprecationException
      */
-    public function __construct($settings, $overrides = null, $config = [])
+    public function __construct($settings, array $overrides = null, array $config = [])
     {
         parent::__construct($config);
 
@@ -69,7 +72,7 @@ class ConfigModel extends Settings
         $parseables = ['imagerSystemPath', 'imagerUrl'];
 
         foreach ($parseables as $parseable) {
-            $this->{$parseable} = \Craft::parseEnv($this->{$parseable});
+            $this->{$parseable} = App::parseEnv($this->{$parseable});
         }
         
         // Normalize imager system path 
@@ -118,13 +121,9 @@ class ConfigModel extends Settings
      *
      * @return mixed
      */
-    public function getSetting($key, $transform = null)
+    public function getSetting(string $key, array $transform = null): mixed
     {
-        if (isset($transform[$key])) {
-            return $transform[$key];
-        }
-
-        return $this[$key];
+        return $transform[$key] ?? $this[$key];
     }
 
     /**
@@ -143,7 +142,7 @@ class ConfigModel extends Settings
      * @param string $key
      * @param mixed  $value
      */
-    private function addToOverrideFilestring($key, $value)
+    private function addToOverrideFilestring(string $key, mixed $value): void
     {
         $r = (ImagerService::$transformKeyTranslate[$key] ?? $key).(\is_array($value) ? md5(implode('-', $value)) : $value);
         $this->configOverrideString .= '_'.str_replace('%', '', str_replace([' ', '.'], '-', $r));

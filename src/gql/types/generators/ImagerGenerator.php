@@ -41,16 +41,13 @@ class ImagerGenerator implements GeneratorInterface
                 'description' => 'This entity has all the Imager X transform image interface fields.',
             ]));
 
-        TypeLoader::registerType($typeName, function () use ($type) {
+        TypeLoader::registerType($typeName, static function () use ($type) {
             return $type;
         });
 
         return [$type];
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function getName($context = null): string
     {
         return 'imagerx';

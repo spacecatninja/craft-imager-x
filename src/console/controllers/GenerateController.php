@@ -13,8 +13,7 @@ namespace spacecatninja\imagerx\console\controllers;
 use Craft;
 use craft\base\Field;
 use craft\base\FieldInterface;
-use craft\base\Volume;
-use craft\base\VolumeInterface;
+use craft\models\Volume;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
@@ -25,55 +24,63 @@ use spacecatninja\imagerx\services\ImagerService;
 
 use yii\console\Controller;
 use yii\console\ExitCode;
+use yii\helpers\BaseConsole;
 use yii\helpers\Console;
 
+/**
+ *
+ * @property-read array $allFields
+ * @property-read array $assetsByField
+ * @property-read array $assetsByVolume
+ */
 class GenerateController extends Controller
 {
     /**
      * @var string Handle of volume to generate transforms for
      */
-    public $volume;
+    public string $volume;
 
     /**
      * @var int Folder ID to generate transforms for
      */
-    public $folderId;
+    public int $folderId;
 
     /**
      * @var bool Enable or disable recursive handling of folders
      */
-    public $recursive;
+    public bool $recursive;
 
     /**
      * @var string Field to generate transforms for
      */
-    public $field;
+    public string $field;
 
     /**
      * @var string Which transforms to generate
      */
-    public $transforms;
+    public string $transforms;
 
     /**
-     * @var array|VolumeInterface[] 
+     * @var array 
      */
-    private $volumes = [];
+    private array $volumes = [];
     
     /**
-     * @var array|FieldInterface[] 
+     * @var array
      */
-    private $fields = [];
+    private array $fields = [];
     
     // Public Methods
     // =========================================================================
 
     /**
-     * @param string $actionsID
-     * @return array|string[]
+     * @param string $actionID
+     *
+     * @return array
      */
-    public function options($actionsID): array
+    public function options($actionID): array
     {
-        $options = parent::options($actionsID);
+        $options = parent::options($actionID);
         
         return array_merge($options, [
             'volume',
@@ -101,11 +108,11 @@ class GenerateController extends Controller
     /**
      * Generates image transforms by volume/folder or fields.
      *
-     * @return mixed
+     * @return int
      */
-    public function actionIndex()
+    public function actionIndex(): int
     {
-        if (!ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
+        if (!ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
             $this->error('Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it\'s so worth it!).');
             return ExitCode::UNAVAILABLE;
         }
@@ -179,7 +186,7 @@ class GenerateController extends Controller
         } else if ($fieldSpecified) {
             $assets = $this->getAssetsByField();
         }
-        
+
         $assets = $this->pruneTransformableAssets($assets);
         
         if (empty($assets)) {
@@ -207,28 +214,27 @@ class GenerateController extends Controller
     /**
      * @param string $text
      */
-    public function success($text = '')
+    public function success(string $text = ''): void
     {
-        $this->stdout("$text\n", Console::FG_GREEN);
+        $this->stdout("$text\n", BaseConsole::FG_GREEN);
     }
 
     /**
      * @param string $text
      */
-    public function error($text = '')
+    public function error(string $text = ''): void
     {
-        $this->stdout("$text\n", Console::FG_RED);
+        $this->stdout("$text\n", BaseConsole::FG_RED);
     }
 
     /**
-     * @return array|Asset[]
+     * @return array
      */
     private function getAssetsByVolume(): array
     {
         /** @var AssetQuery $query */
         $query = null;
         
-        /** @var VolumeInterface|null $targetVolume */
         $targetVolume = null;
         
         foreach ($this->volumes as $volume) {
@@ -248,8 +254,8 @@ class GenerateController extends Controller
             if (!empty($this->folderId)) {
                 $query->folderId($this->folderId);
             } else {
-                $folderId = Craft::$app->getVolumes()->ensureTopFolder($targetVolume);
-                $query->folderId($folderId);
+                $folder = Craft::$app->getVolumes()->ensureTopFolder($targetVolume);
+                $query->folderId($folder->id);
             }
             
             $this->success($this->recursive ? '> Recursive' : '> Not recursive');
@@ -319,9 +325,10 @@ class GenerateController extends Controller
 
     /**
      * @param array $assets
+     *
      * @return array
      */
-    private function pruneTransformableAssets($assets): array
+    private function pruneTransformableAssets(array $assets): array
     {
         $r = [];
         

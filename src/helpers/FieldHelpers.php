@@ -23,35 +23,33 @@ use craft\models\FieldLayout;
 class FieldHelpers
 {
     /**
-     * @param ElementInterface|Element $element
-     * @param FieldLayout $layout
-     * @param string $handle
+     * @param Element|ElementInterface $element
+     * @param FieldLayout              $layout
+     * @param string                   $handle
+     *
      * @return null|ElementQuery
      */
-    public static function getFieldInFieldLayoutByHandle($element, $layout, $handle)
+    public static function getFieldInFieldLayoutByHandle(ElementInterface|Element $element, FieldLayout $layout, string $handle): ?ElementQuery
     {
-        if ($layout === null) {
-            return null;
-        }
-        
         return $layout->getFieldByHandle($handle) ? $element->{$handle} : null;
     }
 
     /**
-     * @param ElementInterface|Element $element
-     * @param string $handle
+     * @param Element|ElementInterface $element
+     * @param string                   $handle
+     *
      * @return array|null
      */
-    public static function getFieldsInElementByHandle($element, $handle)
+    public static function getFieldsInElementByHandle(ElementInterface|Element $element, string $handle): ?array
     {
-        if (strpos($handle, ':') !== false) {
+        if (str_contains($handle, ':')) {
             $segments = self::getFieldHandleSegments($handle);
 
             if (empty($segments)) {
                 return null;
             }
 
-            list($parentFieldHandle, $parentBlockType, $parentBlockFieldHandle) = $segments;
+            [$parentFieldHandle, $parentBlockType, $parentBlockFieldHandle] = $segments;
 
             $parentField = $element->{$parentFieldHandle} ?? null;
 
@@ -89,9 +87,10 @@ class FieldHelpers
 
     /**
      * @param string $handle
+     *
      * @return array
      */
-    protected static function getFieldHandleSegments($handle):array 
+    protected static function getFieldHandleSegments(string $handle):array 
     {
         $segments = preg_split('/(\:|\.)/', $handle);
         

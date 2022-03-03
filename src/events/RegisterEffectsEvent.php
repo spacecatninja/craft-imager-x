@@ -20,5 +20,5 @@ class RegisterEffectsEvent extends Event
     /**
      * @var array List of effects
      */
-    public $effects = [];
+    public array $effects = [];
 }

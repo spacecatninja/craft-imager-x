@@ -25,7 +25,7 @@ class ImagerResolver extends Resolver
     /**
      * @inheritDoc
      */
-    public static function resolve($source, array $arguments, $context, ResolveInfo $resolveInfo)
+    public static function resolve($source, array $arguments, $context, ResolveInfo $resolveInfo): mixed
     {
         $asset = null;
         $transform = $arguments['transform'];

@@ -20,5 +20,5 @@ class RegisterExternalStoragesEvent extends Event
     /**
      * @var array List of external storages
      */
-    public $storages = [];
+    public array $storages = [];
 }

@@ -16,34 +16,34 @@ use spacecatninja\imagerx\helpers\ImgixHelpers;
 
 class ImgixTransformedImageModel extends BaseTransformedImageModel implements TransformedImageInterface
 {
-   
+
     /**
      * @var ImgixSettings|null
      */
-    private $profileConfig;
+    private ?ImgixSettings $profileConfig;
 
     /**
      * @var array|null
      */
-    private $params;
+    private ?array $params;
 
     /**
      * @var string
      */
-    private $imgixPath;
-    
+    private string $imgixPath;
+
 
     /**
      * ImgixTransformedImageModel constructor.
      *
      * @param string|null        $imageUrl
-     * @param Asset|string|null  $source
+     * @param string|Asset|null  $source
      * @param array|null         $params
      * @param ImgixSettings|null $config
      *
      * @throws ImagerException
      */
-    public function __construct($imageUrl = null, $source = null, $params = null, $config = null)
+    public function __construct(string $imageUrl = null, Asset|string $source = null, array $params = null, ImgixSettings $config = null)
     {
         $this->source = $source;
         $this->profileConfig = $config;
@@ -65,9 +65,9 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
         if (isset($params['w'], $params['h'])) {
             $this->width = (int)$params['w'];
             $this->height = (int)$params['h'];
-            
+
             if (($source !== null) && ($params['fit'] === 'min' || $params['fit'] === 'max')) {
-                list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
+                [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
 
                 $paramsW = (int)$params['w'];
                 $paramsH = (int)$params['h'];
@@ -84,7 +84,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                     }
                 }
             } elseif ($source !== null && $params['fit'] === 'clip') {
-                list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
+                [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
 
                 $paramsW = (int)$params['w'];
                 $paramsH = (int)$params['h'];
@@ -99,12 +99,12 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                         $this->width = round($useH * ($sourceWidth / $sourceHeight));
                         $this->height = $useH;
                     }
-                } 
+                }
             }
         } else {
             if (isset($params['w']) || isset($params['h'])) {
                 if ($source !== null && $params !== null) {
-                    list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
+                    [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
 
                     if ((int)$sourceWidth === 0 || (int)$sourceHeight === 0) {
                         if (isset($params['w'])) {
@@ -114,7 +114,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                             $this->height = (int)$params['h'];
                         }
                     } else {
-                        list($w, $h) = $this->calculateTargetSize($params, $sourceWidth, $sourceHeight);
+                        [$w, $h] = $this->calculateTargetSize($params, $sourceWidth, $sourceHeight);
 
                         $this->width = $w;
                         $this->height = $h;
@@ -122,8 +122,8 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                 }
             } else {
                 // Neither is set, image is not resized. Just get dimensions and return.
-                list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
-                
+                [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
+
                 $this->width = $sourceWidth;
                 $this->height = $sourceHeight;
             }
@@ -206,25 +206,9 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
      *
      * @return float|int
      */
-    public function getSize($unit = 'b', $precision = 2)
+    public function getSize(string $unit = 'b', int $precision = 2): float|int
     {
         return $this->size;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDataUri(): string
-    {
-        return '';
-    }
-
-    /**
-     * @return string
-     */
-    public function getBase64Encoded(): string
-    {
-        return '';
     }
 
     /**
@@ -237,63 +221,66 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
 
     /**
      * @param string $format
-     * @param int $numColors
+     * @param int    $numColors
      * @param string $cssPrefix
+     *
      * @return string|null
      */
-    public function getPalette($format='json', $numColors=6, $cssPrefix='')
+    public function getPalette(string $format = 'json', int $numColors = 6, string $cssPrefix = ''): ?string
     {
         $builder = ImgixHelpers::getBuilder($this->profileConfig);
-        
+
         $params = $this->params ?? [];
         $params['palette'] = $format;
         $params['colors'] = $numColors;
-        
+
         if ($cssPrefix !== '') {
             $params['prefix'] = $cssPrefix;
         }
-        
+
         $blurhashUrl = $builder->createURL($this->imgixPath, $params);
-        $key = 'imager-x-imgix-palette-' . base64_encode($blurhashUrl);
-        
+        $key = 'imager-x-imgix-palette-'.base64_encode($blurhashUrl);
+
         $cache = \Craft::$app->getCache();
-        $blurhashData = $cache->getOrSet($key, static function () use ($blurhashUrl) {
+        $blurhashData = $cache->getOrSet($key, static function() use ($blurhashUrl) {
             return @file_get_contents($blurhashUrl);
         });
-        
+
         if (!$blurhashData) {
-            \Craft::error('An error occured when trying to get palette data from Imgix. The URL was: ' . $blurhashUrl);
+            \Craft::error('An error occured when trying to get palette data from Imgix. The URL was: '.$blurhashUrl);
+
             return null;
         }
-        
+
         return $format === 'json' ? json_decode($blurhashData, false) : $blurhashData;
     }
 
     /**
      * @return string
      */
-    public function getBlurhash()
+    public function getBlurhash(): string
     {
         $builder = ImgixHelpers::getBuilder($this->profileConfig);
-        
+
         $params = $this->params ?? [];
         $params['fm'] = 'blurhash';
-        
+
         $blurhashUrl = $builder->createURL($this->imgixPath, $params);
-        
-        $key = 'imager-x-imgix-blurhash-' . base64_encode($blurhashUrl);
-        
+
+        $key = 'imager-x-imgix-blurhash-'.base64_encode($blurhashUrl);
+
         $cache = \Craft::$app->getCache();
-        $blurhashData = $cache->getOrSet($key, static function () use ($blurhashUrl) {
+        $blurhashData = $cache->getOrSet($key, static function() use ($blurhashUrl) {
             return @file_get_contents($blurhashUrl);
         });
-        
+
         if (!$blurhashData) {
-            \Craft::error('An error occured when trying to get blurhash data from Imgix. The URL was: ' . $blurhashUrl);
+            \Craft::error('An error occured when trying to get blurhash data from Imgix. The URL was: '.$blurhashUrl);
+
             return '';
         }
-        
+
         return (string)$blurhashData;
     }
-    
+
 }

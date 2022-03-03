@@ -18,6 +18,10 @@ use craft\base\ElementAction;
 
 use spacecatninja\imagerx\ImagerX as Plugin;
 
+/**
+ *
+ * @property-read string $triggerLabel
+ */
 class ImgixPurgeElementAction extends ElementAction
 {
 
@@ -46,7 +50,6 @@ class ImgixPurgeElementAction extends ElementAction
             return true;
         }
 
-        /** @var ImagerX $imagerPlugin */
         $imagerPlugin = Plugin::$plugin;
 
         try {

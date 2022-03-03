@@ -18,6 +18,10 @@ use yii\base\Exception;
 
 use spacecatninja\imagerx\ImagerX as Plugin;
 
+/**
+ *
+ * @property-read string $triggerLabel
+ */
 class ClearTransformsElementAction extends ElementAction
 {
     /**

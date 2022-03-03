@@ -19,10 +19,8 @@ use GraphQL\Language\DirectiveLocation;
 use GraphQL\Type\Definition\Directive as GqlDirective;
 use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQL\Type\Definition\Type;
 
 use spacecatninja\imagerx\ImagerX;
-use spacecatninja\imagerx\gql\arguments\ImagerTransformArguments;
 use spacecatninja\imagerx\services\ImagerService;
 
 /**
@@ -51,7 +49,7 @@ class ImagerSrcset extends Directive
             return $type;
         }
 
-        $type = GqlEntityRegistry::createEntity(static::name(), new self([
+        return GqlEntityRegistry::createEntity(static::name(), new self([
             'name' => static::name(),
             'locations' => [
                 DirectiveLocation::FIELD,
@@ -59,8 +57,6 @@ class ImagerSrcset extends Directive
             'args' => ImagerSrcsetArguments::getArguments(),
             'description' => 'This directive is used to return a srcset from a named transform in Imager X.'
         ]));
-
-        return $type;
     }
 
     /**
@@ -74,7 +70,7 @@ class ImagerSrcset extends Directive
     /**
      * @inheritdoc
      */
-    public static function apply($source, $value, array $arguments, ResolveInfo $resolveInfo)
+    public static function apply($source, $value, array $arguments, ResolveInfo $resolveInfo): mixed
     {
         if ($resolveInfo->fieldName !== 'url') {
             return $value;

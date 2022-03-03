@@ -13,27 +13,29 @@ namespace spacecatninja\imagerx\models;
 use craft\helpers\ConfigHelper;
 use craft\helpers\FileHelper;
 use craft\base\Model;
-use Yii;
 
 class Settings extends Model
 {
     public $transformer = 'craft';
     public $imagerSystemPath = '@webroot/imager/';
     public $imagerUrl = '/imager/';
-    
+
     public $cacheEnabled = true;
     public $cacheRemoteFiles = true;
-    public $cacheDuration = 1209600;
+    /**
+     * @var int|bool|string
+     */
+    public string|int|bool $cacheDuration = 1209600;
     public $cacheDurationRemoteFiles = 1209600;
     public $cacheDurationExternalStorage = 1209600;
     public $cacheDurationNonOptimized = 300;
-    
+
     public $jpegQuality = 80;
     public $pngCompressionLevel = 2;
     public $webpQuality = 80;
     public $avifQuality = 80;
     public $jxlQuality = 80;
-    
+
     public $webpImagickOptions = [];
     public $interlace = false;
     public $allowUpscale = true;
@@ -151,7 +153,7 @@ class Settings extends Model
             'region' => '',
             'bucket' => '',
             'folder' => '',
-            'requestHeaders' => array(),
+            'requestHeaders' => [],
             'storageType' => 'standard',
             'public' => 'true',
             'cloudfrontInvalidateEnabled' => false,
@@ -166,7 +168,7 @@ class Settings extends Model
 
     public $customEncoders = [];
     public $transformerConfig = null;
-    
+
     /* deprecated */
     public $useCwebp = false;
     public $cwebpPath = '/usr/bin/cwebp';
@@ -174,8 +176,8 @@ class Settings extends Model
     public $avifEncoderPath = '';
     public $avifEncoderOptions = [];
     public $avifConvertString = '{src} {dest}';
-    
-    
+
+
     /**
      * Settings constructor.
      *
@@ -186,13 +188,13 @@ class Settings extends Model
         parent::__construct($config);
 
         if (!empty($config)) {
-            Yii::configure($this, $config);
+            \Yii::configure($this, $config);
         }
 
         $this->init();
     }
 
-    public function init()
+    public function init(): void
     {
         // Set default based on devMode. Overridable through config.  
         $this->suppressExceptions = !\Craft::$app->getConfig()->general->devMode;

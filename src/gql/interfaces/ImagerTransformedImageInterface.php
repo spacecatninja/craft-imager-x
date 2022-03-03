@@ -29,9 +29,6 @@ class ImagerTransformedImageInterface extends BaseInterfaceType
         return ImagerGenerator::class;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function getType($fields = null): Type
     {
         if ($type = GqlEntityRegistry::getEntity(self::class)) {
