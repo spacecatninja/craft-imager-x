@@ -147,10 +147,10 @@ class ImagerService extends Component
      * @var array
      */
     public static array $interlaceKeyTranslate = [
-        'none' => \Imagine\Image\ImageInterface::INTERLACE_NONE,
-        'line' => \Imagine\Image\ImageInterface::INTERLACE_LINE,
-        'plane' => \Imagine\Image\ImageInterface::INTERLACE_PLANE,
-        'partition' => \Imagine\Image\ImageInterface::INTERLACE_PARTITION,
+        'none' => ImageInterface::INTERLACE_NONE,
+        'line' => ImageInterface::INTERLACE_LINE,
+        'plane' => ImageInterface::INTERLACE_PLANE,
+        'partition' => ImageInterface::INTERLACE_PARTITION,
     ];
 
     /**

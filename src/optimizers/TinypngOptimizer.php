@@ -10,6 +10,9 @@
 
 namespace spacecatninja\imagerx\optimizers;
 
+use function Tinify\setKey;
+use function Tinify\validate;
+use function Tinify\fromFile;
 use Craft;
 
 use Tinify\Exception;
@@ -20,9 +23,9 @@ class TinypngOptimizer implements ImagerOptimizeInterface
     public static function optimize(string $file, ?array $settings): void
     {
         try {
-            \Tinify\setKey($settings['apiKey']);
-            \Tinify\validate();
-            \Tinify\fromFile($file)->toFile($file);
+            setKey($settings['apiKey']);
+            validate();
+            fromFile($file)->toFile($file);
         } catch (Exception) {
             Craft::error('Could not validate connection to TinyPNG, image was not optimized.', __METHOD__);
         }

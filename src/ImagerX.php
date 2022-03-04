@@ -10,6 +10,11 @@
 
 namespace spacecatninja\imagerx;
 
+use craft\events\DefineAssetUrlEvent;
+use craft\events\DefineAssetThumbUrlEvent;
+use craft\gql\TypeManager;
+use craft\events\DefineGqlTypeFieldsEvent;
+use GraphQL\Type\Definition\Type;
 use Craft;
 use craft\base\Element;
 use craft\base\Model;
@@ -395,7 +400,7 @@ class ImagerX extends Plugin
         // Event listener for overriding Craft's internal transform functionality
         if ($config->useForNativeTransforms) {
             Event::on(Assets::class, Assets::EVENT_DEFINE_ASSET_URL,
-                static function(\craft\events\DefineAssetUrlEvent $event) {
+                static function(DefineAssetUrlEvent $event) {
                     if ($event->asset !== null && $event->transform !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
                             $transform = $event->transform;
@@ -439,7 +444,7 @@ class ImagerX extends Plugin
         // Event listener for overriding Craft's internal thumb url
         if ($config->useForCpThumbs) {
             Event::on(Assets::class, Assets::EVENT_DEFINE_THUMB_URL,
-                static function(\craft\events\DefineAssetThumbUrlEvent $event) {
+                static function(DefineAssetThumbUrlEvent $event) {
                     if ($event->asset !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
                             /** @var TransformedImageInterface $transformedImage */
@@ -500,20 +505,20 @@ class ImagerX extends Plugin
                 /*
                  * Adds queries to AssetInterface, see https://github.com/spacecatninja/craft-imager-x/pull/111
                  */
-                Event::on(\craft\gql\TypeManager::class,
-                    \craft\gql\TypeManager::EVENT_DEFINE_GQL_TYPE_FIELDS,
-                    static function(\craft\events\DefineGqlTypeFieldsEvent $event) {
+                Event::on(TypeManager::class,
+                    TypeManager::EVENT_DEFINE_GQL_TYPE_FIELDS,
+                    static function(DefineGqlTypeFieldsEvent $event) {
                         if ($event->typeName !== 'AssetInterface') {
                             return;
                         }
 
                         $event->fields['imagerTransform'] = [
                             'name' => 'imagerTransform',
-                            'type' => \GraphQL\Type\Definition\Type::listOf(ImagerTransformedImageInterface::getType()),
+                            'type' => Type::listOf(ImagerTransformedImageInterface::getType()),
                             'args' => [
                                 'transform' => [
                                     'name' => 'transform',
-                                    'type' => \GraphQL\Type\Definition\Type::string(),
+                                    'type' => Type::string(),
                                     'description' => 'The handle of the named transform you want to generate.'
                                 ],
                             ],

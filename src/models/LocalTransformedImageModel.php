@@ -56,8 +56,7 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
         if (\is_array($imageInfo) && $imageInfo[0] !== '' && $imageInfo[1] !== '') {
             $this->width = $imageInfo[0];
             $this->height = $imageInfo[1];
-        } else { /** @var ConfigModel $settings */
-            $config = ImagerService::getConfig();
+        } else { $config = ImagerService::getConfig();
 
             $sourceImageInfo = @getimagesize($sourceModel->getFilePath());
 

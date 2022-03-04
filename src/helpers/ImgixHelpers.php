@@ -10,6 +10,7 @@
 
 namespace spacecatninja\imagerx\helpers;
 
+use craft\fs\Local;
 use Craft;
 
 use craft\helpers\App;
@@ -46,7 +47,7 @@ class ImgixHelpers
             throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
         }
 
-        if (($config->useCloudSourcePath) && (property_exists($fs, 'subfolder') && $fs->subfolder !== null) && $fs::class !== \craft\fs\Local::class) {
+        if (($config->useCloudSourcePath) && (property_exists($fs, 'subfolder') && $fs->subfolder !== null) && $fs::class !== Local::class) {
             $path = implode('/', [App::parseEnv($fs->subfolder), $image->getPath()]);
         } else {
             $path = $image->getPath();

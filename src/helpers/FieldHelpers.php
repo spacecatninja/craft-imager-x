@@ -10,6 +10,7 @@
 
 namespace spacecatninja\imagerx\helpers;
 
+use verbb\supertable\elements\db\SuperTableBlockQuery;
 use Craft;
 
 use craft\base\Element;
@@ -24,7 +25,6 @@ class FieldHelpers
 {
     /**
      * @param Element|ElementInterface $element
-     * @param FieldLayout              $layout
      *
      */
     public static function getFieldInFieldLayoutByHandle(ElementInterface|Element $element, FieldLayout $layout, string $handle): ?ElementQuery
@@ -53,7 +53,7 @@ class FieldHelpers
                 return null;
             }
             
-            if (!$parentField instanceof MatrixBlockQuery && !$parentField instanceof \verbb\supertable\elements\db\SuperTableBlockQuery) {
+            if (!$parentField instanceof MatrixBlockQuery && !$parentField instanceof SuperTableBlockQuery) {
                 return null;
             }
 

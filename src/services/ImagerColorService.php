@@ -10,6 +10,19 @@
 
 namespace spacecatninja\imagerx\services;
 
+use function SSNepenthe\ColorUtils\color;
+use function SSNepenthe\ColorUtils\brightness;
+use function SSNepenthe\ColorUtils\hue;
+use function SSNepenthe\ColorUtils\lightness;
+use function SSNepenthe\ColorUtils\is_bright;
+use function SSNepenthe\ColorUtils\is_light;
+use function SSNepenthe\ColorUtils\looks_bright;
+use function SSNepenthe\ColorUtils\perceived_brightness;
+use function SSNepenthe\ColorUtils\relative_luminance;
+use function SSNepenthe\ColorUtils\saturation;
+use function SSNepenthe\ColorUtils\brightness_difference;
+use function SSNepenthe\ColorUtils\color_difference;
+use function SSNepenthe\ColorUtils\contrast_ratio;
 use craft\base\Component;
 use craft\elements\Asset;
 
@@ -19,33 +32,6 @@ use spacecatninja\imagerx\exceptions\ImagerException;
 
 use ColorThief\ColorThief;
 
-use SSNepenthe\ColorUtils\Colors\Rgba as RGBA;
-use SSNepenthe\ColorUtils\Colors\Color as Color;
-use function SSNepenthe\ColorUtils\{
-    alpha,
-    blue,
-    brightness,
-    brightness_difference,
-    color,
-    color_difference,
-    contrast_ratio,
-    green,
-    hsl,
-    hsla,
-    hue,
-    is_bright,
-    is_light,
-    lightness,
-    looks_bright,
-    name,
-    opacity,
-    perceived_brightness,
-    red,
-    relative_luminance,
-    rgb,
-    rgba,
-    saturation
-};
 
 /**
  * ImagerColorService Service

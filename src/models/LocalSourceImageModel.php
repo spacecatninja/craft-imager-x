@@ -53,7 +53,7 @@ class LocalSourceImageModel
 
     public $extension = '';
 
-    private ?\craft\elements\Asset $asset = null;
+    private ?Asset $asset = null;
 
     /**
      * LocalSourceImageModel constructor.
@@ -108,7 +108,7 @@ class LocalSourceImageModel
                 throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
             }
 
-            if ($fileSystemClass === \craft\fs\Local::class) {
+            if ($fileSystemClass === Local::class) {
                 $this->getPathsForLocalAsset($image);
             } else {
                 $this->type = 'volume';

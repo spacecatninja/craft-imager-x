@@ -10,6 +10,7 @@
 
 namespace spacecatninja\imagerx\models;
 
+use craft\errors\DeprecationException;
 use craft\base\Model;
 
 use craft\helpers\App;
@@ -30,7 +31,7 @@ class ConfigModel extends Settings
      * @param Settings|Model $settings
      * @param array|null     $overrides
      *
-     * @throws \craft\errors\DeprecationException
+     * @throws DeprecationException
      */
     public function __construct($settings, array $overrides = null, array $config = [])
     {

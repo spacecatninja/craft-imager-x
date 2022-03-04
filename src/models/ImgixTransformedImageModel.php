@@ -31,7 +31,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
      *
      * @throws ImagerException
      */
-    public function __construct(string $imageUrl = null, Asset|string $source = null, private ?array $params = null, private ?\spacecatninja\imagerx\models\ImgixSettings $profileConfig = null)
+    public function __construct(string $imageUrl = null, Asset|string $source = null, private ?array $params = null, private ?ImgixSettings $profileConfig = null)
     {
         $this->source = $source;
         $this->imgixPath = ImgixHelpers::getImgixFilePath($source, $profileConfig);

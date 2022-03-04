@@ -10,6 +10,8 @@
 
 namespace spacecatninja\imagerx\services;
 
+use Imagine\Image\Palette\RGB;
+use Imagine\Imagick\Imagine;
 use spacecatninja\imagerx\lib\Potracio;
 use spacecatninja\imagerx\models\LocalSourceImageModel;
 use craft\base\Component;
@@ -94,7 +96,7 @@ class PlaceholderService extends Component
             return '';
         }
         
-        $palette = new \Imagine\Image\Palette\RGB();
+        $palette = new RGB();
         
         $col = $color==='transparent' ? $palette->color('#000000', 0) : $palette->color($color);
         
@@ -146,7 +148,7 @@ class PlaceholderService extends Component
     /**
      * Creates the Imagine instance depending on the chosen image driver.
      */
-    private function createImagineInstance(): \Imagine\Imagick\Imagine|\Imagine\Gd\Imagine|null
+    private function createImagineInstance(): Imagine|\Imagine\Gd\Imagine|null
     {
         $imageDriver = ImagerService::$imageDriver;
         
@@ -156,7 +158,7 @@ class PlaceholderService extends Component
             }
 
             if ($imageDriver === 'imagick') {
-                return new \Imagine\Imagick\Imagine();
+                return new Imagine();
             }
         } catch (RuntimeException) {
             // just ignore for now

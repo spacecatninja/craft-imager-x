@@ -11,6 +11,7 @@
 
 namespace spacecatninja\imagerx\controllers;
 
+use yii\web\Response;
 use Craft;
 use craft\web\Controller;
 
@@ -35,7 +36,7 @@ class GenerateUtilityController extends Controller
     /**
      * Controller action to generate transforms. Called by geerate transforms utility.
      */
-    public function actionGenerateTransforms(): \yii\web\Response
+    public function actionGenerateTransforms(): Response
     {
         $request = Craft::$app->getRequest();
         $volumes = $request->getParam('volumes');

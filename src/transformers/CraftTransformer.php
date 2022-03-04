@@ -10,6 +10,7 @@
 
 namespace spacecatninja\imagerx\transformers;
 
+use Imagine\Gd\Imagine;
 use Craft;
 
 use craft\base\Component;
@@ -50,7 +51,7 @@ use yii\base\Exception;
  */
 class CraftTransformer extends Component implements TransformerInterface
 {
-    private null|\Imagine\Gd\Imagine|\Imagine\Imagick\Imagine $imagineInstance = null;
+    private null|Imagine|\Imagine\Imagick\Imagine $imagineInstance = null;
 
     private null|GdImage|ImageInterface|ImagickImage $imageInstance = null;
 
@@ -377,11 +378,11 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Creates the Imagine instance depending on the chosen image driver.
      */
-    private function createImagineInstance(): \Imagine\Imagick\Imagine|\Imagine\Gd\Imagine|null
+    private function createImagineInstance(): \Imagine\Imagick\Imagine|Imagine|null
     {
         try {
             if (ImagerService::$imageDriver === 'gd') {
-                return new \Imagine\Gd\Imagine();
+                return new Imagine();
             }
 
             if (ImagerService::$imageDriver === 'imagick') {
@@ -705,8 +706,7 @@ class CraftTransformer extends Component implements TransformerInterface
      */
     private function applyLetterbox(ImagickImage|ImageInterface|GdImage &$imageInstance, array $transform): void
     {
-        if (isset($transform['width'], $transform['height'])) { /** @var ConfigModel $settings */
-            $config = ImagerService::getConfig();
+        if (isset($transform['width'], $transform['height'])) { $config = ImagerService::getConfig();
 
             $letterboxDef = $config->getSetting('letterbox', $transform);
 
