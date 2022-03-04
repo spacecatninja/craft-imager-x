@@ -89,11 +89,7 @@ class Bitmap
 
     public function flip($x, $y)
     {
-        if ($this->at($x, $y)) {
-            $this->data[$this->w * $y + $x] = 0;
-        } else {
-            $this->data[$this->w * $y + $x] = 1;
-        }
+        $this->data[$this->w * $y + $x] = $this->at($x, $y) ? 0 : 1;
     }
 }
 
@@ -232,7 +228,7 @@ class Potracio
                 }
                 if ($ct > 0) {
                     return 1;
-                } else if ($ct < 0) {
+                } elseif ($ct < 0) {
                     return 0;
                 }
             }
@@ -290,11 +286,11 @@ class Potracio
                         $dirx = $diry;
                         $diry = -$tmp;
                     }
-                } else if ($r) {
+                } elseif ($r) {
                     $tmp = $dirx;
                     $dirx = -$diry;
                     $diry = $tmp;
-                } else if (!$l) {
+                } elseif (!$l) {
                     $tmp = $dirx;
                     $dirx = $diry;
                     $diry = -$tmp;
@@ -465,7 +461,7 @@ class Potracio
 
             if ($r1 >= 0 && $r1 <= 1) {
                 return $r1;
-            } else if ($r2 >= 0 && $r2 <= 1) {
+            } elseif ($r2 >= 0 && $r2 <= 1) {
                 return $r2;
             } else {
                 return -1.0;
@@ -653,11 +649,7 @@ class Potracio
                 if ($c == $i) {
                     $c = $mod($i + 1, $n);
                 }
-                if ($c < $i) {
-                    $clip0[$i] = $n;
-                } else {
-                    $clip0[$i] = $c;
-                }
+                $clip0[$i] = $c < $i ? $n : $c;
             }
 
             $j = 1;
@@ -842,7 +834,7 @@ class Potracio
                     if ($Q->at(0, 0) > $Q->at(1, 1)) {
                         $v[0] = -$Q->at(0, 1);
                         $v[1] = $Q->at(0, 0);
-                    } else if ($Q->at(1, 1)) {
+                    } elseif ($Q->at(1, 1)) {
                         $v[0] = -$Q->at(1, 1);
                         $v[1] = $Q->at(1, 0);
                     } else {
@@ -939,7 +931,7 @@ class Potracio
                     $dd = $dpara($curve->vertex[$i], $curve->vertex[$j], $curve->vertex[$k]) / $denom;
                     $dd = abs($dd);
                     $alpha = $dd > 1 ? (1 - 1.0 / $dd) : 0;
-                    $alpha = $alpha / 0.75;
+                    $alpha /= 0.75;
                 } else {
                     $alpha = 4 / 3.0;
                 }
@@ -952,7 +944,7 @@ class Potracio
                 } else {
                     if ($alpha < 0.55) {
                         $alpha = 0.55;
-                    } else if ($alpha > 1) {
+                    } elseif ($alpha > 1) {
                         $alpha = 1;
                     }
                     $p2 = $interval(0.5 + 0.5 * $alpha, $curve->vertex[$i], $curve->vertex[$j]);
@@ -1017,7 +1009,7 @@ class Potracio
 
                 $A4 = $A1 + $A3 - $A2;
 
-                if ($A2 == $A1) {
+                if ($A2 === $A1) {
                     return 1;
                 }
 
@@ -1107,11 +1099,7 @@ class Potracio
             $areac = array_fill(0, $m + 1, null);
 
             for ($i = 0; $i < $m; $i++) {
-                if ($curve->tag[$i] == "CURVE") {
-                    $convc[$i] = $sign($dpara($vert[$mod($i - 1, $m)], $vert[$i], $vert[$mod($i + 1, $m)]));
-                } else {
-                    $convc[$i] = 0;
-                }
+                $convc[$i] = $curve->tag[$i] == "CURVE" ? $sign($dpara($vert[$mod($i - 1, $m)], $vert[$i], $vert[$mod($i + 1, $m)])) : 0;
             }
 
             $area = 0.0;
@@ -1145,7 +1133,7 @@ class Potracio
                         break;
                     }
                     if ($len[$j] > $len[$i] + 1 ||
-                        ($len[$j] == $len[$i] + 1 && $pen[$j] > $pen[$i] + $o->pen)) {
+                        ($len[$j] === $len[$i] + 1 && $pen[$j] > $pen[$i] + $o->pen)) {
                         $pt[$j] = $i;
                         $pen[$j] = $pen[$i] + $o->pen;
                         $len[$j] = $len[$i] + 1;
@@ -1188,7 +1176,7 @@ class Potracio
 
             for ($i = 0; $i < $om; $i++) {
                 $i1 = $mod($i + 1, $om);
-                if (($s[$i] + $t[$i1]) != 0) {
+                if ($s[$i] + $t[$i1] != 0) {
                     $ocurve->beta[$i] = $s[$i] / ($s[$i] + $t[$i1]);
                 } else {
                     $ocurve->beta[$i] = null; // TODO Hack para evitar división por 0
@@ -1250,10 +1238,9 @@ class Potracio
             $segment = function ($i) use ($curve, $size) {
                 $s = 'L ' . number_format($curve->c[$i * 3 + 1]->x * $size, 3) . ' ' .
                     number_format($curve->c[$i * 3 + 1]->y * $size, 3) . ' ';
-                $s .= number_format($curve->c[$i * 3 + 2]->x * $size, 3) . ' ' .
-                    number_format($curve->c[$i * 3 + 2]->y * $size, 3) . ' ';
 
-                return $s;
+                return $s . (number_format($curve->c[$i * 3 + 2]->x * $size, 3) . ' ' .
+                    number_format($curve->c[$i * 3 + 2]->y * $size, 3) . ' ');
             };
 
             $n = $curve->n;
@@ -1263,7 +1250,7 @@ class Potracio
             for ($i = 0; $i < $n; $i++) {
                 if ($curve->tag[$i] === "CURVE") {
                     $p .= $bezier($i);
-                } else if ($curve->tag[$i] === "CORNER") {
+                } elseif ($curve->tag[$i] === "CORNER") {
                     $p .= $segment($i);
                 }
             }
@@ -1295,8 +1282,7 @@ class Potracio
             $fillc = $fgColor;
             $fillrule = ' fill-rule="evenodd"';
         }
-        $svg .= '" stroke="' . $strokec . '" fill="' . $fillc . '"' . $fillrule . '/></svg>';
 
-        return $svg;
+        return $svg . ('" stroke="' . $strokec . '" fill="' . $fillc . '"' . $fillrule . '/></svg>');
     }
 }

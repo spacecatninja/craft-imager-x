@@ -149,11 +149,9 @@ class TransformHelpers
             if (isset($transform['width']) && !isset($transform['height'])) {
                 $transform['height'] = round($transform['width'] / $transform['ratio']);
                 unset($transform['ratio']);
-            } else {
-                if (isset($transform['height']) && !isset($transform['width'])) {
-                    $transform['width'] = round($transform['height'] * $transform['ratio']);
-                    unset($transform['ratio']);
-                }
+            } elseif (isset($transform['height']) && !isset($transform['width'])) {
+                $transform['width'] = round($transform['height'] * $transform['ratio']);
+                unset($transform['ratio']);
             }
         }
 
@@ -189,9 +187,8 @@ class TransformHelpers
         $transform = ImagerHelpers::moveArrayKeyToPos('width', 0, $transform);
         $transform = ImagerHelpers::moveArrayKeyToPos('preEffects', 99, $transform);
         $transform = ImagerHelpers::moveArrayKeyToPos('effects', 99, $transform);
-        $transform = ImagerHelpers::moveArrayKeyToPos('watermark', 99, $transform);
 
-        return $transform;
+        return ImagerHelpers::moveArrayKeyToPos('watermark', 99, $transform);
     }
 
     /**

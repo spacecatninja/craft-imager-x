@@ -226,7 +226,7 @@ class ImagerService extends Component
 
         if ($extension === 'gd') {
             self::$imageDriver = 'gd';
-        } else if ($extension === 'imagick') {
+        } elseif ($extension === 'imagick') {
             self::$imageDriver = 'imagick';
         } else { // autodetect
             self::$imageDriver = Craft::$app->images->getIsGd() ? 'gd' : 'imagick';
@@ -246,13 +246,7 @@ class ImagerService extends Component
         if (self::$imageDriver === 'gd' && \function_exists('imagewebp')) {
             return true;
         }
-
-        if (self::$imageDriver === 'imagick' && (\count(\Imagick::queryFormats('WEBP')) > 0)) {
-            return true;
-        }
-
-
-        return false;
+        return self::$imageDriver === 'imagick' && (\Imagick::queryFormats('WEBP') !== []);
     }
 
     public static function hasSupportForAvif(): bool
@@ -266,13 +260,7 @@ class ImagerService extends Component
         if (self::$imageDriver === 'gd' && \function_exists('imageavif')) {
             return true;
         }
-
-        if (self::$imageDriver === 'imagick' && (\count(\Imagick::queryFormats('AVIF')) > 0)) {
-            return true;
-        }
-
-
-        return false;
+        return self::$imageDriver === 'imagick' && (\Imagick::queryFormats('AVIF') !== []);
     }
 
     public static function hasSupportForJxl(): bool
@@ -286,13 +274,7 @@ class ImagerService extends Component
         if (self::$imageDriver === 'gd' && \function_exists('imagejxl')) {
             return true;
         }
-
-        if (self::$imageDriver === 'imagick' && (\count(\Imagick::queryFormats('JXL')) > 0)) {
-            return true;
-        }
-
-
-        return false;
+        return self::$imageDriver === 'imagick' && (\Imagick::queryFormats('JXL') !== []);
     }
 
     public static function registerTransformer(string $handle, string $class): void
@@ -621,7 +603,7 @@ class ImagerService extends Component
     {
         $config = self::getConfig();
 
-        if (!$config->cacheRemoteFiles && \count(self::$remoteImageSessionCache) > 0) {
+        if (!$config->cacheRemoteFiles && self::$remoteImageSessionCache !== []) {
             foreach (self::$remoteImageSessionCache as $file) {
                 if (file_exists($file)) {
                     unlink($file);

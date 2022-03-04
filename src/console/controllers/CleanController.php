@@ -131,7 +131,7 @@ class CleanController extends Controller
         
         $numExpiredFiles = count($expiredFiles);
         
-        if ($this->interactive !== false) {
+        if ($this->interactive) {
             $promptReply = Console::prompt("> Found $numExpiredFiles expired transforms. Do you want to delete them (y/N)?");
             
             if (strtolower($promptReply) !== 'y') {

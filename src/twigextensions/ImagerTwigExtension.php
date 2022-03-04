@@ -36,7 +36,9 @@ class ImagerTwigExtension extends AbstractExtension
     public function getFilters(): array
     {
         return [
-            new TwigFilter('srcset', [$this, 'srcsetFilter']),
+            new TwigFilter('srcset', function (array $images, string $descriptor = 'w') : string {
+                return $this->srcsetFilter($images, $descriptor);
+            }),
         ];
     }
 

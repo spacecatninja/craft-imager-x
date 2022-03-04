@@ -111,7 +111,7 @@ class BaseTransformedImageModel implements \Stringable
      */
     public function getPlaceholder(array $settings = []): string
     {
-        if ($settings) {
+        if ($settings !== []) {
             if (!isset($settings['width'])) {
                 $settings['width'] = $this->width;
             }

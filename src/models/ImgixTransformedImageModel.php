@@ -51,7 +51,6 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
         if (isset($params['w'], $params['h'])) {
             $this->width = (int)$params['w'];
             $this->height = (int)$params['h'];
-
             if (($source !== null) && ($params['fit'] === 'min' || $params['fit'] === 'max')) {
                 [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
 
@@ -87,32 +86,30 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                     }
                 }
             }
-        } else {
-            if (isset($params['w']) || isset($params['h'])) {
-                if ($source !== null && $params !== null) {
-                    [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
-
-                    if ((int)$sourceWidth === 0 || (int)$sourceHeight === 0) {
-                        if (isset($params['w'])) {
-                            $this->width = (int)$params['w'];
-                        }
-                        if (isset($params['h'])) {
-                            $this->height = (int)$params['h'];
-                        }
-                    } else {
-                        [$w, $h] = $this->calculateTargetSize($params, $sourceWidth, $sourceHeight);
-
-                        $this->width = $w;
-                        $this->height = $h;
-                    }
-                }
-            } else {
-                // Neither is set, image is not resized. Just get dimensions and return.
+        } elseif (isset($params['w']) || isset($params['h'])) {
+            if ($source !== null && $params !== null) {
                 [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
 
-                $this->width = $sourceWidth;
-                $this->height = $sourceHeight;
+                if ((int)$sourceWidth === 0 || (int)$sourceHeight === 0) {
+                    if (isset($params['w'])) {
+                        $this->width = (int)$params['w'];
+                    }
+                    if (isset($params['h'])) {
+                        $this->height = (int)$params['h'];
+                    }
+                } else {
+                    [$w, $h] = $this->calculateTargetSize($params, $sourceWidth, $sourceHeight);
+
+                    $this->width = $w;
+                    $this->height = $h;
+                }
             }
+        } else {
+            // Neither is set, image is not resized. Just get dimensions and return.
+            [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
+
+            $this->width = $sourceWidth;
+            $this->height = $sourceHeight;
         }
     }
 

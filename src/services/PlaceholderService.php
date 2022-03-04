@@ -96,11 +96,7 @@ class PlaceholderService extends Component
         
         $palette = new \Imagine\Image\Palette\RGB();
         
-        if ($color==='transparent') {
-            $col = $palette->color('#000000', 0);
-        } else {
-            $col = $palette->color($color);
-        }
+        $col = $color==='transparent' ? $palette->color('#000000', 0) : $palette->color($color);
         
         $image = $imagineInstance->create(new Box($width, $height), $col);
         $data = $image->get('gif');

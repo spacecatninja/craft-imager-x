@@ -105,7 +105,7 @@ class GenerateService extends Component
             $volumeConfig = [$volumeConfig];
         }
 
-        if (!is_array($volumeConfig) || count($volumeConfig) === 0) {
+        if (!is_array($volumeConfig) || $volumeConfig === []) {
             return;
         }
 
@@ -131,12 +131,12 @@ class GenerateService extends Component
             $criteria = $config['criteria'] ?? null;
             $transforms = $config['transforms'] ?? null;
 
-            if ($elementType && $element instanceof $elementType && is_array($fields) && is_array($transforms) && count($fields) > 0 && count($transforms) > 0) {
+            if ($elementType && $element instanceof $elementType && is_array($fields) && is_array($transforms) && $fields !== [] && $transforms !== []) {
                 // Check if criteria matches
                 if ($criteria && is_array($criteria)) {
                     /** @var Query $query */
                     $query = $elementType::find();
-                    $criteria['id'] = $element->id;
+                    $criteria['id'] = $element->getId();
 
                     if (!ImagerService::$generateConfig->generateOnlyForLiveElements) {
                         $criteria['status'] = null;
@@ -172,7 +172,7 @@ class GenerateService extends Component
                     }
                 }
 
-                if (count($assets) > 0) {
+                if ($assets !== []) {
                     $assets = array_merge(...$assets);
                 }
 
@@ -249,12 +249,7 @@ class GenerateService extends Component
     public function shouldGenerateByFields(ElementInterface|Element $element): bool
     {
         $elementsConfig = ImagerService::$generateConfig->fields;
-
-        if (empty($elementsConfig)) {
-            return false;
-        }
-
-        return true;
+        return !empty($elementsConfig);
     }
 
     /**

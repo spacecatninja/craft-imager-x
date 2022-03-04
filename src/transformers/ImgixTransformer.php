@@ -78,7 +78,7 @@ class ImgixTransformer extends Component implements TransformerInterface
 
         $imgixConfig = new ImgixSettings($imgixConfigArr[$profile]);
         
-        if (($imgixConfig->sourceIsWebProxy === true) && ($imgixConfig->signKey === '')) {
+        if (($imgixConfig->sourceIsWebProxy) && ($imgixConfig->signKey === '')) {
             $msg = Craft::t('imager-x', 'Your Imgix source is a web proxy according to config setting “sourceIsWebProxy”, but no sign key/security token has been given in imgix config setting “signKey”. You`ll find this in your Imgix source details page.');
             Craft::error($msg, __METHOD__);
             throw new ImagerException($msg);
@@ -163,7 +163,6 @@ class ImgixTransformer extends Component implements TransformerInterface
         if (!isset($transform['fit'])) {
             if (isset($transform['mode'])) {
                 $mode = $transform['mode'];
-
                 switch ($mode) {
                     case 'fit':
                         $r['fit'] = 'clip';
@@ -184,12 +183,10 @@ class ImgixTransformer extends Component implements TransformerInterface
                         $r['fit'] = 'crop';
                         break;
                 }
+            } elseif (isset($r['w'], $r['h'])) {
+                $r['fit'] = 'crop';
             } else {
-                if (isset($r['w'], $r['h'])) {
-                    $r['fit'] = 'crop';
-                } else {
-                    $r['fit'] = 'clip';
-                }
+                $r['fit'] = 'clip';
             }
         } else {
             $r['fit'] = $transform['fit'];

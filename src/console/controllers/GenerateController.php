@@ -171,7 +171,7 @@ $field['handle'], $this->fields);
         
         if ($volumeSpecified) {
             $assets = $this->getAssetsByVolume();
-        } else if ($fieldSpecified) {
+        } elseif ($fieldSpecified) {
             $assets = $this->getAssetsByField();
         }
 

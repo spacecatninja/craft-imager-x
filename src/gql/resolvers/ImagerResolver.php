@@ -54,10 +54,8 @@ class ImagerResolver extends Resolver
             }
         }
         
-        if ($asset instanceof Asset) {
-            if ($asset->kind !== 'image' || !\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
-                return null;
-            }
+        if ($asset instanceof Asset && ($asset->kind !== 'image' || !\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true))) {
+            return null;
         }
         
         if ($asset !== null) {

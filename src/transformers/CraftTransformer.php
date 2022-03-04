@@ -477,7 +477,7 @@ class CraftTransformer extends Component implements TransformerInterface
             /** @var GdImage $imageInstance */
             $instance = $imageInstance->getGdResource();
 
-            if (false === /** @scrutinizer ignore-call */ \imagewebp($instance, $path, $saveOptions['webp_quality'])) {
+            if (!\imagewebp($instance, $path, $saveOptions['webp_quality'])) {
                 $msg = Craft::t('imager-x', 'GD WebP save operation failed');
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg);
@@ -498,7 +498,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
                 $hasTransparency = $instance->getImageAlphaChannel();
 
-                if ($hasTransparency) {
+                if ($hasTransparency !== 0) {
                     $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
                     $instance->setBackgroundColor(new \ImagickPixel('transparent'));
                 }
@@ -561,7 +561,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
                 $hasTransparency = $instance->getImageAlphaChannel();
 
-                if ($hasTransparency) {
+                if ($hasTransparency !== 0) {
                     $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
                     $instance->setBackgroundColor(new \ImagickPixel('transparent'));
                 }
@@ -619,7 +619,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
                 $hasTransparency = $instance->getImageAlphaChannel();
 
-                if ($hasTransparency) {
+                if ($hasTransparency !== 0) {
                     $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
                     $instance->setBackgroundColor(new \ImagickPixel('transparent'));
                 }
@@ -783,11 +783,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
             $palette = new RGB();
 
-            if ($bgColor === 'transparent') {
-                $color = $palette->color('#000', 0);
-            } else {
-                $color = $palette->color($bgColor);
-            }
+            $color = $bgColor === 'transparent' ? $palette->color('#000', 0) : $palette->color($bgColor);
 
             if ($this->imagineInstance !== null) {
                 $backgroundImage = $this->imagineInstance->create($size, $color);
@@ -807,11 +803,7 @@ class CraftTransformer extends Component implements TransformerInterface
     {
         $palette = new RGB();
 
-        if ($bgColor === 'transparent') {
-            $color = $palette->color('#000', 0);
-        } else {
-            $color = $palette->color($bgColor);
-        }
+        $color = $bgColor === 'transparent' ? $palette->color('#000', 0) : $palette->color($bgColor);
 
         try {
             $topLeft = new Point(0, 0);
@@ -871,22 +863,18 @@ class CraftTransformer extends Component implements TransformerInterface
 
             if (isset($position['top'])) {
                 $posY = (int)$position['top'];
+            } elseif (isset($position['bottom'])) {
+                $posY = $imageInstance->getSize()->getHeight() - (int)$watermark['height'] - (int)$position['bottom'];
             } else {
-                if (isset($position['bottom'])) {
-                    $posY = $imageInstance->getSize()->getHeight() - (int)$watermark['height'] - (int)$position['bottom'];
-                } else {
-                    $posY = $imageInstance->getSize()->getHeight() - (int)$watermark['height'] - 10;
-                }
+                $posY = $imageInstance->getSize()->getHeight() - (int)$watermark['height'] - 10;
             }
 
             if (isset($position['left'])) {
                 $posX = (int)$position['left'];
+            } elseif (isset($position['right'])) {
+                $posX = $imageInstance->getSize()->getWidth() - (int)$watermark['width'] - (int)$position['right'];
             } else {
-                if (isset($position['right'])) {
-                    $posX = $imageInstance->getSize()->getWidth() - (int)$watermark['width'] - (int)$position['right'];
-                } else {
-                    $posX = $imageInstance->getSize()->getWidth() - (int)$watermark['width'] - 10;
-                }
+                $posX = $imageInstance->getSize()->getWidth() - (int)$watermark['width'] - 10;
             }
         } else {
             $posY = $imageInstance->getSize()->getHeight() - (int)$watermark['height'] - 10;

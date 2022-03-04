@@ -69,16 +69,12 @@ class ImagerHelpers
         if (isset($transform['width'], $transform['height'])) {
             $width = (int)$transform['width'];
             $height = (int)$transform['height'];
-        } else {
-            if (isset($transform['width'])) {
-                $width = (int)$transform['width'];
-                $height = (int)floor((int)$transform['width'] / $aspect);
-            } else {
-                if (isset($transform['height'])) {
-                    $width = (int)floor((int)$transform['height'] * $aspect);
-                    $height = (int)$transform['height'];
-                }
-            }
+        } elseif (isset($transform['width'])) {
+            $width = (int)$transform['width'];
+            $height = (int)floor((int)$transform['width'] / $aspect);
+        } elseif (isset($transform['height'])) {
+            $width = (int)floor((int)$transform['height'] * $aspect);
+            $height = (int)$transform['height'];
         }
         
         // check if we want to upscale. If not, adjust the transform here 
@@ -124,13 +120,10 @@ class ImagerHelpers
         $mode = $transform['mode'] ?? 'crop';
 
         if ($mode === 'crop' || $mode === 'fit' || $mode === 'letterbox') {
-
             if (isset($transform['width'], $transform['height'])) {
                 $transformAspect = (int)$transform['width'] / (int)$transform['height'];
-
                 if ($mode === 'crop') {
                     $cropZoomFactor = self::getCropZoomFactor($transform);
-
                     if ($transformAspect < $aspect) { // use height as guide
                         $height = (int)$transform['height'] * $cropZoomFactor;
                         $width = ceil($originalSize->getWidth() * ($height / $originalSize->getHeight()));
@@ -138,35 +131,31 @@ class ImagerHelpers
                         $width = (int)$transform['width'] * $cropZoomFactor;
                         $height = ceil($originalSize->getHeight() * ($width / $originalSize->getWidth()));
                     }
-                } else {
-                    if ($transformAspect === $aspect) { // exactly the same, use original just to make sure no rounding errors happen
-                        $height = (int)$transform['height'];
-                        $width = (int)$transform['width'];
-                    } else if ($transformAspect > $aspect) { // use height as guide
-                        $height = (int)$transform['height'];
-                        $width = ceil($originalSize->getWidth() * ($height / $originalSize->getHeight()));
-                    } else { // use width
-                        $width = (int)$transform['width'];
-                        $height = ceil($originalSize->getHeight() * ($width / $originalSize->getWidth()));
-                    }
-                }
-            } else {
-                if (isset($transform['width'])) {
-                    $width = (int)$transform['width'];
-                    $height = ceil($width / $aspect);
-                } else if (isset($transform['height'])) {
+                } elseif ($transformAspect === $aspect) {
+                    // exactly the same, use original just to make sure no rounding errors happen
                     $height = (int)$transform['height'];
-                    $width = ceil($height * $aspect);
+                    $width = (int)$transform['width'];
+                } elseif ($transformAspect > $aspect) {
+                    // use height as guide
+                    $height = (int)$transform['height'];
+                    $width = ceil($originalSize->getWidth() * ($height / $originalSize->getHeight()));
+                } else { // use width
+                    $width = (int)$transform['width'];
+                    $height = ceil($originalSize->getHeight() * ($width / $originalSize->getWidth()));
                 }
-            }
-        } else {
-            if ($mode === 'croponly') {
-                $width = $originalSize->getWidth();
-                $height = $originalSize->getHeight();
-            } else if ($mode === 'stretch') {
+            } elseif (isset($transform['width'])) {
                 $width = (int)$transform['width'];
+                $height = ceil($width / $aspect);
+            } elseif (isset($transform['height'])) {
                 $height = (int)$transform['height'];
+                $width = ceil($height * $aspect);
             }
+        } elseif ($mode === 'croponly') {
+            $width = $originalSize->getWidth();
+            $height = $originalSize->getHeight();
+        } elseif ($mode === 'stretch') {
+            $width = (int)$transform['width'];
+            $height = (int)$transform['height'];
         }
 
         // check if we want to upscale. If not, adjust the transform here 
@@ -282,10 +271,10 @@ class ImagerHelpers
         $addVolumeToPath = $config->addVolumeToPath;
 
         if ($hashPath) {
-            return FileHelper::normalizePath('/' . md5('/' . ($addVolumeToPath ? mb_strtolower($volume->handle) . '/' : '') . $asset->folderPath . '/') . '/' . $asset->id . '/');
+            return FileHelper::normalizePath('/' . md5('/' . ($addVolumeToPath ? mb_strtolower($volume->handle) . '/' : '') . $asset->folderPath . '/') . '/' . $asset->getId() . '/');
         }
 
-        $path = FileHelper::normalizePath('/' . ($addVolumeToPath ? mb_strtolower($volume->handle) . '/' : '') . $asset->folderPath . '/' . $asset->id . '/');
+        $path = FileHelper::normalizePath('/' . ($addVolumeToPath ? mb_strtolower($volume->handle) . '/' : '') . $asset->folderPath . '/' . $asset->getId() . '/');
         
         if (str_starts_with($path, '//')) {
             $path = substr($path, 1);
@@ -376,21 +365,18 @@ class ImagerHelpers
                         $effectString .= '_' . $eff . '-' . $param;
                     }
                 }
-
                 $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . $effectString;
-            } else if ($k === 'watermark') {
+            } elseif ($k === 'watermark') {
                 $watermarkString = '';
-
                 foreach ($v as $eff => $param) {
                     if ($eff === 'image') {
                         if ($param instanceof Asset) {
-                            $watermarkString .= '-i-' . $param->id;
+                            $watermarkString .= '-i-' . $param->getId();
                         } else {
                             $watermarkString .= '-i-' . $param;
                         }
-                    } else if ($eff === 'position') {
+                    } elseif ($eff === 'position') {
                         $watermarkString .= '-pos';
-
                         foreach ($param as $posKey => $posVal) {
                             $watermarkString .= '-' . $posKey . '-' . $posVal;
                         }
@@ -398,9 +384,7 @@ class ImagerHelpers
                         $watermarkString .= '-' . $eff . '-' . (\is_array($param) ? implode('-', $param) : $param);
                     }
                 }
-
                 $watermarkString = substr($watermarkString, 1);
-
                 $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . '_' . mb_substr(md5($watermarkString), 0, 10);
             } elseif ($k === 'webpImagickOptions') {
                 $optString = '';

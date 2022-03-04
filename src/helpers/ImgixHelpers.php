@@ -35,8 +35,8 @@ class ImgixHelpers
             return $image;
         } 
         
-        if ($config->sourceIsWebProxy === true) {
-            return $image->url ?? '';
+        if ($config->sourceIsWebProxy) {
+            return $image->getUrl() ?? '';
         } 
             
         try {
@@ -47,7 +47,7 @@ class ImgixHelpers
             throw new ImagerException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if (($config->useCloudSourcePath === true) && isset($fs->subfolder) && $fs::class !== \craft\fs\Local::class) {
+        if (($config->useCloudSourcePath) && (property_exists($fs, 'subfolder') && $fs->subfolder !== null) && $fs::class !== \craft\fs\Local::class) {
             $path = implode('/', [App::parseEnv($fs->subfolder), $image->getPath()]);
         } else {
             $path = $image->getPath();
@@ -56,7 +56,7 @@ class ImgixHelpers
         if ($config->addPath) {
             if (\is_string($config->addPath) && $config->addPath !== '') {
                 $path = implode('/', [$config->addPath, $path]);
-            } else if (is_array($config->addPath)) {
+            } elseif (is_array($config->addPath)) {
                 if (isset($config->addPath[$volume->handle])) {
                     $path = implode('/', [$config->addPath[$volume->handle], $path]);
                 }

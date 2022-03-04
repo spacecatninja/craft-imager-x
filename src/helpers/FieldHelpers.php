@@ -29,7 +29,7 @@ class FieldHelpers
      */
     public static function getFieldInFieldLayoutByHandle(ElementInterface|Element $element, FieldLayout $layout, string $handle): ?ElementQuery
     {
-        return $layout->getFieldByHandle($handle) ? $element->{$handle} : null;
+        return $layout->getFieldByHandle($handle) !== null ? $element->{$handle} : null;
     }
 
     /**
@@ -53,7 +53,7 @@ class FieldHelpers
                 return null;
             }
             
-            if (!($parentField instanceof MatrixBlockQuery || $parentField instanceof \verbb\supertable\elements\db\SuperTableBlockQuery)) {
+            if (!$parentField instanceof MatrixBlockQuery && !$parentField instanceof \verbb\supertable\elements\db\SuperTableBlockQuery) {
                 return null;
             }
 
@@ -64,14 +64,14 @@ class FieldHelpers
 
             /* @var MatrixBlock $block */
             foreach ($blocks as $block) {
-                if (($block->type->handle !== $parentBlockType && $parentBlockType !== '*') || !($block->{$parentBlockFieldHandle} ?? null)) {
+                if (($block->getType()->handle !== $parentBlockType && $parentBlockType !== '*') || !($block->{$parentBlockFieldHandle} ?? null)) {
                     continue;
                 }
                 
                 $fields[] = $block->{$parentBlockFieldHandle};
             }
 
-            return !empty($fields) ? $fields : null;
+            return empty($fields) ? null : $fields;
         }
         
         if (isset($element->{$handle})) {

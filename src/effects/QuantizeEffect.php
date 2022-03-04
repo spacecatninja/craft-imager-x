@@ -30,7 +30,7 @@ class QuantizeEffect implements ImagerEffectsInterface
             
             if (\is_array($params) && \count($params) === 3) {
                 $imagickInstance->quantizeImage($params[0], \Imagick::COLORSPACE_RGB, $params[1], $params[2], false);
-            } else if (\is_int($params)) {
+            } elseif (\is_int($params)) {
                 $imagickInstance->quantizeImage($params, \Imagick::COLORSPACE_RGB, 0, false, false);
             }
         }

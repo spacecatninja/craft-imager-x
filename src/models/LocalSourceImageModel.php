@@ -91,33 +91,25 @@ class LocalSourceImageModel
                     $this->getPathsForLocalFile($image);
                 }
             }
-        } else {
-            // It's some kind of model
-            if ($image instanceof LocalTransformedImageModel) {
-                $this->getPathsForLocalImagerFile($image->url);
-            } else {
-                if ($image instanceof Asset) {
-                    
-                    $this->asset = $image;
-
-                    try {
-                        $volumeClass = $image->getVolume()::class;
-                        $fileSystemClass = $image->getVolume()->getFs()::class;
-                    } catch (InvalidConfigException $e) {
-                        Craft::error($e->getMessage(), __METHOD__);
-                        throw new ImagerException($e->getMessage(), $e->getCode(), $e);
-                    }
-                    
-                    if ($fileSystemClass === \craft\fs\Local::class) {
-                        $this->getPathsForLocalAsset($image);
-                    } else {
-                        $this->type = 'volume';
-                        $this->getPathsForVolumeAsset($image);
-                    }
-                } else {
-                    throw new ImagerException(Craft::t('imager-x', 'An unknown image object was used.'));
-                }
+        } elseif ($image instanceof LocalTransformedImageModel) {
+            $this->getPathsForLocalImagerFile($image->url);
+        } elseif ($image instanceof Asset) {
+            $this->asset = $image;
+            try {
+                $volumeClass = $image->getVolume()::class;
+                $fileSystemClass = $image->getVolume()->getFs()::class;
+            } catch (InvalidConfigException $e) {
+                Craft::error($e->getMessage(), __METHOD__);
+                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
             }
+            if ($fileSystemClass === \craft\fs\Local::class) {
+                $this->getPathsForLocalAsset($image);
+            } else {
+                $this->type = 'volume';
+                $this->getPathsForVolumeAsset($image);
+            }
+        } else {
+            throw new ImagerException(Craft::t('imager-x', 'An unknown image object was used.'));
         }
     }
 
@@ -199,12 +191,7 @@ class LocalSourceImageModel
         }
         
         $size = filesize($file);
-
-        if ($size === false || $size < 1024) {
-            return false;
-        }
-        
-        return true;
+        return $size !== false && $size >= 1024;
     }
 
     /**
@@ -217,7 +204,7 @@ class LocalSourceImageModel
     {
         try {
             /** @var Local $fs */
-            $fs = $image->volume->getFs();
+            $fs = $image->getVolume()->getFs();
             
             $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
             $this->path = FileHelper::normalizePath($fs->getRootPath().'/'.$image->folderPath);
@@ -396,13 +383,12 @@ class LocalSourceImageModel
                 throw new ImagerException($msg);
             }
 
-            if ($httpStatus !== 200) {
-                if (!($httpStatus === 404 && strrpos(mime_content_type($this->getTemporaryFilePath()), 'image') !== false)) { // remote server returned a 404, but the contents was a valid image file
-                    @unlink($this->getTemporaryFilePath());
-                    $msg = Craft::t('imager-x', 'HTTP status “{httpStatus}” encountered while attempting to download “{imageUrl}”', ['imageUrl' => $imageUrl, 'httpStatus' => $httpStatus]);
-                    Craft::error($msg, __METHOD__);
-                    throw new ImagerException($msg);
-                }
+            if ($httpStatus !== 200 && !($httpStatus === 404 && strrpos(mime_content_type($this->getTemporaryFilePath()), 'image') !== false)) {
+                // remote server returned a 404, but the contents was a valid image file
+                @unlink($this->getTemporaryFilePath());
+                $msg = Craft::t('imager-x', 'HTTP status “{httpStatus}” encountered while attempting to download “{imageUrl}”', ['imageUrl' => $imageUrl, 'httpStatus' => $httpStatus]);
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
             }
         } elseif (ini_get('allow_url_fopen')) {
             if (!@copy($imageUrl, $this->getTemporaryFilePath())) {

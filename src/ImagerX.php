@@ -525,7 +525,7 @@ class ImagerX extends Plugin
                     $element = $event->element;
 
                     if ($element !== null) {
-                        if ($element instanceof Asset && $element->scenario === Asset::SCENARIO_INDEX) {
+                        if ($element instanceof Asset && $element->getScenario() === Asset::SCENARIO_INDEX) {
                             return;
                         }
 
@@ -581,7 +581,7 @@ class ImagerX extends Plugin
                 /** @var Element $element */
                 $element = $event->element;
 
-                if ($element instanceof Asset && $element->scenario === Asset::SCENARIO_FILEOPS) {
+                if ($element instanceof Asset && $element->getScenario() === Asset::SCENARIO_FILEOPS) {
                     ImagerX::$plugin->imagerx->removeTransformsForAsset($element);
 
                     // If Imgix purging is possible, do that too

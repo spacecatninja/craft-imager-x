@@ -35,10 +35,8 @@ class LevelsEffect implements ImagerEffectsInterface
                             self::applyLevels($imagickInstance, $val);
                         }
                     }
-                } else {
-                    if (\count($params) >= 3) {
-                        self::applyLevels($imagickInstance, $params);
-                    }
+                } elseif (\count($params) >= 3) {
+                    self::applyLevels($imagickInstance, $params);
                 }
             }
         }

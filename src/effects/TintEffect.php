@@ -24,15 +24,12 @@ class TintEffect implements ImagerEffectsInterface
      */
     public static function apply($imageInstance, $params)
     {
-        if (ImagerService::$imageDriver === 'imagick') {
-            if (\is_array($params)) {
-                /** @var ImagickImage $imageInstance */
-                $imagickInstance = $imageInstance->getImagick();
-                $tint = new \ImagickPixel($params[0]);
-                $opacity = new \ImagickPixel($params[1]);
-    
-                $imagickInstance->tintImage($tint, $opacity);
-            }
+        if (ImagerService::$imageDriver === 'imagick' && \is_array($params)) {
+            /** @var ImagickImage $imageInstance */
+            $imagickInstance = $imageInstance->getImagick();
+            $tint = new \ImagickPixel($params[0]);
+            $opacity = new \ImagickPixel($params[1]);
+            $imagickInstance->tintImage($tint, $opacity);
         }
     }
 }
