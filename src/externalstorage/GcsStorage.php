@@ -23,13 +23,6 @@ use spacecatninja\imagerx\services\ImagerService;
 class GcsStorage implements ImagerStorageInterface
 {
 
-    /**
-     * @param string $file
-     * @param string $uri
-     * @param bool $isFinal
-     * @param array $settings
-     * @return bool
-     */
     public static function upload(string $file, string $uri, bool $isFinal, array $settings): bool
     {
         /** @var ConfigModel $settings */
@@ -46,7 +39,7 @@ class GcsStorage implements ImagerStorageInterface
         
         if (str_starts_with($keyFileSetting, '{')) {
             $configKey = 'keyFile';
-            $configValue = json_decode($keyFileSetting, true);
+            $configValue = json_decode($keyFileSetting, true, 512, JSON_THROW_ON_ERROR);
         } else {
             $configKey = 'keyFilePath';
             $configValue = FileHelper::normalizePath($keyFileSetting);

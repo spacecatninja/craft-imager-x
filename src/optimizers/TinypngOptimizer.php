@@ -23,7 +23,7 @@ class TinypngOptimizer implements ImagerOptimizeInterface
             \Tinify\setKey($settings['apiKey']);
             \Tinify\validate();
             \Tinify\fromFile($file)->toFile($file);
-        } catch (Exception $e) {
+        } catch (Exception) {
             Craft::error('Could not validate connection to TinyPNG, image was not optimized.', __METHOD__);
         }
     }

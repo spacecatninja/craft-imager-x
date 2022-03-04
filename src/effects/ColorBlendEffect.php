@@ -51,7 +51,7 @@ class ColorBlendEffect implements ImagerEffectsInterface
      * @param int|float $alpha
      * @param int $composite_flag
      */
-    private static function colorBlend($imagickInstance, $color, $alpha = 1, $composite_flag = \Imagick::COMPOSITE_COLORIZE)
+    private static function colorBlend($imagickInstance, $color, float|int $alpha = 1, $composite_flag = \Imagick::COMPOSITE_COLORIZE)
     {
         $draw = new \ImagickDraw();
         $draw->setFillColor($color);

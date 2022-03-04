@@ -36,9 +36,7 @@ class ImgixPurgeElementAction extends ElementAction
     /**
      * Purges selected image Assets from Imgix
      *
-     * @param ElementQueryInterface $query
      *
-     * @return bool
      */
     public function performAction(ElementQueryInterface $query): bool
     {
@@ -61,7 +59,7 @@ class ImgixPurgeElementAction extends ElementAction
             return false;
         }
 
-        $numImagesToPurge = \count($imagesToPurge);
+        $numImagesToPurge = is_countable($imagesToPurge) ? \count($imagesToPurge) : 0;
         if ($numImagesToPurge > 1) {
             $this->setMessage(Craft::t('imager-x', 'Purging {count} images from Imgix...', [
                 'count' => $numImagesToPurge,

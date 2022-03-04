@@ -32,18 +32,12 @@ class ImagerGenerator implements GeneratorInterface
         $type = GqlEntityRegistry::getEntity($typeName)
             ?: GqlEntityRegistry::createEntity($typeName, new ImagerType([
                 'name' => $typeName,
-                'args' => function () use ($args) {
-                    return $args;
-                },
-                'fields' => function () use ($fields) {
-                    return $fields;
-                },
+                'args' => fn() => $args,
+                'fields' => fn() => $fields,
                 'description' => 'This entity has all the Imager X transform image interface fields.',
             ]));
 
-        TypeLoader::registerType($typeName, static function () use ($type) {
-            return $type;
-        });
+        TypeLoader::registerType($typeName, static fn() => $type);
 
         return [$type];
     }

@@ -47,8 +47,7 @@ class LocalSourceImageModel
     public $basename = '';
     public $extension = '';
 
-    /** @var Asset|null $image */
-    private $asset;
+    private ?\craft\elements\Asset $asset = null;
 
     /**
      * LocalSourceImageModel constructor.
@@ -74,16 +73,16 @@ class LocalSourceImageModel
         $settings = ImagerService::getConfig();
         
         if (\is_string($image)) {
-            if (strncmp($image, $settings->imagerUrl, \strlen($settings->imagerUrl)) === 0) {
+            if (str_starts_with($image, $settings->imagerUrl)) {
                 // Url to a file that is in the imager library
                 $this->getPathsForLocalImagerFile($image);
             } else {
-                if (strncmp($image, '//', 2) === 0) {
+                if (str_starts_with($image, '//')) {
                     // Protocol relative url, add https
                     $image = 'https:'.$image;
                 }
 
-                if (strncmp($image, 'http', 4) === 0 || strncmp($image, 'https', 5) === 0) {
+                if (str_starts_with($image, 'http') || str_starts_with($image, 'https')) {
                     // External url
                     $this->type = 'remoteurl';
                     $this->getPathsForUrl($image);
@@ -102,14 +101,14 @@ class LocalSourceImageModel
                     $this->asset = $image;
 
                     try {
-                        $volumeClass = \get_class($image->getVolume());
-                        $fileSystemClass = \get_class($image->getVolume()->getFs());
+                        $volumeClass = $image->getVolume()::class;
+                        $fileSystemClass = $image->getVolume()->getFs()::class;
                     } catch (InvalidConfigException $e) {
                         Craft::error($e->getMessage(), __METHOD__);
                         throw new ImagerException($e->getMessage(), $e->getCode(), $e);
                     }
                     
-                    if ($fileSystemClass === 'craft\fs\Local') {
+                    if ($fileSystemClass === \craft\fs\Local::class) {
                         $this->getPathsForLocalAsset($image);
                     } else {
                         $this->type = 'volume';
@@ -122,17 +121,11 @@ class LocalSourceImageModel
         }
     }
 
-    /**
-     * @return string
-     */
     public function getFilePath(): string
     {
         return FileHelper::normalizePath($this->path.'/'.$this->filename);
     }
 
-    /**
-     * @return string
-     */
     public function getTemporaryFilePath(): string
     {
         return FileHelper::normalizePath($this->path.'/~'.$this->filename);
@@ -196,10 +189,8 @@ class LocalSourceImageModel
 
     /**
      * Checks if a file exists and is valid, or should be overwritten
-     * 
-     * @param $file
      *
-     * @return bool
+     * @param $file
      */
     private function isValidFile($file): bool
     {
@@ -219,7 +210,6 @@ class LocalSourceImageModel
     /**
      * Get paths for a local asset
      *
-     * @param Asset $image
      *
      * @throws ImagerException
      */
@@ -244,7 +234,6 @@ class LocalSourceImageModel
     /**
      * Get paths for an asset on an external Craft volume.
      *
-     * @param Asset $image
      *
      * @throws ImagerException
      */
@@ -373,9 +362,7 @@ class LocalSourceImageModel
         if (!$config->useRawExternalUrl) {
             $imageUrlArr = explode('?', $this->url);
 
-            $imageUrlArr[0] = preg_replace_callback('#://([^/]+)/([^?]+)#', function ($match) {
-                return '://' . $match[1] . '/' . implode('/', array_map('rawurlencode', explode('/', $match[2])));
-            }, urldecode($imageUrlArr[0]));
+            $imageUrlArr[0] = preg_replace_callback('#://([^/]+)/([^?]+)#', fn($match) => '://' . $match[1] . '/' . implode('/', array_map('rawurlencode', explode('/', $match[2]))), urldecode($imageUrlArr[0]));
 
             $imageUrl = implode('?', $imageUrlArr);
         }

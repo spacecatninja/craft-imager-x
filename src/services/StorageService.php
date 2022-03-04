@@ -30,8 +30,6 @@ class StorageService extends Component
     /**
      * Store transformed image in configured storages
      *
-     * @param string $path
-     * @param bool $isFinalVersion
      *
      * @throws ImagerException
      */

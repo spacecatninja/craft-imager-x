@@ -30,7 +30,6 @@ class OptimizerService extends Component
     /**
      * Post optimizations
      *
-     * @param TransformedImageInterface $transformedImage
      *
      * @return bool Return if the image is the final version or not. If a task was set up, it's not.
      */
@@ -77,10 +76,7 @@ class OptimizerService extends Component
     /**
      * Checks if extension is in array of extensions
      *
-     * @param string $extension
-     * @param array $validExtensions
      *
-     * @return bool
      */
     private function shouldOptimizeByExtension(string $extension, array $validExtensions): bool
     {
@@ -89,10 +85,6 @@ class OptimizerService extends Component
 
     /**
      * Creates optimize queue job
-     *
-     * @param string $handle
-     * @param string $filePath
-     * @param array $settings
      */
     private function createOptimizeJob(string $handle, string $filePath, array $settings): void
     {

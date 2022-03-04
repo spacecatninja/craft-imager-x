@@ -39,15 +39,11 @@ class ImagerTransformedImageInterface extends BaseInterfaceType
             'name' => static::getName(),
             'fields' => self::class . '::getFieldDefinitions',
             'description' => 'This is the interface implemented by Imager X.',
-            'resolveType' => function (array $value) {
-                return GqlEntityRegistry::getEntity(ImagerGenerator::getName());
-            },
+            'resolveType' => fn(array $value) => GqlEntityRegistry::getEntity(ImagerGenerator::getName()),
         ]));
 
         foreach (ImagerGenerator::generateTypes() as $typeName => $generatedType) {
-            TypeLoader::registerType($typeName, function () use ($generatedType) {
-                return $generatedType;
-            });
+            TypeLoader::registerType($typeName, fn() => $generatedType);
         }
 
         return $type;

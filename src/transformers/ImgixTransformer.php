@@ -41,10 +41,7 @@ class ImgixTransformer extends Component implements TransformerInterface
     /**
      * Main transform method
      *
-     * @param string|Asset $image
-     * @param array        $transforms
      *
-     * @return array|null
      * @throws ImagerException
      */
     public function transform(Asset|string $image, array $transforms): ?array
@@ -61,10 +58,7 @@ class ImgixTransformer extends Component implements TransformerInterface
     /**
      * Transform one image
      *
-     * @param string|Asset $image
-     * @param array        $transform
      *
-     * @return ImgixTransformedImageModel
      *
      * @throws ImagerException
      */
@@ -107,11 +101,7 @@ class ImgixTransformer extends Component implements TransformerInterface
     /**
      * Create Imgix transform params
      *
-     * @param array         $transform
-     * @param string|Asset  $image
-     * @param ImgixSettings $imgixConfig
      *
-     * @return array
      */
     private function createParams(array $transform, Asset|string $image, ImgixSettings $imgixConfig): array
     {
@@ -285,9 +275,7 @@ class ImgixTransformer extends Component implements TransformerInterface
     /**
      * Check if transform has auto compression enabled
      *
-     * @param array $transform
      *
-     * @return bool
      */
     private function transformHasAutoCompressionEnabled(array $transform): bool
     {
@@ -298,8 +286,6 @@ class ImgixTransformer extends Component implements TransformerInterface
      * Gets letterbox params string
      *
      * @param $letterboxDef
-     *
-     * @return string
      */
     private function getLetterboxColor($letterboxDef): string
     {
@@ -334,10 +320,8 @@ class ImgixTransformer extends Component implements TransformerInterface
     /**
      * Gets the quality setting based on the extension.
      *
-     * @param string     $ext
      * @param array|null $transform
      *
-     * @return string
      */
     private function getQualityFromExtension(string $ext, array $transform = null): string
     {

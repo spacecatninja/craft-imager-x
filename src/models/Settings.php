@@ -25,9 +25,9 @@ class Settings extends Model
     /**
      * @var int|bool|string
      */
-    public string|int|bool $cacheDuration = 1209600;
-    public $cacheDurationRemoteFiles = 1209600;
-    public $cacheDurationExternalStorage = 1209600;
+    public string|int|bool $cacheDuration = 1_209_600;
+    public $cacheDurationRemoteFiles = 1_209_600;
+    public $cacheDurationExternalStorage = 1_209_600;
     public $cacheDurationNonOptimized = 300;
 
     public $jpegQuality = 80;

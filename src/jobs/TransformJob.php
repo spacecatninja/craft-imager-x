@@ -28,7 +28,7 @@ class TransformJob extends BaseJob
     /**
      * @var null|int
      */
-    public ?int $assetId;
+    public ?int $assetId = null;
     
     /**
      * @var array
@@ -45,6 +45,7 @@ class TransformJob extends BaseJob
      */
     public function execute($queue): void
     {
+        $criteria = [];
         if ($this->assetId === null) {
             throw new ImagerException(Craft::t('imager-x', 'Asset ID in transform job was null'));
         }

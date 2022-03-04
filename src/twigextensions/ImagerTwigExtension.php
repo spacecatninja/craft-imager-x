@@ -33,9 +33,6 @@ class ImagerTwigExtension extends AbstractExtension
         return 'Imager';
     }
 
-    /**
-     * @return array
-     */
     public function getFilters(): array
     {
         return [
@@ -46,10 +43,7 @@ class ImagerTwigExtension extends AbstractExtension
     /**
      * Twig filter interface for srcset
      *
-     * @param array  $images
-     * @param string $descriptor
      *
-     * @return string
      */
     public function srcsetFilter(array $images, string $descriptor = 'w'): string
     {

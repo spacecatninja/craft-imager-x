@@ -29,7 +29,6 @@ class ConfigModel extends Settings
      *
      * @param Settings|Model $settings
      * @param array|null     $overrides
-     * @param array          $config
      *
      * @throws \craft\errors\DeprecationException
      */
@@ -116,10 +115,8 @@ class ConfigModel extends Settings
     /**
      * Get setting by key. If there is an override in transform, that is returned instead of the value in the model.
      *
-     * @param string     $key
      * @param array|null $transform
      *
-     * @return mixed
      */
     public function getSetting(string $key, array $transform = null): mixed
     {
@@ -128,8 +125,6 @@ class ConfigModel extends Settings
 
     /**
      * Returns config override string for this config model
-     *
-     * @return string
      */
     public function getConfigOverrideString(): string
     {
@@ -138,9 +133,6 @@ class ConfigModel extends Settings
 
     /**
      * Creates additional file string based on config overrides that is appended to filename
-     *
-     * @param string $key
-     * @param mixed  $value
      */
     private function addToOverrideFilestring(string $key, mixed $value): void
     {

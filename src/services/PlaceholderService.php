@@ -42,10 +42,9 @@ class PlaceholderService extends Component
 
     /**
      * Main public placeholder method.
-     * 
+     *
      * @param array|null $config
      *
-     * @return string
      * @throws ImagerException
      */
     public function placeholder(array $config = null): string
@@ -62,9 +61,8 @@ class PlaceholderService extends Component
 
     /**
      * Returns a SVG placeholder
-     * 
+     *
      * @param $config
-     * @return string
      */
     private function placeholderSVG($config): string
     {
@@ -77,9 +75,8 @@ class PlaceholderService extends Component
 
     /**
      * Returns a GIF placeholder.
-     * 
+     *
      * @param $config
-     * @return string
      */
     private function placeholderGIF($config): string
     {
@@ -114,9 +111,8 @@ class PlaceholderService extends Component
 
     /**
      * Returns a silhouette placeholder.
-     * 
+     *
      * @param $config
-     * @return string
      * @throws ImagerException
      */
     private function placeholderSilhuette($config): string
@@ -153,8 +149,6 @@ class PlaceholderService extends Component
     
     /**
      * Creates the Imagine instance depending on the chosen image driver.
-     *
-     * @return \Imagine\Gd\Imagine|\Imagine\Imagick\Imagine|null
      */
     private function createImagineInstance(): \Imagine\Imagick\Imagine|\Imagine\Gd\Imagine|null
     {
@@ -168,7 +162,7 @@ class PlaceholderService extends Component
             if ($imageDriver === 'imagick') {
                 return new \Imagine\Imagick\Imagine();
             }
-        } catch (RuntimeException $e) {
+        } catch (RuntimeException) {
             // just ignore for now
         }
 

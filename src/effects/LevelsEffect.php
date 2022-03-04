@@ -31,7 +31,7 @@ class LevelsEffect implements ImagerEffectsInterface
             if (\is_array($params)) {
                 if (\is_array($params[0])) {
                     foreach ($params as $val) {
-                        if (\count($val) >= 3) {
+                        if ((is_countable($val) ? \count($val) : 0) >= 3) {
                             self::applyLevels($imagickInstance, $val);
                         }
                     }
@@ -54,7 +54,7 @@ class LevelsEffect implements ImagerEffectsInterface
         $whiteLevel = ($value[2]/255)*$quantum;
         $channel = \Imagick::CHANNEL_ALL;
         
-        if (\count($value)>3) {
+        if ((is_countable($value) ? \count($value) : 0)>3) {
             switch ($value[3]) {
                 case 'red':
                     $channel = \Imagick::CHANNEL_RED;

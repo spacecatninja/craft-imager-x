@@ -52,7 +52,7 @@ class OpacityEffect implements ImagerEffectsInterface
      * @param string $color
      * @throws \ImagickException
      */
-    private static function opacity($imagickInstance, $alpha = 1, $color = '#fff')
+    private static function opacity(\Imagine\Imagick\Imagick|\Imagick $imagickInstance, float|int $alpha = 1, $color = '#fff')
     {
         $width = $imagickInstance->getImageWidth();
         $height = $imagickInstance->getImageHeight();

@@ -52,8 +52,6 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
     /**
      * Constructor
      *
-     * @param LocalSourceImageModel $sourceModel
-     * @param array                 $transform
      *
      * @throws ImagerException
      */
@@ -89,28 +87,16 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
         }
     }
     
-    /**
-     * @return int
-     */
     public function getWidth(): int
     {
         return $this->width;
     }
 
-    /**
-     * @return int
-     */
     public function getHeight(): int
     {
         return $this->height;
     }
 
-    /**
-     * @param string $unit
-     * @param int    $precision
-     *
-     * @return float|int
-     */
     public function getSize(string $unit = 'b', int $precision = 2): float|int
     {
         $unit = strtolower($unit);
@@ -123,18 +109,12 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
         };
     }
 
-    /**
-     * @return string
-     */
     public function getDataUri(): string
     {
         $imageData = $this->getBase64Encoded();
         return sprintf('data:image/%s;base64,%s', $this->extension, $imageData);
     }
 
-    /**
-     * @return string
-     */
     public function getBase64Encoded(): string
     {
         $image = @file_get_contents($this->path);

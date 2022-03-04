@@ -14,7 +14,7 @@ use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\exceptions\ImagerException;
 
 
-class BaseTransformedImageModel
+class BaseTransformedImageModel implements \Stringable
 {
     /**
      * @var mixed
@@ -66,77 +66,47 @@ class BaseTransformedImageModel
      */
     public bool $isNew = false;
 
-    /**
-     * @return string
-     */
     public function getPath(): string
     {
         return $this->path;
     }
 
-    /**
-     * @return string
-     */
     public function getFilename(): string
     {
         return $this->filename;
     }
 
-    /**
-     * @return string
-     */
     public function getUrl(): string
     {
         return $this->url;
     }
 
-    /**
-     * @return string
-     */
     public function getExtension(): string
     {
         return $this->extension;
     }
 
-    /**
-     * @return string
-     */
     public function getMimeType(): string
     {
         return $this->mimeType;
     }
 
-    /**
-     * @return int
-     */
     public function getWidth(): int
     {
         return (int)$this->width;
     }
 
-    /**
-     * @return int
-     */
     public function getHeight(): int
     {
         return (int)$this->height;
     }
 
-    /**
-     * @param string $unit
-     * @param int    $precision
-     *
-     * @return float|int
-     */
     public function getSize(string $unit = 'b', int $precision = 2): float|int
     {
         return 0;
     }
 
     /**
-     * @param array $settings
-     *
-     * @return string
      * @throws ImagerException
      */
     public function getPlaceholder(array $settings = []): string
@@ -153,42 +123,27 @@ class BaseTransformedImageModel
         return ImagerX::$plugin->placeholder->placeholder($settings);
     }
 
-    /**
-     * @return bool
-     */
     public function getIsNew(): bool
     {
         return $this->isNew;
     }
     
-    /**
-     * @return string
-     */
     public function getDataUri(): string
     {
         return '';
     }
 
-    /**
-     * @return string
-     */
     public function getBase64Encoded(): string
     {
         return '';
     }
 
-    /**
-     * @return string
-     */
     public function getBlurhash(): string
     {
         return '';
     }
 
-    /**
-     * @return string
-     */
-    public function __toString()
+    public function __toString(): string
     {
         return (string)$this->url;
     }

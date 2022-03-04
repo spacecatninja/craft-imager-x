@@ -14,11 +14,6 @@ use spacecatninja\imagerx\services\ImagerService;
 
 class NamedTransformHelpers
 {
-    /**
-     * @param string $name
-     *
-     * @return array|null
-     */
     public static function getNamedTransform(string $name): ?array
     {
         return ImagerService::$namedTransforms[$name] ?? null;

@@ -16,10 +16,6 @@ use craft\elements\Asset;
 interface TransformerInterface
 {
     /**
-     * @param string|Asset $image
-     * @param array        $transforms
-     *
-     * @return array|null
      *
      * @throws ImagerException
      */

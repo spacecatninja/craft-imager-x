@@ -38,9 +38,7 @@ class GenerateTransformsAction extends ElementAction
     /**
      * Generates transforms 
      *
-     * @param ElementQueryInterface $query
      *
-     * @return bool
      */
     public function performAction(ElementQueryInterface $query): bool
     {

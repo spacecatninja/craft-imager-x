@@ -27,20 +27,18 @@ class CleanController extends Controller
     /**
      * @var string|null Handle of volume to clean transforms for
      */
-    public ?string $volume;
+    public ?string $volume = null;
     
     /**
      * @var string|null Overrides the default cache duration settings
      */
-    public ?string $duration;
+    public ?string $duration = null;
     
     
     // Public Methods
     // =========================================================================
-
     /**
      * @param string $actionID
-     * @return array
      */
     public function options($actionID): array
     {
@@ -53,9 +51,6 @@ class CleanController extends Controller
         ]);
     }
 
-    /**
-     * @return array
-     */
     public function optionAliases(): array
     {
         return [
@@ -66,8 +61,6 @@ class CleanController extends Controller
 
     /**
      * Cleans image transforms in the local system path.
-     *
-     * @return int
      */
     public function actionIndex(): int
     {
@@ -162,35 +155,21 @@ class CleanController extends Controller
         return ExitCode::OK;
     }
     
-    /**
-     * @param string $text
-     */
     public function success(string $text = ''): void
     {
         $this->stdout("$text\n", BaseConsole::FG_GREEN);
     }
 
-    /**
-     * @param string $text
-     */
     public function message(string $text = ''): void
     {
         $this->stdout("$text\n", BaseConsole::FG_GREY);
     }
 
-    /**
-     * @param string $text
-     */
     public function error(string $text = ''): void
     {
         $this->stdout("$text\n", BaseConsole::FG_RED);
     }
 
-    /**
-     * @param string $file
-     *
-     * @return bool
-     */
     private function fileHasExpired(string $file): bool
     {
         return FileHelper::lastModifiedTime($file) + $this->duration < time();

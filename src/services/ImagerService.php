@@ -212,12 +212,6 @@ class ImagerService extends Component
     }
 
 
-    // Static public Methods
-    // =========================================================================
-
-    /**
-     * @return ConfigModel
-     */
     public static function getConfig(): ConfigModel
     {
         return self::$transformConfig ?? new ConfigModel(Plugin::$plugin->getSettings(), null);
@@ -239,9 +233,6 @@ class ImagerService extends Component
         }
     }
 
-    /**
-     * @return bool
-     */
     public static function hasSupportForWebP(): bool
     {
         self::detectImageDriver();
@@ -264,9 +255,6 @@ class ImagerService extends Component
         return false;
     }
 
-    /**
-     * @return bool
-     */
     public static function hasSupportForAvif(): bool
     {
         $config = self::getConfig();
@@ -287,9 +275,6 @@ class ImagerService extends Component
         return false;
     }
 
-    /**
-     * @return bool
-     */
     public static function hasSupportForJxl(): bool
     {
         $config = self::getConfig();
@@ -310,54 +295,31 @@ class ImagerService extends Component
         return false;
     }
 
-    /**
-     * @param string $handle
-     * @param string $class
-     */
     public static function registerTransformer(string $handle, string $class): void
     {
         self::$transformers[mb_strtolower($handle)] = $class;
     }
 
-    /**
-     * @param string $handle
-     * @param string $class
-     */
     public static function registerEffect(string $handle, string $class): void
     {
         self::$effects[mb_strtolower($handle)] = $class;
     }
 
-    /**
-     * @param string $handle
-     * @param string $class
-     */
     public static function registerOptimizer(string $handle, string $class): void
     {
         self::$optimizers[mb_strtolower($handle)] = $class;
     }
 
-    /**
-     * @param string $handle
-     * @param string $class
-     */
     public static function registerExternalStorage(string $handle, string $class): void
     {
         self::$storage[mb_strtolower($handle)] = $class;
     }
 
-    /**
-     * @param string $path
-     */
     public static function registerCachedRemoteFile(string $path): void
     {
         self::$remoteImageSessionCache[] = $path;
     }
 
-    /**
-     * @param string $name
-     * @param array  $transform
-     */
     public static function registerNamedTransform(string $name, array $transform): void
     {
         self::$namedTransforms[$name] = $transform;
@@ -366,17 +328,13 @@ class ImagerService extends Component
 
     // Public Methods
     // =========================================================================
-
     /**
      * @param Asset|string|null $image
-     * @param array|string      $transforms
      * @param array|null        $transformDefaults
      * @param array|null        $configOverrides
-     *
-     * @return array|TransformedImageInterface|null
      * @throws ImagerException
      */
-    public function transformImage($image, $transforms, array $transformDefaults = null, array $configOverrides = null): TransformedImageInterface|array|null
+    public function transformImage($image, array|string $transforms, array $transformDefaults = null, array $configOverrides = null): TransformedImageInterface|array|null
     {
         if (!$image) {
             return null;
@@ -505,10 +463,7 @@ class ImagerService extends Component
     /**
      * Creates srcset string
      *
-     * @param mixed $images
-     * @param string      $descriptor
      *
-     * @return string
      */
     public function srcset(mixed $images, string $descriptor = 'w'): string
     {
@@ -558,7 +513,6 @@ class ImagerService extends Component
      *
      * @param $asset
      *
-     * @return bool
      * @throws ImagerException
      */
     public function isAnimated($asset): bool
@@ -590,8 +544,6 @@ class ImagerService extends Component
 
     /**
      * Remove transforms for a given asset
-     *
-     * @param Asset $asset
      */
     public function removeTransformsForAsset(Asset $asset): void
     {

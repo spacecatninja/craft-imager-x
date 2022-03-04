@@ -408,7 +408,7 @@ class ImagerX extends Plugin
                                     $event->url = $transformedImage->getUrl();
                                 }
                             }
-                        } catch (ImagerException $e) {
+                        } catch (ImagerException) {
                             return null;
                         }
                     }
@@ -428,7 +428,7 @@ class ImagerX extends Plugin
                             if ($transformedImage !== null) {
                                 $event->url = $transformedImage->getUrl();
                             }
-                        } catch (ImagerException $e) {
+                        } catch (ImagerException) {
                             // just ignore
                         }
                     }

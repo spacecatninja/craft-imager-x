@@ -34,10 +34,8 @@ class ClearTransformsElementAction extends ElementAction
 
     /**
      * Clears transforms for selected assets
-     * 
-     * @param ElementQueryInterface $query
      *
-     * @return bool
+     *
      */
     public function performAction(ElementQueryInterface $query): bool
     {

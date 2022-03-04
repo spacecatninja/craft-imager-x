@@ -115,7 +115,7 @@ class GenerateTransformsUtility extends Utility
         
         try {
             Craft::$app->getView()->registerAssetBundle(GenerateTransformsUtilityAssets::class);
-        } catch (InvalidConfigException $e) {
+        } catch (InvalidConfigException) {
             return Craft::t('imager-x', 'Could not load asset bundle');
         }
         

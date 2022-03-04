@@ -64,15 +64,11 @@ class Opti
 
 class Bitmap
 {
-    public $w;
-    public $h;
     public $size;
     public $data;
 
-    public function __construct($w, $h)
+    public function __construct(public $w, public $h)
     {
-        $this->w = $w;
-        $this->h = $h;
         $this->size = $w * $h;
     }
 
@@ -117,7 +113,6 @@ class Path
 
 class Curve
 {
-    public $n;
     public $tag;
     public $c;
     public $alphaCurve = 0;
@@ -126,9 +121,8 @@ class Curve
     public $alpha0;
     public $beta;
 
-    public function __construct($n)
+    public function __construct(public $n)
     {
-        $this->n = $n;
         $this->tag = array_fill(0, $n, null);
         $this->c = array_fill(0, $n * 3, null);
         $this->vertex = array_fill(0, $n, null);
@@ -150,19 +144,8 @@ class Quad
 
 class Sum
 {
-    public $x;
-    public $y;
-    public $xy;
-    public $x2;
-    public $y2;
-
-    public function __construct($x, $y, $xy, $x2, $y2)
+    public function __construct(public $x, public $y, public $xy, public $x2, public $y2)
     {
-        $this->x = $x;
-        $this->y = $y;
-        $this->xy = $xy;
-        $this->x2 = $x2;
-        $this->y2 = $y2;
     }
 }
 
@@ -193,26 +176,17 @@ class Potracio
     public function loadImageFromFile($file)
     {
         $ext = pathinfo($file, PATHINFO_EXTENSION);
-        $image = null;
-        
-        switch ($ext) {
-            case 'jpg':
-            case 'jpeg':
-                $image = imagecreatefromjpeg($file);
-                break;
-            case 'gif':
-                $image = imagecreatefromgif($file);
-                break;
-            case 'png':
-                $image = imagecreatefrompng($file);
-                break;
-        }
+        $image = match ($ext) {
+            'jpg', 'jpeg' => imagecreatefromjpeg($file),
+            'gif' => imagecreatefromgif($file),
+            'png' => imagecreatefrompng($file),
+        };
         
         if ($image === null) {
             throw new \Exception('Unknown file type passed to placeholder method.');
         }
 
-        list($w, $h) = getimagesize($file);
+        [$w, $h] = getimagesize($file);
 
         $this->bm = new Bitmap($w, $h);
 
@@ -364,13 +338,9 @@ class Potracio
     {
         $info = $this->info;
 
-        $mod = function ($a, $n) {
-            return $a >= $n ? $a % $n : ($a >= 0 ? $a : $n - 1 - (-1 - $a) % $n);
-        };
+        $mod = fn($a, $n) => $a >= $n ? $a % $n : ($a >= 0 ? $a : $n - 1 - (-1 - $a) % $n);
 
-        $xprod = function ($p1, $p2) {
-            return $p1->x * $p2->y - $p1->y * $p2->x;
-        };
+        $xprod = fn($p1, $p2) => $p1->x * $p2->y - $p1->y * $p2->x;
 
         $cyclic = function ($a, $b, $c) {
             if ($a <= $c) {
@@ -380,9 +350,7 @@ class Potracio
             }
         };
 
-        $sign = function ($i) {
-            return $i > 0 ? 1 : ($i < 0 ? -1 : 0);
-        };
+        $sign = fn($i) => $i > 0 ? 1 : ($i < 0 ? -1 : 0);
 
         $quadform = function ($Q, $w) {
             $v = array_fill(0, 3, null);
@@ -461,9 +429,7 @@ class Potracio
             return $x1 * $x2 + $y1 * $y2;
         };
 
-        $ddist = function ($p, $q) {
-            return sqrt(($p->x - $q->x) * ($p->x - $q->x) + ($p->y - $q->y) * ($p->y - $q->y));
-        };
+        $ddist = fn($p, $q) => sqrt(($p->x - $q->x) * ($p->x - $q->x) + ($p->y - $q->y) * ($p->y - $q->y));
 
         $bezier = function ($t, $p0, $p1, $p2, $p3) {
             $s = 1 - $t;
@@ -607,7 +573,7 @@ class Potracio
                     $c = $xprod($constraint[1], $cur);
                     $d = $xprod($constraint[1], $dk);
 
-                    $j = 10000000;
+                    $j = 10_000_000;
                     if ($b < 0) {
                         $j = floor($a / -$b);
                     }
@@ -1308,7 +1274,7 @@ class Potracio
 
         $w = $bm->w * $size;
         $h = $bm->h * $size;
-        $len = count($pathlist);
+        $len = is_countable($pathlist) ? count($pathlist) : 0;
 
         $svg = '<svg id="svg" version="1.1"'
             . ' width="' . $w . '"'

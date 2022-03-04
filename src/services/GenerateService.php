@@ -37,8 +37,6 @@ class GenerateService extends Component
 {
 
     /**
-     * @param array      $volumeIds
-     * @param bool       $useConfig
      * @param array|null $transforms
      */
     public function generateByUtility(array $volumeIds, bool $useConfig = true, array $transforms = null): void
@@ -91,7 +89,7 @@ class GenerateService extends Component
         /** @var Volume $volume */
         try {
             $volume = $asset->getVolume();
-        } catch (InvalidConfigException $e) {
+        } catch (InvalidConfigException) {
             return;
         }
 
@@ -218,8 +216,6 @@ class GenerateService extends Component
 
     /**
      * @param Element|ElementInterface $element
-     *
-     * @return bool
      */
     public function shouldGenerateByVolumes(ElementInterface|Element $element): bool
     {
@@ -228,8 +224,6 @@ class GenerateService extends Component
 
     /**
      * @param Element|ElementInterface $element
-     *
-     * @return bool
      */
     public function shouldGenerateByElements(ElementInterface|Element $element): bool
     {
@@ -251,8 +245,6 @@ class GenerateService extends Component
 
     /**
      * @param Element|ElementInterface $element
-     *
-     * @return bool
      */
     public function shouldGenerateByFields(ElementInterface|Element $element): bool
     {
@@ -267,7 +259,6 @@ class GenerateService extends Component
 
     /**
      * @param Asset|ElementInterface $asset
-     * @param array                  $transforms
      */
     public function createTransformJob(ElementInterface|Asset $asset, array $transforms): void
     {
@@ -284,7 +275,6 @@ class GenerateService extends Component
 
     /**
      * @param Asset|ElementInterface $asset
-     * @param array                  $transforms
      */
     public function generateTransformsForAsset(ElementInterface|Asset $asset, array $transforms): void
     {
@@ -307,8 +297,6 @@ class GenerateService extends Component
 
     /**
      * @param Asset|Element|ElementInterface $element
-     *
-     * @return bool
      */
     public static function shouldTransformElement(ElementInterface|Element|Asset $element): bool
     {

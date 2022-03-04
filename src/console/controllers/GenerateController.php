@@ -72,11 +72,8 @@ class GenerateController extends Controller
     
     // Public Methods
     // =========================================================================
-
     /**
      * @param string $actionID
-     *
-     * @return array
      */
     public function options($actionID): array
     {
@@ -91,9 +88,6 @@ class GenerateController extends Controller
         ]);
     }
 
-    /**
-     * @return array
-     */
     public function optionAliases(): array
     {
         return [
@@ -107,8 +101,6 @@ class GenerateController extends Controller
 
     /**
      * Generates image transforms by volume/folder or fields.
-     *
-     * @return int
      */
     public function actionIndex(): int
     {
@@ -135,10 +127,8 @@ class GenerateController extends Controller
 
         if ($volumeSpecified) {
             $this->volumes = Craft::$app->getVolumes()->getAllVolumes();
-            $volumeHandles = \array_map(static function ($volume) {
-                /** @var Volume $volume */
-                return $volume->handle;
-            }, $this->volumes);
+            $volumeHandles = \array_map(static fn($volume) => /** @var Volume $volume */
+$volume->handle, $this->volumes);
             
             if (!in_array($this->volume, $volumeHandles, true)) {
                 $this->error("No volumes with handle {$this->volume} exists");
@@ -149,10 +139,8 @@ class GenerateController extends Controller
         if ($fieldSpecified) {
             $this->fields = $this->getAllFields();
 
-            $fieldHandles = \array_map(static function ($field) {
-                /** @var Field $field */
-                return $field['handle'];
-            }, $this->fields);
+            $fieldHandles = \array_map(static fn($field) => /** @var Field $field */
+$field['handle'], $this->fields);
             
             if (!in_array($this->field, $fieldHandles, true)) {
                 $this->error("No field with handle {$this->field} exists");
@@ -194,7 +182,7 @@ class GenerateController extends Controller
             return ExitCode::OK;
         }
         
-        $numTransforms = count($transforms);
+        $numTransforms = is_countable($transforms) ? count($transforms) : 0;
         $total = count($assets);
         $current = 0;
         $this->success("> Generating {$numTransforms} named transforms for {$total} images.");
@@ -211,25 +199,16 @@ class GenerateController extends Controller
         return ExitCode::OK;
     }
     
-    /**
-     * @param string $text
-     */
     public function success(string $text = ''): void
     {
         $this->stdout("$text\n", BaseConsole::FG_GREEN);
     }
 
-    /**
-     * @param string $text
-     */
     public function error(string $text = ''): void
     {
         $this->stdout("$text\n", BaseConsole::FG_RED);
     }
 
-    /**
-     * @return array
-     */
     private function getAssetsByVolume(): array
     {
         /** @var AssetQuery $query */
@@ -265,9 +244,6 @@ class GenerateController extends Controller
         return $query ? $query->all() : [];
     }
 
-    /**
-     * @return array
-     */
     private function getAssetsByField(): array
     {
         /** @var AssetQuery $query */
@@ -299,9 +275,7 @@ class GenerateController extends Controller
                 ->all();
 
             
-            $assetIds = \array_map(static function ($asset) {
-                return $asset['id'];
-            }, $relatedAssets);
+            $assetIds = \array_map(static fn($asset) => $asset['id'], $relatedAssets);
             
             $query = Asset::find()
                 ->id($assetIds)
@@ -312,9 +286,6 @@ class GenerateController extends Controller
         return $query ? $query->all() : [];
     }
 
-    /**
-     * @return array
-     */
     private function getAllFields(): array 
     {
         return (new Query())
@@ -323,11 +294,6 @@ class GenerateController extends Controller
             ->all();
     }
 
-    /**
-     * @param array $assets
-     *
-     * @return array
-     */
     private function pruneTransformableAssets(array $assets): array
     {
         $r = [];

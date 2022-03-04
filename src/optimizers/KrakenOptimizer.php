@@ -16,10 +16,6 @@ use Craft;
 class KrakenOptimizer implements ImagerOptimizeInterface
 {
 
-    /**
-     * @param string     $file
-     * @param array|null $settings
-     */
     public static function optimize(string $file, ?array $settings): void
     {
         $kraken = new \Kraken($settings['apiKey'], $settings['apiSecret']);

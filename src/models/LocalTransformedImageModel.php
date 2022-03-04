@@ -73,12 +73,6 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
         }
     }
     
-    /**
-     * @param string $unit
-     * @param int    $precision
-     *
-     * @return float|int
-     */
     public function getSize(string $unit = 'b', int $precision = 2): float|int
     {
         $unit = strtolower($unit);
@@ -91,27 +85,18 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
         };
     }
 
-    /**
-     * @return string
-     */
     public function getDataUri(): string
     {
         $imageData = $this->getBase64Encoded();
         return sprintf('data:image/%s;base64,%s', $this->extension, $imageData);
     }
 
-    /**
-     * @return string
-     */
     public function getBase64Encoded(): string
     {
         $image = @file_get_contents($this->path);
         return base64_encode($image);
     }
 
-    /**
-     * @return string
-     */
     public function getBlurhash(): string
     {
         $blurhashFile = $this->getPath();

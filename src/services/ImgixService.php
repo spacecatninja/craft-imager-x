@@ -47,8 +47,6 @@ class ImgixService extends Component
     /**
      * Purging is possible if there's an `imgixConfig` map, and all sources/profiles have an API key set
      * Used for determining if the ImgixPurgeElementAction element action and various related event handlers should be bootstrapped or not
-     *
-     * @return bool
      */
     public static function getCanPurge(): bool
     {
@@ -95,7 +93,7 @@ class ImgixService extends Component
                     'Content-Type:application/json',
                     'Authorization: Basic ' . base64_encode("{$apiKey}:")
                 ];
-                $payload = json_encode(["url" => $url]);
+                $payload = json_encode(["url" => $url], JSON_THROW_ON_ERROR);
             } else {
                 $headers = [
                     'Content-Type:application/json',

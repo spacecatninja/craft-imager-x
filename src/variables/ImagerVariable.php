@@ -27,12 +27,8 @@ class ImagerVariable
     /**
      * Transforms an image
      *
-     * @param string|Asset $file
-     * @param array|string $transforms
      * @param array|null   $transformDefaults
      * @param array|null   $configOverrides
-     *
-     * @return array|TransformedImageInterface|null
      *
      * @throws ImagerException
      */
@@ -45,10 +41,7 @@ class ImagerVariable
      * Takes an array of models that supports getUrl() and getWidth(), and returns a srcset
      * and returns a srcset string
      *
-     * @param array  $images
-     * @param string $descriptor
      *
-     * @return string
      */
     public function srcset(array $images, string $descriptor = 'w'): string
     {
@@ -58,11 +51,7 @@ class ImagerVariable
     /**
      * Returns a base64 encoded transparent pixel.
      *
-     * @param int $width
-     * @param int $height
-     * @param string $color
      *
-     * @return string
      */
     public function base64Pixel(int $width = 1, int $height = 1, string $color = 'transparent'): string
     {
@@ -74,7 +63,6 @@ class ImagerVariable
      *
      * @param array|null $config
      *
-     * @return string
      * @throws ImagerException
      */
     public function placeholder(array $config = null): string
@@ -85,11 +73,7 @@ class ImagerVariable
     /**
      * Gets the dominant color of an image
      *
-     * @param string|Asset $image
-     * @param int          $quality
-     * @param string       $colorValue
      *
-     * @return string|array|bool|null
      */
     public function getDominantColor(Asset|string $image, int $quality = 10, string $colorValue = 'hex'): string|array|bool|null
     {
@@ -99,12 +83,7 @@ class ImagerVariable
     /**
      * Gets a palette of colors from an image
      *
-     * @param string|Asset $image
-     * @param int          $colorCount
-     * @param int          $quality
-     * @param string       $colorValue
      *
-     * @return array|null
      */
     public function getColorPalette(Asset|string $image, int $colorCount = 8, int $quality = 10, string $colorValue = 'hex'): ?array
     {
@@ -114,9 +93,7 @@ class ImagerVariable
     /**
      * Converts a hex color value to rgb
      *
-     * @param string $color
      *
-     * @return array
      */
     public function hex2rgb(string $color): array
     {
@@ -126,9 +103,7 @@ class ImagerVariable
     /**
      * Converts a rgb color value to hex
      *
-     * @param array $color
      *
-     * @return string
      */
     #[Pure] public function rgb2hex(array $color): string
     {
@@ -138,9 +113,7 @@ class ImagerVariable
     /**
      * Calculates color brightness (https://www.w3.org/TR/AERT#color-contrast) on a scale from 0 (black) to 255 (white).
      *
-     * @param array|string $color
      *
-     * @return float
      */
     public function getBrightness(array|string $color): float
     {
@@ -150,9 +123,7 @@ class ImagerVariable
     /**
      * Get the hue channel of a color.
      *
-     * @param array|string $color
      *
-     * @return float
      */
     public function getHue(array|string $color): float
     {
@@ -162,9 +133,7 @@ class ImagerVariable
     /**
      * Get the lightness channel of a color
      *
-     * @param array|string $color
      *
-     * @return float
      */
     public function getLightness(array|string $color): float
     {
@@ -174,10 +143,7 @@ class ImagerVariable
     /**
      * Checks brightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 127.5.
      *
-     * @param array|string $color
-     * @param float        $threshold
      *
-     * @return bool
      */
     public function isBright(array|string $color, float $threshold = 127.5): bool
     {
@@ -187,10 +153,7 @@ class ImagerVariable
     /**
      * Checks lightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 50.0.
      *
-     * @param array|string $color
-     * @param int          $threshold
      *
-     * @return bool
      */
     public function isLight(array|string $color, int $threshold = 50): bool
     {
@@ -200,10 +163,7 @@ class ImagerVariable
     /**
      * Checks perceived_brightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 127.5.
      *
-     * @param array|string $color
-     * @param float        $threshold
      *
-     * @return bool
      */
     public function looksBright(array|string $color, float $threshold = 127.5): bool
     {
@@ -213,9 +173,7 @@ class ImagerVariable
     /**
      * Calculates the perceived brightness (http://alienryderflex.com/hsp.html) of a color on a scale from 0 (black) to 255 (white).
      *
-     * @param array|string $color
      *
-     * @return float
      */
     public function getPercievedBrightness(array|string $color): float
     {
@@ -225,9 +183,7 @@ class ImagerVariable
     /**
      * Calculates the relative luminance (https://www.w3.org/TR/WCAG20/#relativeluminancedef) of a color on a scale from 0 (black) to 1 (white).
      *
-     * @param array|string $color
      *
-     * @return float
      */
     public function getRelativeLuminance(array|string $color): float
     {
@@ -237,9 +193,7 @@ class ImagerVariable
     /**
      * Get the saturation channel of a color.
      *
-     * @param array|string $color
      *
-     * @return float
      */
     public function getSaturation(array|string $color): float
     {
@@ -249,10 +203,7 @@ class ImagerVariable
     /**
      * Calculates brightness difference (https://www.w3.org/TR/AERT#color-contrast) on a scale from 0 to 255.
      *
-     * @param array|string $color1
-     * @param array|string $color2
      *
-     * @return float
      */
     public function getBrightnessDifference(array|string $color1, array|string $color2): float
     {
@@ -262,10 +213,7 @@ class ImagerVariable
     /**
      * Calculates color difference (https://www.w3.org/TR/AERT#color-contrast) on a scale from 0 to 765.
      *
-     * @param array|string $color1
-     * @param array|string $color2
      *
-     * @return int
      */
     public function getColorDifference(array|string $color1, array|string $color2): int
     {
@@ -275,10 +223,7 @@ class ImagerVariable
     /**
      * Calculates the contrast ratio (https://www.w3.org/TR/WCAG20/#contrast-ratiodef) between two colors on a scale from 1 to 21.
      *
-     * @param array|string $color1
-     * @param array|string $color2
      *
-     * @return float
      */
     public function getContrastRatio(array|string $color1, array|string $color2): float
     {
@@ -287,8 +232,6 @@ class ImagerVariable
 
     /**
      * Checks for server webp support
-     *
-     * @return bool
      */
     public function serverSupportsWebp(): bool
     {
@@ -297,8 +240,6 @@ class ImagerVariable
 
     /**
      * Checks for server avif support
-     *
-     * @return bool
      */
     public function serverSupportsAvif(): bool
     {
@@ -307,8 +248,6 @@ class ImagerVariable
 
     /**
      * Checks for server jxl support
-     *
-     * @return bool
      */
     public function serverSupportsJxl(): bool
     {
@@ -317,8 +256,6 @@ class ImagerVariable
 
     /**
      * Checks for webp support in browser
-     *
-     * @return bool
      */
     public function clientSupportsWebp(): bool
     {
@@ -327,9 +264,6 @@ class ImagerVariable
 
     /**
      * Checks if the browser accepts a given format.
-     *
-     * @param string $format
-     * @return bool
      */
     public function clientSupports(string $format): bool
     {
@@ -343,9 +277,7 @@ class ImagerVariable
     /**
      * Checks if asset is animated (only gif support atm)
      *
-     * @param string|Asset $asset
      *
-     * @return bool
      *
      * @throws ImagerException
      */
@@ -356,8 +288,6 @@ class ImagerVariable
 
     /**
      * Checks if Imgix is enabled
-     *
-     * @return bool
      */
     public function imgixEnabled(): bool
     {
@@ -366,27 +296,17 @@ class ImagerVariable
     
     /**
      * Returns transformer handle
-     *
-     * @return bool
      */
     public function transformer(): bool
     {
         return Plugin::$plugin->getSettings()->transformer;
     }
 
-    /**
-     * @param string $name
-     * @return bool
-     */
     public function hasNamedTransform(string $name): bool
     {
         return NamedTransformHelpers::getNamedTransform($name) !== null;
     }
     
-    /**
-     * @param string $name
-     * @return array|null
-     */
     public function getNamedTransform(string $name): ?array
     {
         return NamedTransformHelpers::getNamedTransform($name);

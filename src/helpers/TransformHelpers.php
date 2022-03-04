@@ -18,13 +18,11 @@ class TransformHelpers
 {
     /**
      * Resolves any callables in params
-     * 
+     *
      * TODO : Make recursive, it now only resolves callables at the top level
      *
      * @param string|Asset $image
      * @param array|null   $transforms
-     *
-     * @return array
      */
     public static function resolveTransforms(Asset|string $image, ?array $transforms): array
     {
@@ -51,9 +49,7 @@ class TransformHelpers
     /**
      * Fills in the missing transform objects
      *
-     * @param array $transforms
      *
-     * @return array
      */
     public static function fillTransforms(array $transforms): array
     {
@@ -93,10 +89,7 @@ class TransformHelpers
     /**
      * Merges default transform object into an array of transforms
      *
-     * @param array $transforms
-     * @param array|null $defaults
      *
-     * @return array
      */
     public static function mergeTransforms(array $transforms, ?array $defaults): array
     {
@@ -112,10 +105,7 @@ class TransformHelpers
     /**
      * Normalizes format of transforms
      *
-     * @param array        $transforms
-     * @param string|Asset $image
      *
-     * @return array
      */
     public static function normalizeTransforms(array $transforms, Asset|string $image): array
     {
@@ -131,10 +121,7 @@ class TransformHelpers
     /**
      * Normalize transform object and values
      *
-     * @param array        $transform
-     * @param string|Asset $image
      *
-     * @return array
      */
     public static function normalizeTransform(array $transform, Asset|string $image): array
     {
@@ -208,8 +195,6 @@ class TransformHelpers
     }
 
     /**
-     * @param array|int|string $val
-     *
      * @return int[]|null
      */
     public static function normalizePadding(array|int|string $val): ?array

@@ -34,12 +34,6 @@ use yii\base\InvalidConfigException;
 
 class ImagerHelpers
 {
-    /**
-     * @param LocalTargetImageModel $targetModel
-     * @param array                 $transform
-     *
-     * @return bool
-     */
     public static function shouldCreateTransform(LocalTargetImageModel $targetModel, array $transform): bool
     {
         /** @var ConfigModel $settings */
@@ -53,12 +47,7 @@ class ImagerHelpers
     /**
      * Creates the destination crop size box
      *
-     * @param BoxInterface $originalSize
-     * @param array                   $transform
-     * @param bool                    $allowUpscale
-     * @param bool                    $usePadding
      *
-     * @return Box
      * @throws InvalidArgumentException
      */
     public static function getCropSize(BoxInterface $originalSize, array $transform, bool $allowUpscale, bool $usePadding = true): Box
@@ -114,12 +103,7 @@ class ImagerHelpers
     /**
      * Creates the resize size box
      *
-     * @param BoxInterface $originalSize
-     * @param array                   $transform
-     * @param bool                    $allowUpscale
-     * @param bool                    $usePadding
      *
-     * @return Box
      * @throws ImagerException
      */
     public static function getResizeSize(BoxInterface $originalSize, array $transform, bool $allowUpscale, bool $usePadding = true): Box
@@ -206,13 +190,7 @@ class ImagerHelpers
     /**
      * Enforces a max size if allowUpscale is false
      *
-     * @param int          $width
-     * @param int          $height
-     * @param BoxInterface $originalSize
-     * @param bool         $maintainAspect
-     * @param float        $zoomFactor
      *
-     * @return array
      */
     public static function enforceMaxSize(int $width, int $height, BoxInterface $originalSize, bool $maintainAspect, float $zoomFactor = 1.0): array
     {
@@ -241,9 +219,7 @@ class ImagerHelpers
     /**
      * Get the crop zoom factor
      *
-     * @param array $transform
      *
-     * @return float
      */
     public static function getCropZoomFactor(array $transform): float
     {
@@ -257,11 +233,7 @@ class ImagerHelpers
     /**
      * Gets crop point
      *
-     * @param Box    $resizeSize
-     * @param Box    $cropSize
-     * @param string $position
      *
-     * @return Point
      * @throws ImagerException
      */
     public static function getCropPoint(Box $resizeSize, Box $cropSize, string $position): Point
@@ -290,9 +262,7 @@ class ImagerHelpers
     /**
      * Returns the transform path for a given asset.
      *
-     * @param Asset $asset
      *
-     * @return string
      * @throws ImagerException
      */
     public static function getTransformPathForAsset(Asset $asset): string
@@ -327,9 +297,7 @@ class ImagerHelpers
     /**
      * Returns the transform path for a given local path.
      *
-     * @param string $path
      *
-     * @return string
      */
     public static function getTransformPathForPath(string $path): string
     {
@@ -349,9 +317,7 @@ class ImagerHelpers
     /**
      * Returns the transform path for a given url.
      *
-     * @param string $url
      *
-     * @return string
      */
     public static function getTransformPathForUrl(string $url): string
     {
@@ -385,9 +351,7 @@ class ImagerHelpers
     /**
      * Creates additional file string that is appended to filename
      *
-     * @param array $transform
      *
-     * @return string
      */
     public static function createTransformFilestring(array $transform): string
     {
@@ -458,7 +422,6 @@ class ImagerHelpers
      * Converts a native asset transform object into an Imager transform.
      *
      * @param AssetTransform $assetTransform
-     * @return array
      */
     public static function normalizeAssetTransformToObject($assetTransform): array
     {
@@ -479,12 +442,11 @@ class ImagerHelpers
     /**
      * Returns something that can be used as a fallback image for the transform method.
      *
-     * @param int|string|Asset|null $configValue
      *
-     * @return Asset|string|null
      */
     public static function getTransformableFromConfigSetting(Asset|int|string|null $configValue): Asset|string|null
     {
+        $criteria = [];
         if (is_string($configValue) || $configValue instanceof Asset) {
             return $configValue;
         }
@@ -501,10 +463,6 @@ class ImagerHelpers
         return null;
     }
 
-    /**
-     * @param ImageInterface|ImagickImage $imageInstance
-     * @param array                       $transform
-     */
     public static function processMetaData(ImagickImage|ImageInterface &$imageInstance, array $transform): void
     {
         if ($imageInstance instanceof ImagickImage) {
@@ -532,11 +490,7 @@ class ImagerHelpers
     /**
      * Moves a named key in an associative array to a given position
      *
-     * @param string $key
-     * @param int    $pos
-     * @param array  $arr
      *
-     * @return array
      */
     public static function moveArrayKeyToPos(string $key, int $pos, array $arr): array
     {
@@ -574,11 +528,7 @@ class ImagerHelpers
     /**
      * Fixes slashes in path
      *
-     * @param string $str
-     * @param bool   $removeInitial
-     * @param bool   $removeTrailing
      *
-     * @return array|string
      */
     public static function fixSlashes(string $str, bool $removeInitial, bool $removeTrailing): array|string
     {
@@ -601,23 +551,16 @@ class ImagerHelpers
      * Strip trailing slash
      *
      * @param $str
-     *
-     * @return string
      */
     public static function stripTrailingSlash($str): string
     {
         return rtrim($str, '/');
     }
 
-    /**
-     * @param array $obj
-     *
-     * @return string
-     */
     public static function encodeTransformObject(array $obj): string
     {
         ksort($obj);
-        $json = json_encode($obj);
+        $json = json_encode($obj, JSON_THROW_ON_ERROR);
         return mb_strtolower(str_replace(['{', '}', '/', '"', ':', ','], ['-', '', '', '', '-', '_'], $json));
     }
 }

@@ -26,10 +26,7 @@ use yii\base\InvalidConfigException;
 class ImgixHelpers
 {
     /**
-     * @param string|Asset  $image
      * @param ImgixSettings $config
-     *
-     * @return string
      * @throws ImagerException
      */
     public static function getImgixFilePath(Asset|string $image, ImgixSettings $config): string
@@ -50,7 +47,7 @@ class ImgixHelpers
             throw new ImagerException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if (($config->useCloudSourcePath === true) && isset($fs->subfolder) && \get_class($fs) !== 'craft\fs\Local') {
+        if (($config->useCloudSourcePath === true) && isset($fs->subfolder) && $fs::class !== \craft\fs\Local::class) {
             $path = implode('/', [App::parseEnv($fs->subfolder), $image->getPath()]);
         } else {
             $path = $image->getPath();
@@ -74,10 +71,6 @@ class ImgixHelpers
         return $path;
     }
 
-    /**
-     * @param ImgixSettings $config
-     * @return UrlBuilder
-     */
     public static function getBuilder(ImgixSettings $config): UrlBuilder
     {
         return new UrlBuilder($config->domain,

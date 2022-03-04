@@ -25,11 +25,6 @@ class AwsStorage implements ImagerStorageInterface
 {
 
     /**
-     * @param string $file
-     * @param string $uri
-     * @param bool $isFinal
-     * @param array $settings
-     * @return bool
      * @throws \Exception
      */
     public static function upload(string $file, string $uri, bool $isFinal, array $settings): bool
@@ -119,8 +114,6 @@ class AwsStorage implements ImagerStorageInterface
     
     /**
      * @param $storageTypeString
-     *
-     * @return string
      */
     private static function getAWSStorageClass($storageTypeString): string
     {

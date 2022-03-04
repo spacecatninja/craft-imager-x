@@ -18,16 +18,6 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
 {
 
     /**
-     * @var ImgixSettings|null
-     */
-    private ?ImgixSettings $profileConfig;
-
-    /**
-     * @var array|null
-     */
-    private ?array $params;
-
-    /**
      * @var string
      */
     private string $imgixPath;
@@ -38,17 +28,13 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
      *
      * @param string|null        $imageUrl
      * @param string|Asset|null  $source
-     * @param array|null         $params
-     * @param ImgixSettings|null $config
      *
      * @throws ImagerException
      */
-    public function __construct(string $imageUrl = null, Asset|string $source = null, array $params = null, ImgixSettings $config = null)
+    public function __construct(string $imageUrl = null, Asset|string $source = null, private ?array $params = null, private ?\spacecatninja\imagerx\models\ImgixSettings $profileConfig = null)
     {
         $this->source = $source;
-        $this->profileConfig = $config;
-        $this->params = $params;
-        $this->imgixPath = ImgixHelpers::getImgixFilePath($source, $config);
+        $this->imgixPath = ImgixHelpers::getImgixFilePath($source, $profileConfig);
 
         $this->path = '';
         $this->extension = '';
@@ -133,7 +119,6 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
     /**
      * @param $source
      *
-     * @return array
      * @throws ImagerException
      */
     protected function getSourceImageDimensions($source): array
@@ -158,8 +143,6 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
      * @param $params
      * @param $sourceWidth
      * @param $sourceHeight
-     *
-     * @return array
      */
     protected function calculateTargetSize($params, $sourceWidth, $sourceHeight): array
     {
@@ -200,32 +183,16 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
         return [$w ?: 0, $h ?: 0];
     }
 
-    /**
-     * @param string $unit
-     * @param int    $precision
-     *
-     * @return float|int
-     */
     public function getSize(string $unit = 'b', int $precision = 2): float|int
     {
         return $this->size;
     }
 
-    /**
-     * @return bool
-     */
     public function getIsNew(): bool
     {
         return false;
     }
 
-    /**
-     * @param string $format
-     * @param int    $numColors
-     * @param string $cssPrefix
-     *
-     * @return string|null
-     */
     public function getPalette(string $format = 'json', int $numColors = 6, string $cssPrefix = ''): ?string
     {
         $builder = ImgixHelpers::getBuilder($this->profileConfig);
@@ -242,9 +209,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
         $key = 'imager-x-imgix-palette-'.base64_encode($blurhashUrl);
 
         $cache = \Craft::$app->getCache();
-        $blurhashData = $cache->getOrSet($key, static function() use ($blurhashUrl) {
-            return @file_get_contents($blurhashUrl);
-        });
+        $blurhashData = $cache->getOrSet($key, static fn() => @file_get_contents($blurhashUrl));
 
         if (!$blurhashData) {
             \Craft::error('An error occured when trying to get palette data from Imgix. The URL was: '.$blurhashUrl);
@@ -252,12 +217,9 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
             return null;
         }
 
-        return $format === 'json' ? json_decode($blurhashData, false) : $blurhashData;
+        return $format === 'json' ? json_decode($blurhashData, false, 512, JSON_THROW_ON_ERROR) : $blurhashData;
     }
 
-    /**
-     * @return string
-     */
     public function getBlurhash(): string
     {
         $builder = ImgixHelpers::getBuilder($this->profileConfig);
@@ -270,9 +232,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
         $key = 'imager-x-imgix-blurhash-'.base64_encode($blurhashUrl);
 
         $cache = \Craft::$app->getCache();
-        $blurhashData = $cache->getOrSet($key, static function() use ($blurhashUrl) {
-            return @file_get_contents($blurhashUrl);
-        });
+        $blurhashData = $cache->getOrSet($key, static fn() => @file_get_contents($blurhashUrl));
 
         if (!$blurhashData) {
             \Craft::error('An error occured when trying to get blurhash data from Imgix. The URL was: '.$blurhashUrl);

@@ -25,9 +25,7 @@ class FieldHelpers
     /**
      * @param Element|ElementInterface $element
      * @param FieldLayout              $layout
-     * @param string                   $handle
      *
-     * @return null|ElementQuery
      */
     public static function getFieldInFieldLayoutByHandle(ElementInterface|Element $element, FieldLayout $layout, string $handle): ?ElementQuery
     {
@@ -36,9 +34,7 @@ class FieldHelpers
 
     /**
      * @param Element|ElementInterface $element
-     * @param string                   $handle
      *
-     * @return array|null
      */
     public static function getFieldsInElementByHandle(ElementInterface|Element $element, string $handle): ?array
     {
@@ -85,11 +81,6 @@ class FieldHelpers
         return null;
     }
 
-    /**
-     * @param string $handle
-     *
-     * @return array
-     */
     protected static function getFieldHandleSegments(string $handle):array 
     {
         $segments = preg_split('/(\:|\.)/', $handle);
