@@ -86,8 +86,8 @@ class ImagerSrcset extends Directive
         
         try {
             $transformedImages = ImagerX::$plugin->imagerx->transformImage($source, $arguments['handle']);
-        } catch (ImagerException $e) {
-            Craft::error('An error occured when trying to generate srcset in GraphQL directive: ' . $e->getMessage(), __METHOD__);
+        } catch (ImagerException $imagerException) {
+            Craft::error('An error occured when trying to generate srcset in GraphQL directive: ' . $imagerException->getMessage(), __METHOD__);
             return null;
         }
         

@@ -115,6 +115,7 @@ class BaseTransformedImageModel implements \Stringable
             if (!isset($settings['width'])) {
                 $settings['width'] = $this->width;
             }
+
             if (!isset($settings['height'])) {
                 $settings['height'] = $this->height;
             }

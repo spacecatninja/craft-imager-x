@@ -60,7 +60,7 @@ class TransformHelpers
 
         $r[] = $transforms[0];
 
-        for ($i = 1, $l = \count($transforms); $i < $l; $i++) {
+        for ($i = 1, $l = \count($transforms); $i < $l; ++$i) {
             $prevTransform = $transforms[$i - 1];
             $currentTransform = $transforms[$i];
 
@@ -209,15 +209,19 @@ class TransformHelpers
             if (count($val) === 1) {
                 return [(int)$val[0], (int)$val[0], (int)$val[0], (int)$val[0]];
             }
+
             if (count($val) === 2) {
                 return [(int)$val[0], (int)$val[1], (int)$val[0], (int)$val[1]];
             }
+
             if (count($val) === 3) {
                 return [(int)$val[0], (int)$val[1], (int)$val[2], (int)$val[1]];
             }
+
             if (count($val) > 4) {
                 $val = array_slice($val, 0, 4);
             }
+
             if (count($val) === 4) {
                 return [(int)$val[0], (int)$val[1], (int)$val[2], (int)$val[3]];
             }

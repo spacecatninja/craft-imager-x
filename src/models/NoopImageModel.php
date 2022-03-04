@@ -24,30 +24,34 @@ use yii\base\InvalidConfigException;
 class NoopImageModel extends BaseTransformedImageModel implements TransformedImageInterface
 {
     public string $path;
+
     public string $filename;
+
     public string $url;
+
     public string $extension;
+
     public string $mimeType;
-    
+
     /**
      * @var int
      */
     public int $width;
-    
+
     /**
      * @var int
      */
     public int $height;
-    
+
     /**
      * @var int|float
      */
     public int|float $size;
-    
+
     /**
      * @var bool
      */
-    public bool $isNew;
+    public bool $isNew = false;
 
     /**
      * Constructor
@@ -68,7 +72,7 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
 
         try {
             $this->mimeType = FileHelper::getMimeType($sourceModel->getFilePath());
-        } catch (InvalidConfigException $e) {
+        } catch (InvalidConfigException $invalidConfigException) {
             // just ignore
         }
 
@@ -82,11 +86,11 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
             $targetCrop = ImagerHelpers::getCropSize($sourceSize, $transform, $config->getSetting('allowUpscale', $transform));
             $this->width = $targetCrop->getWidth();
             $this->height = $targetCrop->getHeight();
-        } catch (InvalidArgumentException $e) {
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
     }
-    
+
     public function getWidth(): int
     {
         return $this->width;

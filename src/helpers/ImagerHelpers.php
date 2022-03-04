@@ -55,7 +55,7 @@ class ImagerHelpers
         $width = $originalSize->getWidth();
         $height = $originalSize->getHeight();
         $padding = $transform['pad'] ?? [0, 0, 0, 0];
-        
+
         if ($usePadding) {
             $padWidth = $padding[1] + $padding[3];
             $padHeight = $padding[0] + $padding[2];
@@ -63,7 +63,7 @@ class ImagerHelpers
             $padWidth = 0;
             $padHeight = 0; 
         }
-        
+
         $aspect = $width / $height;
 
         if (isset($transform['width'], $transform['height'])) {
@@ -76,19 +76,20 @@ class ImagerHelpers
             $width = (int)floor((int)$transform['height'] * $aspect);
             $height = (int)$transform['height'];
         }
-        
+
         // check if we want to upscale. If not, adjust the transform here 
         if (!$allowUpscale) {
             [$width, $height] = self::enforceMaxSize($width, $height, $originalSize, true);
         }
-        
+
         $width -= $padWidth;
         $height -= $padHeight;
-        
+
         // ensure that size is larger than 0
         if ($width <= 0) {
             $width = 1;
         }
+
         if ($height <= 0) {
             $height = 1;
         }
@@ -168,9 +169,9 @@ class ImagerHelpers
 
         try {
             $box = new Box((int)$width, (int)$height);
-        } catch (InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         return $box;
@@ -240,9 +241,9 @@ class ImagerHelpers
                 min(max($leftPos, 0), $resizeSize->getWidth() - $cropSize->getWidth()),
                 min(max($topPos, 0), $resizeSize->getHeight() - $cropSize->getHeight())
             );
-        } catch (InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         return $point;
@@ -259,9 +260,9 @@ class ImagerHelpers
         /** @var Volume $volume */
         try {
             $volume = $asset->getVolume();
-        } catch (InvalidConfigException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidConfigException $invalidConfigException) {
+            Craft::error($invalidConfigException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
         }
 
         /** @var ConfigModel $settings */
@@ -365,6 +366,7 @@ class ImagerHelpers
                         $effectString .= '_' . $eff . '-' . $param;
                     }
                 }
+
                 $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . $effectString;
             } elseif ($k === 'watermark') {
                 $watermarkString = '';
@@ -384,6 +386,7 @@ class ImagerHelpers
                         $watermarkString .= '-' . $eff . '-' . (\is_array($param) ? implode('-', $param) : $param);
                     }
                 }
+
                 $watermarkString = substr($watermarkString, 1);
                 $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . '_' . mb_substr(md5($watermarkString), 0, 10);
             } elseif ($k === 'webpImagickOptions') {
@@ -465,8 +468,8 @@ class ImagerHelpers
                 if (!empty($iccProfiles)) {
                     $imagick->profileImage('icc', $iccProfiles['icc'] ?? '');
                 }
-            } catch (\Throwable $e) {
-                Craft::error('An error occured when trying to process image meta data: ' + $e->getMessage());
+            } catch (\Throwable $throwable) {
+                Craft::error('An error occured when trying to process image meta data: ' + $throwable->getMessage());
             }
         }
     }

@@ -70,7 +70,7 @@ class PlaceholderService extends Component
         $height = $config['height'];
         $color = $config['color'] ?? 'transparent';
 
-        return 'data:image/svg+xml;charset=utf-8,' . rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' width='$width' height='$height' style='background:$color'/>");
+        return 'data:image/svg+xml;charset=utf-8,' . rawurlencode(sprintf('<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%s\' height=\'%s\' style=\'background:%s\'/>', $width, $height, $color));
     }
 
     /**
@@ -126,7 +126,7 @@ class PlaceholderService extends Component
         try {
             $sourceModel = new LocalSourceImageModel($source);
             $sourceModel->getLocalCopy();
-        } catch (ImagerException $e) {
+        } catch (ImagerException $imagerException) {
             return '';
         }
         
@@ -135,8 +135,8 @@ class PlaceholderService extends Component
             $tracer->loadImageFromFile($sourceModel->getFilePath());
             $tracer->process();
             $data = $tracer->getSVG($size, $silhouetteType, $color, $fgColor);
-        } catch (\Throwable $e) {
-            \Craft::error($e->getMessage(), __METHOD__);
+        } catch (\Throwable $throwable) {
+            \Craft::error($throwable->getMessage(), __METHOD__);
             return '';
         }
         

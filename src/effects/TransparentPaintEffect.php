@@ -37,8 +37,8 @@ class TransparentPaintEffect implements ImagerEffectsInterface
                     }
 
                     $imagickInstance->transparentPaintImage($searchColor, $params[1], Imagick::getQuantum() * $params[2], false);
-                } catch (\Throwable $e) {
-                    \Craft::error('An error occured when trying to apply transparentpaint effect: '.$e->getMessage(), __METHOD__);
+                } catch (\Throwable $throwable) {
+                    \Craft::error('An error occured when trying to apply transparentpaint effect: '.$throwable->getMessage(), __METHOD__);
                 }
             } else {
                 \Craft::error('An incorrect number of parameters were passed to transparentpaint effect.', __METHOD__);

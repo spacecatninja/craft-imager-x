@@ -35,14 +35,19 @@ class ImgixService extends Component
 
     /**
      *  The Imgix API endpoint for purging images
+     * @var string
      */
     public const PURGE_ENDPOINT_OLD = 'https://api.imgix.com/v2/image/purger';
+
+    /**
+     * @var string
+     */
     public const PURGE_ENDPOINT = 'https://api.imgix.com/api/v1/purge';
 
     /**
      * @var bool If purging is enabled or not
      */
-    protected static bool $canPurge;
+    protected static bool $canPurge = false;
 
     /**
      * Purging is possible if there's an `imgixConfig` map, and all sources/profiles have an API key set
@@ -86,12 +91,12 @@ class ImgixService extends Component
     public function purgeUrlFromImgix(string $url, string $apiKey): void
     {
         $isOld = strlen($apiKey)<50;
-        
+
         try {
             if ($isOld) {
                 $headers = [
                     'Content-Type:application/json',
-                    'Authorization: Basic ' . base64_encode("{$apiKey}:")
+                    'Authorization: Basic ' . base64_encode(sprintf('%s:', $apiKey))
                 ];
                 $payload = json_encode(["url" => $url], JSON_THROW_ON_ERROR);
             } else {
@@ -108,9 +113,9 @@ class ImgixService extends Component
                     ]
                 ]);
             }
-            
+
             $curl = curl_init($isOld ? self::PURGE_ENDPOINT_OLD : self::PURGE_ENDPOINT);
-            
+
             $opts = [
                 CURLOPT_HTTPHEADER => $headers,
                 CURLOPT_POSTFIELDS => $payload,
@@ -118,7 +123,7 @@ class ImgixService extends Component
                 CURLOPT_POST => 1,
                 CURLOPT_RETURNTRANSFER => true
             ];
-            
+
             curl_setopt_array($curl, $opts);
 
             $response = curl_exec($curl);
@@ -126,19 +131,19 @@ class ImgixService extends Component
             $curlError = curl_error($curl);
             $httpStatus = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
             curl_close($curl);
-            
+
             if ($curlErrorNo !== 0) {
                 $msg = Craft::t('imager-x', 'A cURL error “{curlErrorNo}” encountered while attempting to purge image “{url}”. The error was: “{curlError}”', ['url' => $url, 'curlErrorNo' => $curlErrorNo, 'curlError' => $curlError]);
                 Craft::error($msg, __METHOD__);
             }
-            
+
             if ($httpStatus !== 200) {
                 $msg = Craft::t('imager-x', 'An error occured when trying to purge “{url}”, status was “{httpStatus}” and respose was “{response}”', ['url' => $url, 'httpStatus' => $httpStatus, 'response' => $response]);
                 Craft::error($msg);
             }
-            
-        } catch (\Throwable $e) {
-            Craft::error($e->getMessage(), __METHOD__);
+
+        } catch (\Throwable $throwable) {
+            Craft::error($throwable->getMessage(), __METHOD__);
             // We don't continue to throw this error, since it could be caused by a duplicated request.
         }
     }
@@ -187,9 +192,9 @@ class ImgixService extends Component
 
                 $this->purgeUrlFromImgix($url, $apiKey);
 
-            } catch (\Throwable $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable->getMessage(), __METHOD__);
+                throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
             }
 
         }

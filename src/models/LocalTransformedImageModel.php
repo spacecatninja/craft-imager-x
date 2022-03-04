@@ -47,7 +47,7 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
 
         try {
             $this->mimeType = FileHelper::getMimeType($targetModel->getFilePath());
-        } catch (InvalidConfigException $e) {
+        } catch (InvalidConfigException $invalidConfigException) {
             // just ignore
         }
 
@@ -67,8 +67,8 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
                 $targetCrop = ImagerHelpers::getCropSize($sourceSize, $transform, $config->getSetting('allowUpscale', $transform));
                 $this->width = $targetCrop->getWidth();
                 $this->height = $targetCrop->getHeight();
-            } catch (InvalidArgumentException $e) {
-                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            } catch (InvalidArgumentException $invalidArgumentException) {
+                throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
             }
         }
     }
@@ -114,9 +114,10 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
                 for ($x = 0; $x < $width; ++$x) {
                     $index = imagecolorat($image, $x, $y);
                     $colors = imagecolorsforindex($image, $index);
-            
+
                     $row[] = [$colors['red'], $colors['green'], $colors['blue']];
                 }
+
                 $pixels[] = $row;
             }
             

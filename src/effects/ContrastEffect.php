@@ -30,7 +30,7 @@ class ContrastEffect implements ImagerEffectsInterface
             
             if (\is_int($params)) {
                 $numLoops = abs($params);
-                for ($i = 0; $i < $numLoops; $i++) {
+                for ($i = 0; $i < $numLoops; ++$i) {
                     if ($params > 0) {
                         $imagickInstance->contrastImage(true);
                     } else {

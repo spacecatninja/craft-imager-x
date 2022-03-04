@@ -15,8 +15,12 @@ use craft\base\Model;
 class GenerateSettings extends Model
 {
     public bool $generateOnlyForLiveElements = false;
+
     public bool $generateForDrafts = false;
+
     public array $volumes = [];
+
     public array $elements = [];
+
     public array $fields = [];
 }

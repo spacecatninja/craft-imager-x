@@ -48,7 +48,7 @@ class GenerateController extends Controller
     /**
      * @var bool Enable or disable recursive handling of folders
      */
-    public bool $recursive;
+    public bool $recursive = false;
 
     /**
      * @var string Field to generate transforms for
@@ -105,7 +105,7 @@ class GenerateController extends Controller
     public function actionIndex(): int
     {
         if (!ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
-            $this->error('Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it\'s so worth it!).');
+            $this->error("Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it's so worth it!).");
             return ExitCode::UNAVAILABLE;
         }
 
@@ -116,7 +116,7 @@ class GenerateController extends Controller
         $fieldSpecified = !empty($this->field);
         
         if ($volumeSpecified && $fieldSpecified) {
-            $this->error('Both volume and field is specified. That doesn\'t make sense, it\'s either or.');
+            $this->error("Both volume and field is specified. That doesn't make sense, it's either or.");
             return ExitCode::NOINPUT;
         }
 
@@ -131,7 +131,7 @@ class GenerateController extends Controller
 $volume->handle, $this->volumes);
             
             if (!in_array($this->volume, $volumeHandles, true)) {
-                $this->error("No volumes with handle {$this->volume} exists");
+                $this->error(sprintf('No volumes with handle %s exists', $this->volume));
                 return ExitCode::NOINPUT;
             }
         }
@@ -143,7 +143,7 @@ $volume->handle, $this->volumes);
 $field['handle'], $this->fields);
             
             if (!in_array($this->field, $fieldHandles, true)) {
-                $this->error("No field with handle {$this->field} exists");
+                $this->error(sprintf('No field with handle %s exists', $this->field));
                 return ExitCode::NOINPUT;
             }
         }
@@ -185,11 +185,11 @@ $field['handle'], $this->fields);
         $numTransforms = is_countable($transforms) ? count($transforms) : 0;
         $total = count($assets);
         $current = 0;
-        $this->success("> Generating {$numTransforms} named transforms for {$total} images.");
+        $this->success(sprintf('> Generating %d named transforms for %d images.', $numTransforms, $total));
         Console::startProgress(0, $total*$numTransforms);
         
         foreach ($assets as $asset) {
-            $current++;
+            ++$current;
             Console::updateProgress($current*$numTransforms, $total*$numTransforms);
             ImagerX::$plugin->generate->generateTransformsForAsset($asset, $transforms);
         }
@@ -201,12 +201,12 @@ $field['handle'], $this->fields);
     
     public function success(string $text = ''): void
     {
-        $this->stdout("$text\n", BaseConsole::FG_GREEN);
+        $this->stdout($text . PHP_EOL, BaseConsole::FG_GREEN);
     }
 
     public function error(string $text = ''): void
     {
-        $this->stdout("$text\n", BaseConsole::FG_RED);
+        $this->stdout($text . PHP_EOL, BaseConsole::FG_RED);
     }
 
     private function getAssetsByVolume(): array
@@ -224,7 +224,7 @@ $field['handle'], $this->fields);
         }
         
         if ($targetVolume) {
-            $this->success("> Volume `{$this->volume}`");
+            $this->success(sprintf('> Volume `%s`', $this->volume));
             $query = Asset::find()
                 ->volume($targetVolume)
                 ->kind('image')
@@ -260,9 +260,9 @@ $field['handle'], $this->fields);
         
         if (!empty($targetFieldIds)) {
             if (count($targetFieldIds)>1) {
-                $this->success('> Processing ' . count($targetFieldIds) . " fields with handle `{$this->field}`");
+                $this->success('> Processing ' . count($targetFieldIds) . sprintf(' fields with handle `%s`', $this->field));
             } else {
-                $this->success("> Processing field with handle `{$this->field}`");
+                $this->success(sprintf('> Processing field with handle `%s`', $this->field));
             }
             
             $relatedAssets = (new Query())

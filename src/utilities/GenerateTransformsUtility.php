@@ -78,7 +78,7 @@ class GenerateTransformsUtility extends Utility
                 ->count();
 
             $volumeOptions[] = [
-                'label' => Template::raw(Html::encode($volume->name) . " <span class='light'>($assetsCount images)</span>"),
+                'label' => Template::raw(Html::encode($volume->name) . sprintf(' <span class=\'light\'>(%s images)</span>', $assetsCount)),
                 'value' => $volume->id
             ];
         }

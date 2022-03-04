@@ -83,7 +83,7 @@ class FieldHelpers
 
     protected static function getFieldHandleSegments(string $handle):array 
     {
-        $segments = preg_split('/(\:|\.)/', $handle);
+        $segments = preg_split('#(\:|\.)#', $handle);
         
         if (!is_array($segments)) {
             $segments = [];

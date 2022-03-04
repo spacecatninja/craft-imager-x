@@ -68,14 +68,14 @@ class ImagerColorService extends Component
         try {
             $source = new LocalSourceImageModel($image);
             $source->getLocalCopy();
-        } catch (ImagerException $e) {
+        } catch (ImagerException $imagerException) {
             return null;
         }
 
         try {
             $dominantColor = ColorThief::getColor($source->getFilePath(), $quality);
-        } catch (\RuntimeException $e) {
-            \Craft::error('Couldn\'t get dominant color for "' . $source->getFilePath() . '". Error was: ' . $e->getMessage());
+        } catch (\RuntimeException $runtimeException) {
+            \Craft::error('Couldn\'t get dominant color for "' . $source->getFilePath() . '". Error was: ' . $runtimeException->getMessage());
             return null;
         }
 
@@ -98,7 +98,7 @@ class ImagerColorService extends Component
         try {
             $source = new LocalSourceImageModel($image);
             $source->getLocalCopy();
-        } catch (ImagerException $e) {
+        } catch (ImagerException $imagerException) {
             return null;
         }
 
@@ -110,8 +110,8 @@ class ImagerColorService extends Component
             $palette = ColorThief::getPalette($source->getFilePath(), $adjustedColorCount, $quality);
             
             $palette = array_slice($palette, 0, $colorCount);
-        } catch (\RuntimeException $e) {
-            \Craft::error('Couldn\'t get palette for "' . $source->getFilePath() . '". Error was: ' . $e->getMessage());
+        } catch (\RuntimeException $runtimeException) {
+            \Craft::error('Couldn\'t get palette for "' . $source->getFilePath() . '". Error was: ' . $runtimeException->getMessage());
             return null;
         }
         

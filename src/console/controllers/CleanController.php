@@ -65,7 +65,7 @@ class CleanController extends Controller
     public function actionIndex(): int
     {
         if (!ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
-            $this->error('Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it\'s so worth it!).');
+            $this->error("Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it's so worth it!).");
             return ExitCode::UNAVAILABLE;
         }
         
@@ -96,7 +96,7 @@ class CleanController extends Controller
             return ExitCode::OK;
         }
         
-        $this->success("> Scanning $systemPath");
+        $this->success(sprintf('> Scanning %s', $systemPath));
         $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($systemPath));
         $files = []; 
         
@@ -116,7 +116,7 @@ class CleanController extends Controller
         
         $numFiles = count($files);
         $expiredFiles = [];
-        $this->success("> Found {$numFiles} transformed images.");
+        $this->success(sprintf('> Found %d transformed images.', $numFiles));
 
         foreach ($files as $file) {
             if (is_file($file) && $this->fileHasExpired($file)) {
@@ -132,7 +132,7 @@ class CleanController extends Controller
         $numExpiredFiles = count($expiredFiles);
         
         if ($this->interactive) {
-            $promptReply = Console::prompt("> Found $numExpiredFiles expired transforms. Do you want to delete them (y/N)?");
+            $promptReply = Console::prompt(sprintf('> Found %d expired transforms. Do you want to delete them (y/N)?', $numExpiredFiles));
             
             if (strtolower($promptReply) !== 'y') {
                 $this->error("> Aborting.");
@@ -140,12 +140,12 @@ class CleanController extends Controller
             }
         }
         
-        $this->message("> Deleting $numExpiredFiles transforms.");
+        $this->message(sprintf('> Deleting %d transforms.', $numExpiredFiles));
         Console::startProgress(0, $numExpiredFiles);
         $current = 0;
 
         foreach ($expiredFiles as $expiredFile) {
-            $current++;
+            ++$current;
             Console::updateProgress($current, $numExpiredFiles);
             unlink($expiredFile);
         }
@@ -157,17 +157,17 @@ class CleanController extends Controller
     
     public function success(string $text = ''): void
     {
-        $this->stdout("$text\n", BaseConsole::FG_GREEN);
+        $this->stdout($text . PHP_EOL, BaseConsole::FG_GREEN);
     }
 
     public function message(string $text = ''): void
     {
-        $this->stdout("$text\n", BaseConsole::FG_GREY);
+        $this->stdout($text . PHP_EOL, BaseConsole::FG_GREY);
     }
 
     public function error(string $text = ''): void
     {
-        $this->stdout("$text\n", BaseConsole::FG_RED);
+        $this->stdout($text . PHP_EOL, BaseConsole::FG_RED);
     }
 
     private function fileHasExpired(string $file): bool

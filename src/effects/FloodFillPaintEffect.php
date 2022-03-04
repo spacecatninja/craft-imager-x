@@ -37,8 +37,8 @@ class FloodFillPaintEffect implements ImagerEffectsInterface
                     }
 
                     $imagickInstance->floodFillPaintImage($params[0], Imagick::getQuantum() * $params[1], $searchColor, 0, 0, false);
-                } catch (\Throwable $e) {
-                    \Craft::error('An error occured when trying to apply floodfillpaint effect: '.$e->getMessage(), __METHOD__);
+                } catch (\Throwable $throwable) {
+                    \Craft::error('An error occured when trying to apply floodfillpaint effect: '.$throwable->getMessage(), __METHOD__);
                 }
             } else {
                 \Craft::error('An incorrect number of parameters were passed to floodfillpaint effect.', __METHOD__);

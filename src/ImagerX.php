@@ -136,16 +136,36 @@ class ImagerX extends Plugin
 {
     // Events
     // =========================================================================
-
+    /**
+     * @var string
+     */
     public const EVENT_REGISTER_TRANSFORMERS = 'imagerxRegisterTransformers';
+
+    /**
+     * @var string
+     */
     public const EVENT_REGISTER_EXTERNAL_STORAGES = 'imagerxRegisterExternalStorages';
+
+    /**
+     * @var string
+     */
     public const EVENT_REGISTER_EFFECTS = 'imagerxRegisterEffects';
+
+    /**
+     * @var string
+     */
     public const EVENT_REGISTER_OPTIMIZERS = 'imagerxRegisterOptimizers';
 
     // Static Properties
     // =========================================================================
-
+    /**
+     * @var string
+     */
     public const EDITION_LITE = 'lite';
+
+    /**
+     * @var string
+     */
     public const EDITION_PRO = 'pro';
 
     /**
@@ -475,7 +495,7 @@ class ImagerX extends Plugin
                     $event->directives[] = ImagerSrcset::class;
                 }
             );
-            
+
             if (VersionHelpers::craftIs('3.4')) {
                 /*
                  * Adds queries to AssetInterface, see https://github.com/spacecatninja/craft-imager-x/pull/111
@@ -486,6 +506,7 @@ class ImagerX extends Plugin
                         if ($event->typeName !== 'AssetInterface') {
                             return;
                         }
+
                         $event->fields['imagerTransform'] = [
                             'name' => 'imagerTransform',
                             'type' => \GraphQL\Type\Definition\Type::listOf(ImagerTransformedImageInterface::getType()),

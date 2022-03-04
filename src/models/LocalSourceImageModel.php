@@ -40,11 +40,17 @@ use yii\base\InvalidConfigException;
 class LocalSourceImageModel
 {
     public $type = 'local';
+
     public $path = '';
+
     public $transformPath = '';
+
     public $url = '';
+
     public $filename = '';
+
     public $basename = '';
+
     public $extension = '';
 
     private ?\craft\elements\Asset $asset = null;
@@ -71,7 +77,7 @@ class LocalSourceImageModel
     private function init($image): void
     {
         $settings = ImagerService::getConfig();
-        
+
         if (\is_string($image)) {
             if (str_starts_with($image, $settings->imagerUrl)) {
                 // Url to a file that is in the imager library
@@ -98,10 +104,11 @@ class LocalSourceImageModel
             try {
                 $volumeClass = $image->getVolume()::class;
                 $fileSystemClass = $image->getVolume()->getFs()::class;
-            } catch (InvalidConfigException $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            } catch (InvalidConfigException $invalidConfigException) {
+                Craft::error($invalidConfigException->getMessage(), __METHOD__);
+                throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
             }
+
             if ($fileSystemClass === \craft\fs\Local::class) {
                 $this->getPathsForLocalAsset($image);
             } else {
@@ -139,9 +146,9 @@ class LocalSourceImageModel
                     /** @var Volume $volume */
                     try {
                         $volume = $this->asset->getVolume();
-                    } catch (InvalidConfigException $e) {
-                        Craft::error($e->getMessage(), __METHOD__);
-                        throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+                    } catch (InvalidConfigException $invalidConfigException) {
+                        Craft::error($invalidConfigException->getMessage(), __METHOD__);
+                        throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
                     }
 
                     // catch any AssetException and rethrow as ImagerException
@@ -150,12 +157,12 @@ class LocalSourceImageModel
                         if (file_exists($this->getTemporaryFilePath())) {
                             @unlink($this->getTemporaryFilePath());
                         }
-                        
+
                         $volume->saveFileLocally($this->asset->getPath(), $this->getTemporaryFilePath());
-                    } catch (AssetException $e){
-                        throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+                    } catch (AssetException $assetException){
+                        throw new ImagerException($assetException->getMessage(), $assetException->getCode(), $assetException);
                     }
-                    
+
                     if (file_exists($this->getTemporaryFilePath())) {
                         copy($this->getTemporaryFilePath(), $this->getFilePath());
                         @unlink($this->getTemporaryFilePath());
@@ -189,7 +196,7 @@ class LocalSourceImageModel
         if (!file_exists($file)) {
             return false;
         }
-        
+
         $size = filesize($file);
         return $size !== false && $size >= 1024;
     }
@@ -205,16 +212,16 @@ class LocalSourceImageModel
         try {
             /** @var Local $fs */
             $fs = $image->getVolume()->getFs();
-            
+
             $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
             $this->path = FileHelper::normalizePath($fs->getRootPath().'/'.$image->folderPath);
             $this->url = $image->getUrl();
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
             $this->extension = $image->getExtension();
-        } catch (InvalidConfigException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidConfigException $invalidConfigException) {
+            Craft::error($invalidConfigException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
         }
     }
 
@@ -230,9 +237,9 @@ class LocalSourceImageModel
 
         try {
             $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath().'/imager/';
-        } catch (Exception $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $exception) {
+            Craft::error($exception->getMessage(), __METHOD__);
+            throw new ImagerException($exception->getMessage(), $exception->getCode(), $exception);
         }
 
         try {
@@ -241,17 +248,17 @@ class LocalSourceImageModel
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
             $this->extension = $image->getExtension();
-        } catch (\Throwable $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (\Throwable $throwable) {
+            Craft::error($throwable->getMessage(), __METHOD__);
+            throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }   
-            
+
 
         try {
             FileHelper::createDirectory($this->path);
-        } catch (Exception $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $throwable) {
+            Craft::error($throwable->getMessage(), __METHOD__);
+            throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
     }
 
@@ -308,11 +315,11 @@ class LocalSourceImageModel
 
         try {
             $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath().'/imager/';
-        } catch (Exception $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $exception) {
+            Craft::error($exception->getMessage(), __METHOD__);
+            throw new ImagerException($exception->getMessage(), $exception->getCode(), $exception);
         }
-        
+
         $convertedImageStr = StringHelper::toAscii(urldecode($image));
         $this->transformPath = ImagerHelpers::getTransformPathForUrl($convertedImageStr);
 
@@ -328,9 +335,9 @@ class LocalSourceImageModel
 
         try {
             FileHelper::createDirectory($this->path);
-        } catch (Exception $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $exception) {
+            Craft::error($exception->getMessage(), __METHOD__);
+            throw new ImagerException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 
@@ -344,7 +351,7 @@ class LocalSourceImageModel
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
         $imageUrl = $this->url;
-        
+
         // url encode filename to account for non-ascii characters in filenames.
         if (!$config->useRawExternalUrl) {
             $imageUrlArr = explode('?', $this->url);
@@ -353,11 +360,11 @@ class LocalSourceImageModel
 
             $imageUrl = implode('?', $imageUrlArr);
         }
-        
+
         if (\function_exists('curl_init')) {
             $ch = curl_init($imageUrl);
             $fp = fopen($this->getTemporaryFilePath(), 'wb');
-            
+
             $defaultOptions = [
                 CURLOPT_FILE => $fp,
                 CURLOPT_HEADER => 0,
@@ -403,7 +410,7 @@ class LocalSourceImageModel
             Craft::error($msg, __METHOD__);
             throw new ImagerException($msg);
         }
-        
+
         if (file_exists($this->getTemporaryFilePath())) {
             copy($this->getTemporaryFilePath(), $this->getFilePath());
             @unlink($this->getTemporaryFilePath());

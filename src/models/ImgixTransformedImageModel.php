@@ -94,6 +94,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                     if (isset($params['w'])) {
                         $this->width = (int)$params['w'];
                     }
+
                     if (isset($params['h'])) {
                         $this->height = (int)$params['h'];
                     }
@@ -158,9 +159,11 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                 if ($w) {
                     return [$w, round($w / $ratio)];
                 }
+
                 if ($h) {
                     return [round($h * $ratio), $h];
                 }
+
                 break;
             case 'min':
             case 'max':
@@ -169,11 +172,13 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
 
                     return [$useWidth, round($useWidth / $ratio)];
                 }
+
                 if ($h) {
                     $useHeigth = min($h, $sourceHeight);
 
                     return [round($useHeigth * $ratio), $useHeigth];
                 }
+
                 break;
         }
 

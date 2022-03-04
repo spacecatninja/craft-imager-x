@@ -63,8 +63,8 @@ class GcsStorage implements ImagerStorageInterface
                     ]
                 ]
             );
-        } catch(\Throwable $e) {
-            Craft::error('An error occured while uploading to Google Cloud Storage: ' . $e->getMessage(), __METHOD__);
+        } catch(\Throwable $throwable) {
+            Craft::error('An error occured while uploading to Google Cloud Storage: ' . $throwable->getMessage(), __METHOD__);
             return false;
         }
 

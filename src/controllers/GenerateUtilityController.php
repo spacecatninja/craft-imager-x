@@ -63,13 +63,13 @@ class GenerateUtilityController extends Controller
         
         try {
             Plugin::$plugin->generate->generateByUtility($volumes, $useConfiguredTransforms, $useConfiguredTransforms ? [] : $namedTransforms);
-        } catch (\Throwable $e) {
-            Craft::error('An error occured when trying to generate transform jobs from utility: ' . $e->getMessage(), __METHOD__);
+        } catch (\Throwable $throwable) {
+            Craft::error('An error occured when trying to generate transform jobs from utility: ' . $throwable->getMessage(), __METHOD__);
             
             return $this->asJson([
                 'success' => false,
                 'errors' => [
-                    $e->getMessage()
+                    $throwable->getMessage()
                 ]
             ]);
         }

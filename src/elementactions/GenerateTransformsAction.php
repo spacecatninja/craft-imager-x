@@ -72,8 +72,8 @@ class GenerateTransformsAction extends ElementAction
                     ImagerX::$plugin->generate->createTransformJob($asset, $transforms);
                 }
             }
-        } catch (\Throwable $e) {
-            $this->setMessage($e->getMessage());
+        } catch (\Throwable $throwable) {
+            $this->setMessage($throwable->getMessage());
             return false;
         }
 

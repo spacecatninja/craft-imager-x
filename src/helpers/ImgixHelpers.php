@@ -42,9 +42,9 @@ class ImgixHelpers
         try {
             $volume = $image->getVolume();
             $fs = $image->getVolume()->getFs();
-        } catch (InvalidConfigException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidConfigException $invalidConfigException) {
+            Craft::error($invalidConfigException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
         }
 
         if (($config->useCloudSourcePath) && (property_exists($fs, 'subfolder') && $fs->subfolder !== null) && $fs::class !== \craft\fs\Local::class) {

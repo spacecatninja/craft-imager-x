@@ -29,9 +29,13 @@ use yii\base\InvalidConfigException;
 class LocalTargetImageModel
 {
     public $path = '';
+
     public $url = '';
+
     public $filename = '';
+
     public $extension = '';
+
     public $isNew = false;
 
     /**
@@ -83,7 +87,7 @@ class LocalTargetImageModel
 
         if ($extension === '') {
             $source->getLocalCopy();
-            
+
             try {
                 $extension = FileHelper::getExtensionByMimeType(FileHelper::getMimeType($source->path . '/' . $source->filename)) ?? '';
             } catch (InvalidConfigException) {

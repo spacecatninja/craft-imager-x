@@ -86,9 +86,9 @@ class ImgixTransformer extends Component implements TransformerInterface
 
         try {
             $builder = ImgixHelpers::getBuilder($imgixConfig);
-        } catch (\InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (\InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         $params = $this->createParams($transform, $image, $imgixConfig);
@@ -325,14 +325,11 @@ class ImgixTransformer extends Component implements TransformerInterface
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
-        switch ($ext) {
-            case 'png':
-                $pngCompression = $config->getSetting('pngCompressionLevel', $transform);
-
-                return max(100 - ($pngCompression * 10), 1);
-
-            case 'webp':
-                return $config->getSetting('webpQuality', $transform);
+        if ($ext == 'png') {
+            $pngCompression = $config->getSetting('pngCompressionLevel', $transform);
+            return max(100 - ($pngCompression * 10), 1);
+        } elseif ($ext == 'webp') {
+            return $config->getSetting('webpQuality', $transform);
         }
 
         return $config->getSetting('jpegQuality', $transform);

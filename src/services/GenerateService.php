@@ -47,7 +47,7 @@ class GenerateService extends Component
             $volume = Craft::$app->volumes->getVolumeById($volumeId);
 
             if (!$volume) {
-                Craft::error("Couldn't find volume with ID $volumeId.", __METHOD__);
+                Craft::error(sprintf('Couldn\'t find volume with ID %s.', $volumeId), __METHOD__);
                 continue;
             }
 
@@ -56,7 +56,7 @@ class GenerateService extends Component
             }
 
             if (empty($transforms)) {
-                Craft::error("Couldn't find any transforms for volume with ID $volumeId.", __METHOD__);
+                Craft::error(sprintf('Couldn\'t find any transforms for volume with ID %s.', $volumeId), __METHOD__);
                 continue;
             }
 
@@ -278,8 +278,8 @@ class GenerateService extends Component
                 if (isset(ImagerService::$namedTransforms[$transformName])) {
                     try {
                         ImagerX::$plugin->imager->transformImage($asset, $transformName, null, ['optimizeType' => 'runtime']);
-                    } catch (ImagerException $exception) {
-                        $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and transform “{transformName}”: {message}', ['assetId' => $asset->id, 'transformName' => $transformName, 'message' => $exception->getMessage()]);
+                    } catch (ImagerException $imagerException) {
+                        $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and transform “{transformName}”: {message}', ['assetId' => $asset->id, 'transformName' => $transformName, 'message' => $imagerException->getMessage()]);
                         Craft::error($msg, __METHOD__);
                     }
                 } else {

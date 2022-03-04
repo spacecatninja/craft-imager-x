@@ -51,6 +51,7 @@ use yii\base\Exception;
 class CraftTransformer extends Component implements TransformerInterface
 {
     private null|\Imagine\Gd\Imagine|\Imagine\Imagick\Imagine $imagineInstance = null;
+
     private null|GdImage|ImageInterface|ImagickImage $imageInstance = null;
 
     /**
@@ -163,7 +164,7 @@ class CraftTransformer extends Component implements TransformerInterface
             if (!realpath($targetModel->path)) {
                 try {
                     FileHelper::createDirectory($targetModel->path);
-                } catch (Exception $e) {
+                } catch (Exception $exception) {
                     // ignore for now, trying to create
                 }
 
@@ -176,7 +177,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
             try {
                 $targetPathIsWriteable = FileHelper::isWritable($targetModel->path);
-            } catch (ErrorException $e) {
+            } catch (ErrorException $errorException) {
                 $targetPathIsWriteable = false;
             }
 
@@ -192,7 +193,7 @@ class CraftTransformer extends Component implements TransformerInterface
                     Craft::error($msg, __METHOD__);
                     throw new ImagerException($msg);
                 }
-            } catch (ErrorException $e) {
+            } catch (ErrorException $errorException) {
                 // Do nothing, assume we have enough memory.
             }
 
@@ -200,8 +201,8 @@ class CraftTransformer extends Component implements TransformerInterface
             if ($this->imageInstance === null || !$config->getSetting('instanceReuseEnabled', $transform)) {
                 try {
                     $this->imageInstance = $this->imagineInstance->open($sourceModel->getFilePath());
-                } catch (\Throwable $e) {
-                    $msg = Craft::t('imager-x', 'An error occured when trying to open image: '.$e->getMessage());
+                } catch (\Throwable $throwable) {
+                    $msg = Craft::t('imager-x', 'An error occured when trying to open image: '.$throwable->getMessage());
                     Craft::error($msg, __METHOD__);
                     throw new ImagerException($msg);
                 }
@@ -244,7 +245,7 @@ class CraftTransformer extends Component implements TransformerInterface
             } else {
                 $this->transformLayer($this->imageInstance, $transform, $sourceModel->extension);
             }
-            
+
             // If Image Driver is imagick and removeMetadata is true, remove meta data
             if (ImagerService::$imageDriver === 'imagick' && $config->getSetting('removeMetadata', $transform)) {
                 ImagerHelpers::processMetaData($this->imageInstance, $transform);
@@ -335,8 +336,8 @@ class CraftTransformer extends Component implements TransformerInterface
                 $cropPoint = ImagerHelpers::getCropPoint($resizeSize, $cropSize, $config->getSetting('position', $transform));
                 $layer->crop($cropPoint, $cropSize);
             }
-        } catch (\Throwable $e) {
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (\Throwable $throwable) {
+            throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
 
         // Apply post resize effects
@@ -445,7 +446,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
             if (!file_exists($path)) {
                 unlink($tempFile);
-                $msg = Craft::t('imager-x', "Custom encoder failed. Output was:\n".$r."\nThe executed command was \"$command\"");
+                $msg = Craft::t('imager-x', "Custom encoder failed. Output was:\n".$r."\nThe executed command was \"{$command}\"");
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg);
             }
@@ -729,9 +730,9 @@ class CraftTransformer extends Component implements TransformerInterface
                     (int)floor(((int)$transform['width'] - $padWidth - $imageInstance->getSize()->getWidth()) / 2),
                     (int)floor(((int)$transform['height'] - $padHeight - $imageInstance->getSize()->getHeight()) / 2)
                 );
-            } catch (InvalidArgumentException $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            } catch (InvalidArgumentException $invalidArgumentException) {
+                Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+                throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
             }
 
             $palette = new RGB();
@@ -776,9 +777,9 @@ class CraftTransformer extends Component implements TransformerInterface
             try {
                 $size = new Box($imageWidth + $padWidth, $imageHeight + $padHeight);
                 $position = new Point($padding[3], $padding[0]);
-            } catch (InvalidArgumentException $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            } catch (InvalidArgumentException $invalidArgumentException) {
+                Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+                throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
             }
 
             $palette = new RGB();
@@ -807,9 +808,9 @@ class CraftTransformer extends Component implements TransformerInterface
 
         try {
             $topLeft = new Point(0, 0);
-        } catch (InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         if ($this->imagineInstance !== null) {
@@ -847,13 +848,14 @@ class CraftTransformer extends Component implements TransformerInterface
 
         $sourceModel = new LocalSourceImageModel($watermark['image']);
         $sourceModel->getLocalCopy();
+
         $watermarkInstance = $this->imagineInstance->open($sourceModel->getFilePath());
 
         try {
             $watermarkBox = new Box($watermark['width'], $watermark['height']);
-        } catch (InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         $watermarkInstance->resize($watermarkBox, ImageInterface::FILTER_UNDEFINED);
@@ -883,9 +885,9 @@ class CraftTransformer extends Component implements TransformerInterface
 
         try {
             $positionPoint = new Point($posX, $posY);
-        } catch (InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         if (ImagerService::$imageDriver === 'imagick') {
@@ -895,8 +897,8 @@ class CraftTransformer extends Component implements TransformerInterface
             if (isset($watermark['opacity'])) {
                 try {
                     $watermarkImagick->evaluateImage(\Imagick::EVALUATE_MULTIPLY, (float)$watermark['opacity'], \Imagick::CHANNEL_ALPHA);
-                } catch (\Throwable $e) {
-                    Craft::error('Could not set watermark opacity: '.$e->getMessage(), __METHOD__);
+                } catch (\Throwable $throwable) {
+                    Craft::error('Could not set watermark opacity: '.$throwable->getMessage(), __METHOD__);
                 }
             }
 
@@ -909,16 +911,16 @@ class CraftTransformer extends Component implements TransformerInterface
             /** @var ImagickImage $imageInstance */
             try {
                 $imageInstance->getImagick()->compositeImage($watermarkImagick, $blendMode, $positionPoint->getX(), $positionPoint->getY());
-            } catch (\Throwable $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable->getMessage(), __METHOD__);
+                throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
             }
         } else { // it's GD :(
             try {
                 $imageInstance->paste($watermarkInstance, $positionPoint);
-            } catch (\Throwable $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable->getMessage(), __METHOD__);
+                throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
             }
         }
     }
@@ -951,10 +953,10 @@ class CraftTransformer extends Component implements TransformerInterface
             try {
                 $image->getImagick()->trimImage(\Imagick::getQuantum() * $fuzz);
                 $image->getImagick()->setImagePage(0, 0, 0, 0);
-            } catch (\Throwable $e) {
-                $msg = 'An error occured when trying to trim image: '.$e->getMessage();
+            } catch (\Throwable $throwable) {
+                $msg = 'An error occured when trying to trim image: '.$throwable->getMessage();
                 Craft::error($msg, __METHOD__);
-                throw new ImagerException($msg, $e->getCode(), $e);
+                throw new ImagerException($msg, $throwable->getCode(), $throwable);
             }
         }
     }
@@ -985,7 +987,8 @@ class CraftTransformer extends Component implements TransformerInterface
                     $endFrame = $framesArr[1];
                 }
             } else {
-                $startFrame = $endFrame = $framesArr[0];
+                $startFrame = $framesArr[0];
+                $endFrame = $framesArr[0];
             }
 
             if ($endFrame > \count($layers) - 1) {

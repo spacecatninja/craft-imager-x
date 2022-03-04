@@ -246,6 +246,7 @@ class ImagerService extends Component
         if (self::$imageDriver === 'gd' && \function_exists('imagewebp')) {
             return true;
         }
+
         return self::$imageDriver === 'imagick' && (\Imagick::queryFormats('WEBP') !== []);
     }
 
@@ -260,6 +261,7 @@ class ImagerService extends Component
         if (self::$imageDriver === 'gd' && \function_exists('imageavif')) {
             return true;
         }
+
         return self::$imageDriver === 'imagick' && (\Imagick::queryFormats('AVIF') !== []);
     }
 
@@ -274,6 +276,7 @@ class ImagerService extends Component
         if (self::$imageDriver === 'gd' && \function_exists('imagejxl')) {
             return true;
         }
+
         return self::$imageDriver === 'imagick' && (\Imagick::queryFormats('JXL') !== []);
     }
 
@@ -408,7 +411,7 @@ class ImagerService extends Component
 
         try {
             $transformedImages = $transformer->transform($image, $transforms);
-        } catch (ImagerException $e) {
+        } catch (ImagerException $imagerException) {
             // If a fallback image is defined, try to transform that instead. 
             if (self::$transformConfig->fallbackImage !== null) {
                 $fallbackImage = ImagerHelpers::getTransformableFromConfigSetting(self::$transformConfig->fallbackImage);
@@ -416,18 +419,20 @@ class ImagerService extends Component
                 if ($fallbackImage) {
                     try {
                         $transformedImages = $transformer->transform($fallbackImage, $transforms);
-                    } catch (ImagerException $e) {
+                    } catch (ImagerException $imagerException) {
                         if (self::$transformConfig->suppressExceptions) {
                             return null;
                         }
-                        throw $e;
+
+                        throw $imagerException;
                     }
                 }
             } else {
                 if (self::$transformConfig->suppressExceptions) {
                     return null;
                 }
-                throw $e;
+
+                throw $imagerException;
             }
         }
 
@@ -463,12 +468,14 @@ class ImagerService extends Component
                         $r .= $image->getUrl().' '.$image->getWidth().'w, ';
                         $generated[$image->getWidth()] = true;
                     }
+
                     break;
                 case 'h':
                     if (!isset($generated[$image->getHeight()])) {
                         $r .= $image->getUrl().' '.$image->getHeight().'h, ';
                         $generated[$image->getHeight()] = true;
                     }
+
                     break;
                 case 'w+h':
                     $key = $image->getWidth().'x'.$image->getHeight();
@@ -476,6 +483,7 @@ class ImagerService extends Component
                         $r .= $image->getUrl().' '.$image->getWidth().'w '.$image->getHeight().'h, ';
                         $generated[$image->getWidth().'x'.$image->getHeight()] = true;
                     }
+
                     break;
             }
         }
@@ -540,8 +548,8 @@ class ImagerService extends Component
                     try {
                         FileHelper::clearDirectory(FileHelper::normalizePath($targetModel->path));
                         FileHelper::removeDirectory(FileHelper::normalizePath($targetModel->path));
-                    } catch (\Throwable $e) {
-                        Craft::error('Could not clear directory "'.$targetModel->path.'" ('.$e->getMessage().')', __METHOD__);
+                    } catch (\Throwable $throwable) {
+                        Craft::error('Could not clear directory "'.$targetModel->path.'" ('.$throwable->getMessage().')', __METHOD__);
                     }
                 }
 
@@ -551,8 +559,8 @@ class ImagerService extends Component
                     FileHelper::unlink($sourceModel->getFilePath());
                 }
             }
-        } catch (ImagerException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
+        } catch (ImagerException $imagerException) {
+            Craft::error($imagerException->getMessage(), __METHOD__);
         }
     }
 
@@ -568,8 +576,8 @@ class ImagerService extends Component
             if (is_dir($dir)) {
                 FileHelper::clearDirectory($dir);
             }
-        } catch (\Throwable $e) {
-            Craft::error('Could not clear directory "'.$path.'" ('.$e->getMessage().')', __METHOD__);
+        } catch (\Throwable $throwable) {
+            Craft::error('Could not clear directory "'.$path.'" ('.$throwable->getMessage().')', __METHOD__);
         }
     }
 
@@ -580,8 +588,8 @@ class ImagerService extends Component
     {
         try {
             $path = Craft::$app->getPath()->getRuntimePath().'/imager/';
-        } catch (Exception $e) {
-            Craft::error('Could not get runtime path ('.$e->getMessage().')', __METHOD__);
+        } catch (Exception $exception) {
+            Craft::error('Could not get runtime path ('.$exception->getMessage().')', __METHOD__);
 
             return;
         }
@@ -591,8 +599,8 @@ class ImagerService extends Component
             if (is_dir($dir)) {
                 FileHelper::clearDirectory($dir);
             }
-        } catch (\Throwable $e) {
-            Craft::error('Could not clear directory "'.$path.'" ('.$e->getMessage().')', __METHOD__);
+        } catch (\Throwable $throwable) {
+            Craft::error('Could not clear directory "'.$path.'" ('.$throwable->getMessage().')', __METHOD__);
         }
     }
 

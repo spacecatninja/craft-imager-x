@@ -54,8 +54,8 @@ class ImgixPurgeElementAction extends ElementAction
             foreach ($imagesToPurge as $imageToPurge) {
                 $imagerPlugin->imgix->purgeAssetFromImgix($imageToPurge);
             }
-        } catch (\Throwable $e) {
-            $this->setMessage($e->getMessage());
+        } catch (\Throwable $throwable) {
+            $this->setMessage($throwable->getMessage());
             return false;
         }
 

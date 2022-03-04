@@ -46,8 +46,8 @@ class AwsStorage implements ImagerStorageInterface
 
         try {
             $s3 = new S3Client($clientConfig);
-        } catch (\InvalidArgumentException $e) {
-            Craft::error('Invalid configuration of S3 Client: '.$e->getMessage(), __METHOD__);
+        } catch (\InvalidArgumentException $invalidArgumentException) {
+            Craft::error('Invalid configuration of S3 Client: '.$invalidArgumentException->getMessage(), __METHOD__);
             return false;
         }
         
@@ -79,8 +79,8 @@ class AwsStorage implements ImagerStorageInterface
 
         try {
             $s3->putObject($opts);
-        } catch (S3Exception $e) {
-            Craft::error('An error occured while uploading to Amazon S3: '.$e->getMessage(), __METHOD__);
+        } catch (S3Exception $s3Exception) {
+            Craft::error('An error occured while uploading to Amazon S3: '.$s3Exception->getMessage(), __METHOD__);
             return false;
         }
 
@@ -88,8 +88,8 @@ class AwsStorage implements ImagerStorageInterface
         if (isset($settings['cloudfrontInvalidateEnabled'], $settings['cloudfrontDistributionId']) && $settings['cloudfrontInvalidateEnabled'] === true) {
             try {
                 $cloudfront = new CloudFrontClient($clientConfig);
-            } catch (\InvalidArgumentException $e) {
-                Craft::error('Invalid configuration of CloudFront Client: '.$e->getMessage(), __METHOD__);
+            } catch (\InvalidArgumentException $s3Exception) {
+                Craft::error('Invalid configuration of CloudFront Client: '.$s3Exception->getMessage(), __METHOD__);
                 return false;
             }
             
@@ -104,8 +104,8 @@ class AwsStorage implements ImagerStorageInterface
                         'CallerReference' => md5($uri . random_int(111111, 999999)),
                     ]
                 ]);
-            } catch (CloudFrontException $e) {
-                Craft::error('An error occured while sending an Cloudfront invalidation request: ' . $e->getMessage(), __METHOD__);
+            } catch (CloudFrontException $cloudFrontException) {
+                Craft::error('An error occured while sending an Cloudfront invalidation request: ' . $cloudFrontException->getMessage(), __METHOD__);
             }
         }
 

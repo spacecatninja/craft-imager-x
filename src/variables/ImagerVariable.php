@@ -55,7 +55,7 @@ class ImagerVariable
      */
     public function base64Pixel(int $width = 1, int $height = 1, string $color = 'transparent'): string
     {
-        return 'data:image/svg+xml;charset=utf-8,' . rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' width='$width' height='$height' style='background:$color'/>");
+        return 'data:image/svg+xml;charset=utf-8,' . rawurlencode(sprintf('<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%d\' height=\'%d\' style=\'background:%s\'/>', $width, $height, $color));
     }
 
     /**
@@ -268,7 +268,7 @@ class ImagerVariable
     public function clientSupports(string $format): bool
     {
         if (!str_contains($format, 'image/')) {
-            $format = "image/$format";
+            $format = sprintf('image/%s', $format);
         }
         
         return Craft::$app->getRequest()->accepts($format);

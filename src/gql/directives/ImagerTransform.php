@@ -91,8 +91,8 @@ class ImagerTransform extends Directive
         
         try {
             $transformedImage = ImagerX::$plugin->imagerx->transformImage($source, $transform);
-        } catch (ImagerException $e) {
-            Craft::error('An error occured when trying to transform image in GraphQL directive: ' . $e->getMessage(), __METHOD__);
+        } catch (ImagerException $imagerException) {
+            Craft::error('An error occured when trying to transform image in GraphQL directive: ' . $imagerException->getMessage(), __METHOD__);
             return null;
         }
         
