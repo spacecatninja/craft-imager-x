@@ -32,7 +32,7 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
     /**
      * @var int
      */
-    public $width;
+    public int $width;
     
     /**
      * @var int

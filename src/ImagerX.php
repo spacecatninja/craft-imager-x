@@ -374,8 +374,8 @@ class ImagerX extends Plugin
 
         // Event listener for overriding Craft's internal transform functionality
         if ($config->useForNativeTransforms) {
-            Event::on(Assets::class, Assets::EVENT_GET_ASSET_URL,
-                static function(GetAssetUrlEvent $event) {
+            Event::on(Assets::class, Assets::EVENT_DEFINE_ASSET_URL,
+                static function(\craft\events\DefineAssetUrlEvent $event) {
                     if ($event->asset !== null && $event->transform !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
                             $transform = $event->transform;
@@ -418,8 +418,8 @@ class ImagerX extends Plugin
 
         // Event listener for overriding Craft's internal thumb url
         if ($config->useForCpThumbs) {
-            Event::on(Assets::class, Assets::EVENT_GET_ASSET_THUMB_URL,
-                static function(GetAssetThumbUrlEvent $event) {
+            Event::on(Assets::class, Assets::EVENT_DEFINE_THUMB_URL,
+                static function(\craft\events\DefineAssetThumbUrlEvent $event) {
                     if ($event->asset !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
                             /** @var TransformedImageInterface $transformedImage */

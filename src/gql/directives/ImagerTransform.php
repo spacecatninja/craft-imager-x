@@ -70,7 +70,7 @@ class ImagerTransform extends Directive
     /**
      * @inheritdoc
      */
-    public static function apply($source, $value, array $arguments, ResolveInfo $resolveInfo): mixed
+    public static function apply(mixed $source, mixed $value, array $arguments, ResolveInfo $resolveInfo): mixed
     {
         if ($resolveInfo->fieldName !== 'url') {
             return $value;
