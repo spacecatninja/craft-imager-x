@@ -22,7 +22,6 @@ class PngquantOptimizer implements ImagerOptimizeInterface
 
     public static function optimize(string $file, ?array $settings): void
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
         
         if ($config->skipExecutableExistCheck || file_exists($settings['path'])) {

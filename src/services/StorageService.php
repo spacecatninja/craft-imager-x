@@ -35,7 +35,6 @@ class StorageService extends Component
      */
     public function store(string $path, bool $isFinalVersion): void
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         if (empty($config->storages)) {

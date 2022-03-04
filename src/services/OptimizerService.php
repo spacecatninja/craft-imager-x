@@ -35,7 +35,6 @@ class OptimizerService extends Component
      */
     public function optimize(TransformedImageInterface $transformedImage): bool
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         // If there are no enabled optimizers, exit now

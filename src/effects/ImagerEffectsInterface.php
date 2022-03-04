@@ -17,7 +17,6 @@ use Imagine\Imagick\Image as ImagickImage;
 interface ImagerEffectsInterface
 {
     /**
-     * @param GdImage|ImagickImage $imageInstance
      * @param array|string|int|float|bool|null $params
      */
     public static function apply(GdImage|ImagickImage $imageInstance, $params);

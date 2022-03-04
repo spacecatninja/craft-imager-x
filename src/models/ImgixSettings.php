@@ -26,9 +26,9 @@ class ImgixSettings extends Model
 
     public bool $useCloudSourcePath = true;
 
-    public $addPath = null;
+    public $addPath;
 
-    public $shardStrategy = null;
+    public $shardStrategy;
 
     public bool $getExternalImageDimensions = true;
 

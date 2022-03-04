@@ -102,7 +102,6 @@ class LocalSourceImageModel
         } elseif ($image instanceof Asset) {
             $this->asset = $image;
             try {
-                $volumeClass = $image->getVolume()::class;
                 $fileSystemClass = $image->getVolume()->getFs()::class;
             } catch (InvalidConfigException $invalidConfigException) {
                 Craft::error($invalidConfigException->getMessage(), __METHOD__);
@@ -137,7 +136,6 @@ class LocalSourceImageModel
      */
     public function getLocalCopy(): void
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         if ($this->type !== 'local') {
@@ -269,7 +267,6 @@ class LocalSourceImageModel
      */
     private function getPathsForLocalImagerFile($image): void
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $imageString = '/'.str_replace($config->getSetting('imagerUrl'), '', $image);
@@ -310,7 +307,6 @@ class LocalSourceImageModel
      */
     private function getPathsForUrl($image): void
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         try {
@@ -348,7 +344,6 @@ class LocalSourceImageModel
      */
     private function downloadFile(): void
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
         $imageUrl = $this->url;
 

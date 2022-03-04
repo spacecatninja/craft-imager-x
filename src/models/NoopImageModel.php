@@ -76,7 +76,6 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
             // just ignore
         }
 
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $sourceImageInfo = @getimagesize($sourceModel->getFilePath());

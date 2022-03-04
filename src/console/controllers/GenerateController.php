@@ -238,7 +238,7 @@ $field['handle'], $this->fields);
             }
             
             $this->success($this->recursive ? '> Recursive' : '> Not recursive');
-            $query->includeSubfolders((bool)$this->recursive);
+            $query->includeSubfolders($this->recursive);
         }
         
         return $query ? $query->all() : [];
@@ -249,7 +249,6 @@ $field['handle'], $this->fields);
         /** @var AssetQuery $query */
         $query = null;
         
-        /** @var FieldInterface|null $targetVolume */
         $targetFieldIds = [];
         
         foreach ($this->fields as $field) {

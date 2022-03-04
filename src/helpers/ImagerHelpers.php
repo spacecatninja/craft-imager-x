@@ -36,7 +36,6 @@ class ImagerHelpers
 {
     public static function shouldCreateTransform(LocalTargetImageModel $targetModel, array $transform): bool
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         return !$config->getSetting('cacheEnabled', $transform) ||
@@ -265,7 +264,6 @@ class ImagerHelpers
             throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
         }
 
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $hashPath = $config->hashPath;
@@ -291,7 +289,6 @@ class ImagerHelpers
      */
     public static function getTransformPathForPath(string $path): string
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $hashPath = $config->hashPath;
@@ -311,7 +308,6 @@ class ImagerHelpers
      */
     public static function getTransformPathForUrl(string $url): string
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $urlParts = parse_url($url);

@@ -56,7 +56,6 @@ class ImgixService extends Component
     public static function getCanPurge(): bool
     {
         if (!isset(self::$canPurge)) {
-            /** @var ConfigModel $settings */
             $config = ImagerService::getConfig();
 
             // No Imgix config, no purging
@@ -69,7 +68,7 @@ class ImgixService extends Component
             // Make sure there's at least one profile that is not a web proxy and that is not excluded from purging
             $hasApiKey = (bool)$config->getSetting('imgixApiKey');
             $hasPurgableProfile = false;
-            foreach ($imgixConfigArr as $profile => $imgixConfig) {
+            foreach ($imgixConfigArr as $imgixConfig) {
                 $imgixConfig = new ImgixSettings($imgixConfig);
                 $hasApiKey = $hasApiKey || (bool)$imgixConfig->apiKey;
                 $hasPurgableProfile = $hasPurgableProfile || (!$imgixConfig->sourceIsWebProxy && !$imgixConfig->excludeFromPurge);
@@ -154,7 +153,6 @@ class ImgixService extends Component
      */
     public function purgeAssetFromImgix(Asset $asset): void
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $imgixApiKey = $config->getSetting('imgixApiKey');
@@ -166,7 +164,7 @@ class ImgixService extends Component
             throw new ImagerException($msg);
         }
 
-        foreach ($imgixConfigArr as $profile => $imgixConfig) {
+        foreach ($imgixConfigArr as $imgixConfig) {
 
             $imgixConfig = new ImgixSettings($imgixConfig);
             if ($imgixConfig->sourceIsWebProxy || $imgixConfig->excludeFromPurge) {

@@ -62,7 +62,6 @@ class OptimizeJob extends BaseJob
             // Clear stat cache to make sure old file size is not cached
             clearstatcache(true, $this->filePath);
             
-            /** @var ConfigModel $settings */
             $config = ImagerService::getConfig();
     
             if (empty($config->storages)) {

@@ -93,12 +93,12 @@ class BaseTransformedImageModel implements \Stringable
 
     public function getWidth(): int
     {
-        return (int)$this->width;
+        return $this->width;
     }
 
     public function getHeight(): int
     {
-        return (int)$this->height;
+        return $this->height;
     }
 
     public function getSize(string $unit = 'b', int $precision = 2): float|int
@@ -146,7 +146,7 @@ class BaseTransformedImageModel implements \Stringable
 
     public function __toString(): string
     {
-        return (string)$this->url;
+        return $this->url;
     }
 
 }

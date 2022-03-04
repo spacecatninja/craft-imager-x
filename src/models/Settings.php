@@ -107,9 +107,9 @@ class Settings extends Model
 
     public $fillInterval = '200';
 
-    public $fallbackImage = null;
+    public $fallbackImage;
 
-    public $mockImage = null;
+    public $mockImage;
 
     public $useRawExternalUrl = true;
 
@@ -221,7 +221,7 @@ class Settings extends Model
 
     public $customEncoders = [];
 
-    public $transformerConfig = null;
+    public $transformerConfig;
 
     /* deprecated */
     public $useCwebp = false;

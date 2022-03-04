@@ -173,7 +173,7 @@ class Potracio
 
     public $imgCanvas;
 
-    public $bm = null;
+    public $bm;
 
     public $pathlist = [];
 
@@ -572,16 +572,13 @@ class Potracio
                         break;
                     }
 
-                    if (abs($cur->x) <= 1 && abs($cur->y) <= 1) {
-
-                    } else {
+                    if (!(abs($cur->x) <= 1 && abs($cur->y) <= 1)) {
                         $off->x = $cur->x + (($cur->y >= 0 && ($cur->y > 0 || $cur->x < 0)) ? 1 : -1);
                         $off->y = $cur->y + (($cur->x <= 0 && ($cur->x < 0 || $cur->y < 0)) ? 1 : -1);
                         if ($xprod($constraint[0], $off) >= 0) {
                             $constraint[0]->x = $off->x;
                             $constraint[0]->y = $off->y;
                         }
-
                         $off->x = $cur->x + (($cur->y <= 0 && ($cur->y < 0 || $cur->x < 0)) ? 1 : -1);
                         $off->y = $cur->y + (($cur->x >= 0 && ($cur->x > 0 || $cur->y < 0)) ? 1 : -1);
                         if ($xprod($constraint[1], $off) <= 0) {

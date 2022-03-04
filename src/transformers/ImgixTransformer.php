@@ -64,7 +64,6 @@ class ImgixTransformer extends Component implements TransformerInterface
      */
     private function getTransformedImage(Asset|string $image, array $transform): ImgixTransformedImageModel
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $profile = $config->getSetting('imgixProfile', $transform);
@@ -105,7 +104,6 @@ class ImgixTransformer extends Component implements TransformerInterface
      */
     private function createParams(array $transform, Asset|string $image, ImgixSettings $imgixConfig): array
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $r = [];
@@ -322,7 +320,6 @@ class ImgixTransformer extends Component implements TransformerInterface
      */
     private function getQualityFromExtension(string $ext, array $transform = null): string
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         if ($ext == 'png') {

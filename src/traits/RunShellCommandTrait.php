@@ -25,8 +25,6 @@ trait RunShellCommandTrait
         $shellCommand = new Command();
         $shellCommand->setCommand($commandString);
 
-        $result = $shellCommand->execute() ? $shellCommand->getOutput() : $shellCommand->getError();
-
-        return $result;
+        return $shellCommand->execute() ? $shellCommand->getOutput() : $shellCommand->getError();
     }
 }

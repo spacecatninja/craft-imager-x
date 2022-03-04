@@ -46,7 +46,6 @@ class LocalTargetImageModel
      */
     public function __construct($source, $transform)
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $this->filename = $this->createTargetFilename($source, $transform);
@@ -70,7 +69,6 @@ class LocalTargetImageModel
      */
     private function createTargetFilename($source, $transform): string
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $useFilenamePattern = $config->getSetting('useFilenamePattern', $transform);

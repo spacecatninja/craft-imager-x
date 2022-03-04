@@ -76,7 +76,6 @@ class CraftTransformer extends Component implements TransformerInterface
      */
     public function transform(Asset|string $image, array $transforms): ?array
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $sourceModel = new LocalSourceImageModel($image);
@@ -128,7 +127,6 @@ class CraftTransformer extends Component implements TransformerInterface
      */
     private function getTransformedImage(LocalSourceImageModel $sourceModel, array $transform): ?LocalTransformedImageModel
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         if ($this->imagineInstance === null) {
@@ -263,7 +261,7 @@ class CraftTransformer extends Component implements TransformerInterface
                 $this->saveWithCustomEncoder($customEncoders[$targetModel->extension], $this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $transform);
             } elseif ($targetModel->extension === 'webp') {
                 if (ImagerService::hasSupportForWebP()) {
-                    $this->saveAsWebp($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $saveOptions);
+                    $this->saveAsWebp($this->imageInstance, $targetModel->getFilePath(), $saveOptions);
                 } else {
                     $msg = Craft::t('imager-x', 'This version of {imageDriver} does not support the webp format, and cwebp does not seem to be configured. You should use “craft.imager.serverSupportsWebp” in your templates to test for it.', ['imageDriver' => ImagerService::$imageDriver === 'gd' ? 'GD' : \Imagick::class]);
                     Craft::error($msg, __METHOD__);
@@ -271,7 +269,7 @@ class CraftTransformer extends Component implements TransformerInterface
                 }
             } elseif ($targetModel->extension === 'avif') {
                 if (ImagerService::hasSupportForAvif()) {
-                    $this->saveAsAvif($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $saveOptions);
+                    $this->saveAsAvif($this->imageInstance, $targetModel->getFilePath(), $saveOptions);
                 } else {
                     $msg = Craft::t('imager-x', 'You have not configured support for AVIF yet.');
                     Craft::error($msg, __METHOD__);
@@ -279,7 +277,7 @@ class CraftTransformer extends Component implements TransformerInterface
                 }
             } elseif ($targetModel->extension === 'jxl') {
                 if (ImagerService::hasSupportForJxl()) {
-                    $this->saveAsJxl($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $saveOptions);
+                    $this->saveAsJxl($this->imageInstance, $targetModel->getFilePath(), $saveOptions);
                 } else {
                     $msg = Craft::t('imager-x', 'You have not configured support for JXL yet.');
                     Craft::error($msg, __METHOD__);
@@ -304,7 +302,6 @@ class CraftTransformer extends Component implements TransformerInterface
      */
     private function transformLayer(ImagickImage|ImageInterface|GdImage &$layer, array $transform, string $sourceExtension): void
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         // Apply any pre resize filters
@@ -404,7 +401,6 @@ class CraftTransformer extends Component implements TransformerInterface
      */
     private function getFilterMethod(array $transform): string
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         return ImagerService::$imageDriver === 'imagick' ? ImagerService::$filterKeyTranslate[(string)$config->getSetting('resizeFilter', $transform)] : ImageInterface::FILTER_UNDEFINED;
@@ -468,10 +464,9 @@ class CraftTransformer extends Component implements TransformerInterface
      * @throws ImagerException
      * @throws Exception
      */
-    private function saveAsWebp(ImagickImage|ImageInterface|GdImage $imageInstance, string $path, string $sourceExtension, array $saveOptions): void
+    private function saveAsWebp(ImagickImage|ImageInterface|GdImage $imageInstance, string $path, array $saveOptions): void
     {
-        /** @var ConfigModel $settings */
-        $config = ImagerService::getConfig();
+        ImagerService::getConfig();
 
 
         if (ImagerService::$imageDriver === 'gd') {
@@ -535,10 +530,9 @@ class CraftTransformer extends Component implements TransformerInterface
      * @throws Exception
      * @throws ImagerException
      */
-    private function saveAsAvif(ImagickImage|ImageInterface|GdImage $imageInstance, string $path, string $sourceExtension, array $saveOptions): void
+    private function saveAsAvif(ImagickImage|ImageInterface|GdImage $imageInstance, string $path, array $saveOptions): void
     {
-        /** @var ConfigModel $settings */
-        $config = ImagerService::getConfig();
+        ImagerService::getConfig();
 
 
         if (ImagerService::$imageDriver === 'gd') {
@@ -594,10 +588,9 @@ class CraftTransformer extends Component implements TransformerInterface
      * @throws Exception
      * @throws ImagerException
      */
-    private function saveAsJxl(ImagickImage|ImageInterface|GdImage $imageInstance, string $path, string $sourceExtension, array $saveOptions): void
+    private function saveAsJxl(ImagickImage|ImageInterface|GdImage $imageInstance, string $path, array $saveOptions): void
     {
-        /** @var ConfigModel $settings */
-        $config = ImagerService::getConfig();
+        ImagerService::getConfig();
 
         if (ImagerService::$imageDriver === 'gd') {
             /** @var GdImage $imageInstance */
@@ -692,7 +685,6 @@ class CraftTransformer extends Component implements TransformerInterface
      */
     private function getSaveOptions(string $extension, array $transform): array
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         return match (mb_strtolower($extension)) {
@@ -713,8 +705,7 @@ class CraftTransformer extends Component implements TransformerInterface
      */
     private function applyLetterbox(ImagickImage|ImageInterface|GdImage &$imageInstance, array $transform): void
     {
-        if (isset($transform['width'], $transform['height'])) { // if both isn't set, there's no need for a letterbox
-            /** @var ConfigModel $settings */
+        if (isset($transform['width'], $transform['height'])) { /** @var ConfigModel $settings */
             $config = ImagerService::getConfig();
 
             $letterboxDef = $config->getSetting('letterbox', $transform);
@@ -759,7 +750,6 @@ class CraftTransformer extends Component implements TransformerInterface
     private function applyPadding(ImagickImage|ImageInterface|GdImage &$imageInstance, array $transform, string $sourceExtension): void
     {
         if (isset($transform['pad'])) {
-            /** @var ConfigModel $settings */
             $config = ImagerService::getConfig();
 
             $bgColor = $config->getSetting('bgColor', $transform);

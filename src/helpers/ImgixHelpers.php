@@ -26,7 +26,6 @@ use yii\base\InvalidConfigException;
 class ImgixHelpers
 {
     /**
-     * @param ImgixSettings $config
      * @throws ImagerException
      */
     public static function getImgixFilePath(Asset|string $image, ImgixSettings $config): string

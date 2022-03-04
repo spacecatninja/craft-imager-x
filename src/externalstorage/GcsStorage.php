@@ -25,7 +25,6 @@ class GcsStorage implements ImagerStorageInterface
 
     public static function upload(string $file, string $uri, bool $isFinal, array $settings): bool
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
         
         if (isset($settings['folder']) && $settings['folder']!=='') {
