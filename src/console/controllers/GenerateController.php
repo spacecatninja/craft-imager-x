@@ -268,7 +268,7 @@ $field['handle'], $this->fields);
                 ->select(['{{%elements}}.id as id', '{{%relations}}.targetId', 'fieldId', 'type'])
                 ->from(['{{%relations}}'])
                 ->where(['fieldId' => $targetFieldIds])
-                ->andWhere(['type' => craft\elements\Asset::class])
+                ->andWhere(['type' => Asset::class])
                 ->join('LEFT JOIN', '{{%elements}}', '{{%elements}}.id = {{%relations}}.targetId')
                 ->groupBy('{{%relations}}.targetId')
                 ->all();
