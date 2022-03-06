@@ -10,8 +10,8 @@
 
 namespace spacecatninja\imagerx\models;
 
-use craft\errors\DeprecationException;
 use craft\base\Model;
+use craft\errors\DeprecationException;
 
 use craft\helpers\App;
 use craft\helpers\ConfigHelper;
@@ -37,7 +37,7 @@ class ConfigModel extends Settings
     {
         parent::__construct($config);
 
-        // Reset model to get overrides from config file 
+        // Reset model to get overrides from config file
         foreach ($settings as $key => $value) {
             $this->$key = $value;
         }
@@ -75,7 +75,7 @@ class ConfigModel extends Settings
             $this->{$parseable} = App::parseEnv($this->{$parseable});
         }
         
-        // Normalize imager system path 
+        // Normalize imager system path
         $this->imagerSystemPath = FileHelper::normalizePath($this->imagerSystemPath);
         
         // Imgix API Key deprecation error
@@ -105,7 +105,7 @@ class ConfigModel extends Settings
                     'path' => $this->cwebpPath,
                     'options' => [
                         'quality' => $this->webpQuality,
-                        'effort' => 4
+                        'effort' => 4,
                     ],
                     'paramsString' => '-q {quality} -m {effort} {src} -o {dest}',
                 ];
@@ -137,8 +137,7 @@ class ConfigModel extends Settings
      */
     private function addToOverrideFilestring(string $key, mixed $value): void
     {
-        $r = (ImagerService::$transformKeyTranslate[$key] ?? $key).(\is_array($value) ? md5(implode('-', $value)) : $value);
-        $this->configOverrideString .= '_'.str_replace('%', '', str_replace([' ', '.'], '-', $r));
+        $r = (ImagerService::$transformKeyTranslate[$key] ?? $key) . (\is_array($value) ? md5(implode('-', $value)) : $value);
+        $this->configOverrideString .= '_' . str_replace('%', '', str_replace([' ', '.'], '-', $r));
     }
-
 }

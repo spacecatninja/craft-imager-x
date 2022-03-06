@@ -10,13 +10,12 @@
 
 namespace spacecatninja\imagerx\effects;
 
-use spacecatninja\imagerx\services\ImagerService;
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
+use spacecatninja\imagerx\services\ImagerService;
 
 class EqualizeEffect implements ImagerEffectsInterface
 {
-
     /**
      * @param GdImage|ImagickImage        $imageInstance
      * @param array|string|int|float|null $params

@@ -10,9 +10,8 @@
 
 namespace spacecatninja\imagerx\exceptions;
 
-use \yii\base\Exception;
+use yii\base\Exception;
 
 class ImagerException extends Exception
 {
-    
 }

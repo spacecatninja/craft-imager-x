@@ -12,12 +12,12 @@ namespace spacecatninja\imagerx\models;
 
 use craft\helpers\FileHelper;
 
-use spacecatninja\imagerx\helpers\ImagerHelpers;
-use spacecatninja\imagerx\services\ImagerService;
-use spacecatninja\imagerx\exceptions\ImagerException;
-
 use Imagine\Exception\InvalidArgumentException;
 use Imagine\Image\Box;
+use spacecatninja\imagerx\exceptions\ImagerException;
+
+use spacecatninja\imagerx\helpers\ImagerHelpers;
+use spacecatninja\imagerx\services\ImagerService;
 
 use yii\base\InvalidConfigException;
 
@@ -123,5 +123,4 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
         $image = @file_get_contents($this->path);
         return base64_encode($image);
     }
-
 }

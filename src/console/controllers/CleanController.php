@@ -79,7 +79,7 @@ class CleanController extends Controller
                 return ExitCode::UNAVAILABLE;
             }
             
-            $systemPath = FileHelper::normalizePath($systemPath.DIRECTORY_SEPARATOR.$this->volume);
+            $systemPath = FileHelper::normalizePath($systemPath . DIRECTORY_SEPARATOR . $this->volume);
         }
         
         if (!$this->duration && $config->cacheDuration === false) {
@@ -98,11 +98,10 @@ class CleanController extends Controller
         
         $this->success(sprintf('> Scanning %s', $systemPath));
         $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($systemPath));
-        $files = []; 
+        $files = [];
         
         foreach ($rii as $file) {
-        
-            if ($file->isDir()){ 
+            if ($file->isDir()) {
                 continue;
             }
         
@@ -174,5 +173,4 @@ class CleanController extends Controller
     {
         return FileHelper::lastModifiedTime($file) + $this->duration < time();
     }
-    
 }

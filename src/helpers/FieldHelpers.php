@@ -10,16 +10,16 @@
 
 namespace spacecatninja\imagerx\helpers;
 
-use verbb\supertable\elements\db\SuperTableBlockQuery;
 use Craft;
-
 use craft\base\Element;
+
 use craft\base\ElementInterface;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\MatrixBlockQuery;
 use craft\elements\MatrixBlock;
-
 use craft\models\FieldLayout;
+
+use verbb\supertable\elements\db\SuperTableBlockQuery;
 
 class FieldHelpers
 {
@@ -81,7 +81,7 @@ class FieldHelpers
         return null;
     }
 
-    protected static function getFieldHandleSegments(string $handle):array 
+    protected static function getFieldHandleSegments(string $handle): array
     {
         $segments = preg_split('#(\:|\.)#', $handle);
         

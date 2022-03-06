@@ -16,7 +16,6 @@ use spacecatninja\imagerx\helpers\ImgixHelpers;
 
 class ImgixTransformedImageModel extends BaseTransformedImageModel implements TransformedImageInterface
 {
-
     /**
      * @var string
      */
@@ -144,7 +143,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
      */
     protected function calculateTargetSize($params, $sourceWidth, $sourceHeight): array
     {
-        $fit = $params['fit']; // clamp, clip, crop, facearea, fill, fillmax, max, min, and scale. 
+        $fit = $params['fit']; // clamp, clip, crop, facearea, fill, fillmax, max, min, and scale.
         $ratio = $sourceWidth / $sourceHeight;
 
         $w = $params['w'] ?? null;
@@ -208,13 +207,13 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
         }
 
         $blurhashUrl = $builder->createURL($this->imgixPath, $params);
-        $key = 'imager-x-imgix-palette-'.base64_encode($blurhashUrl);
+        $key = 'imager-x-imgix-palette-' . base64_encode($blurhashUrl);
 
         $cache = \Craft::$app->getCache();
         $blurhashData = $cache->getOrSet($key, static fn() => @file_get_contents($blurhashUrl));
 
         if (!$blurhashData) {
-            \Craft::error('An error occured when trying to get palette data from Imgix. The URL was: '.$blurhashUrl);
+            \Craft::error('An error occured when trying to get palette data from Imgix. The URL was: ' . $blurhashUrl);
 
             return null;
         }
@@ -231,18 +230,17 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
 
         $blurhashUrl = $builder->createURL($this->imgixPath, $params);
 
-        $key = 'imager-x-imgix-blurhash-'.base64_encode($blurhashUrl);
+        $key = 'imager-x-imgix-blurhash-' . base64_encode($blurhashUrl);
 
         $cache = \Craft::$app->getCache();
         $blurhashData = $cache->getOrSet($key, static fn() => @file_get_contents($blurhashUrl));
 
         if (!$blurhashData) {
-            \Craft::error('An error occured when trying to get blurhash data from Imgix. The URL was: '.$blurhashUrl);
+            \Craft::error('An error occured when trying to get blurhash data from Imgix. The URL was: ' . $blurhashUrl);
 
             return '';
         }
 
         return (string)$blurhashData;
     }
-
 }

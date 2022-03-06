@@ -17,20 +17,20 @@ use craft\elements\Asset;
 use craft\helpers\FileHelper;
 use Imagine\Image\ImageInterface;
 
-use spacecatninja\imagerx\helpers\VersionHelpers;
-use yii\base\Exception;
-
-use spacecatninja\imagerx\ImagerX as Plugin;
-use spacecatninja\imagerx\models\TransformedImageInterface;
-use spacecatninja\imagerx\models\LocalSourceImageModel;
-use spacecatninja\imagerx\models\LocalTargetImageModel;
-use spacecatninja\imagerx\models\ConfigModel;
-use spacecatninja\imagerx\transformers\CraftTransformer;
-use spacecatninja\imagerx\transformers\TransformerInterface;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
+
 use spacecatninja\imagerx\helpers\TransformHelpers;
+use spacecatninja\imagerx\helpers\VersionHelpers;
+use spacecatninja\imagerx\ImagerX as Plugin;
+use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\models\GenerateSettings;
+use spacecatninja\imagerx\models\LocalSourceImageModel;
+use spacecatninja\imagerx\models\LocalTargetImageModel;
+use spacecatninja\imagerx\models\TransformedImageInterface;
+use spacecatninja\imagerx\transformers\CraftTransformer;
+use spacecatninja\imagerx\transformers\TransformerInterface;
+use yii\base\Exception;
 
 /**
  * ImagerService Service
@@ -60,7 +60,7 @@ class ImagerService extends Component
      * @var array
      */
     public static array $transformers = [
-        'craft' => CraftTransformer::class
+        'craft' => CraftTransformer::class,
     ];
 
     /**
@@ -181,7 +181,7 @@ class ImagerService extends Component
         'center-right' => '100% 50%',
         'bottom-left' => '0% 100%',
         'bottom-center' => '50% 100%',
-        'bottom-right' => '100% 100%'
+        'bottom-right' => '100% 100%',
     ];
 
 
@@ -192,7 +192,7 @@ class ImagerService extends Component
     {
         parent::__construct($config);
 
-        // Detect image driver 
+        // Detect image driver
         self::detectImageDriver();
 
         // Set up imagick specific constant aliases
@@ -390,7 +390,7 @@ class ImagerService extends Component
 
         // Create transformer
         if (!isset(self::$transformers[self::$transformConfig->transformer])) {
-            $msg = 'Invalid transformer "'.self::$transformConfig->transformer.'".';
+            $msg = 'Invalid transformer "' . self::$transformConfig->transformer . '".';
 
             if (self::$transformConfig->transformer !== 'craft' && !Plugin::getInstance()?->is(Plugin::EDITION_PRO)) {
                 $msg .= ' Custom transformers are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
@@ -412,7 +412,7 @@ class ImagerService extends Component
         try {
             $transformedImages = $transformer->transform($image, $transforms);
         } catch (ImagerException $imagerException) {
-            // If a fallback image is defined, try to transform that instead. 
+            // If a fallback image is defined, try to transform that instead.
             if (self::$transformConfig->fallbackImage !== null) {
                 $fallbackImage = ImagerHelpers::getTransformableFromConfigSetting(self::$transformConfig->fallbackImage);
 
@@ -465,23 +465,23 @@ class ImagerService extends Component
             switch ($descriptor) {
                 case 'w':
                     if (!isset($generated[$image->getWidth()])) {
-                        $r .= $image->getUrl().' '.$image->getWidth().'w, ';
+                        $r .= $image->getUrl() . ' ' . $image->getWidth() . 'w, ';
                         $generated[$image->getWidth()] = true;
                     }
 
                     break;
                 case 'h':
                     if (!isset($generated[$image->getHeight()])) {
-                        $r .= $image->getUrl().' '.$image->getHeight().'h, ';
+                        $r .= $image->getUrl() . ' ' . $image->getHeight() . 'h, ';
                         $generated[$image->getHeight()] = true;
                     }
 
                     break;
                 case 'w+h':
-                    $key = $image->getWidth().'x'.$image->getHeight();
+                    $key = $image->getWidth() . 'x' . $image->getHeight();
                     if (!isset($generated[$key])) {
-                        $r .= $image->getUrl().' '.$image->getWidth().'w '.$image->getHeight().'h, ';
-                        $generated[$image->getWidth().'x'.$image->getHeight()] = true;
+                        $r .= $image->getUrl() . ' ' . $image->getWidth() . 'w ' . $image->getHeight() . 'h, ';
+                        $generated[$image->getWidth() . 'x' . $image->getHeight()] = true;
                     }
 
                     break;
@@ -549,7 +549,7 @@ class ImagerService extends Component
                         FileHelper::clearDirectory(FileHelper::normalizePath($targetModel->path));
                         FileHelper::removeDirectory(FileHelper::normalizePath($targetModel->path));
                     } catch (\Throwable $throwable) {
-                        Craft::error('Could not clear directory "'.$targetModel->path.'" ('.$throwable->getMessage().')', __METHOD__);
+                        Craft::error('Could not clear directory "' . $targetModel->path . '" (' . $throwable->getMessage() . ')', __METHOD__);
                     }
                 }
 
@@ -577,7 +577,7 @@ class ImagerService extends Component
                 FileHelper::clearDirectory($dir);
             }
         } catch (\Throwable $throwable) {
-            Craft::error('Could not clear directory "'.$path.'" ('.$throwable->getMessage().')', __METHOD__);
+            Craft::error('Could not clear directory "' . $path . '" (' . $throwable->getMessage() . ')', __METHOD__);
         }
     }
 
@@ -587,9 +587,9 @@ class ImagerService extends Component
     public function deleteRemoteImageCaches(): void
     {
         try {
-            $path = Craft::$app->getPath()->getRuntimePath().'/imager/';
+            $path = Craft::$app->getPath()->getRuntimePath() . '/imager/';
         } catch (Exception $exception) {
-            Craft::error('Could not get runtime path ('.$exception->getMessage().')', __METHOD__);
+            Craft::error('Could not get runtime path (' . $exception->getMessage() . ')', __METHOD__);
 
             return;
         }
@@ -600,7 +600,7 @@ class ImagerService extends Component
                 FileHelper::clearDirectory($dir);
             }
         } catch (\Throwable $throwable) {
-            Craft::error('Could not clear directory "'.$path.'" ('.$throwable->getMessage().')', __METHOD__);
+            Craft::error('Could not clear directory "' . $path . '" (' . $throwable->getMessage() . ')', __METHOD__);
         }
     }
 

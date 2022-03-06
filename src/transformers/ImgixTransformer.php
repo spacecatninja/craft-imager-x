@@ -15,12 +15,12 @@ use Craft;
 use craft\base\Component;
 use craft\elements\Asset;
 
+use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\helpers\ImgixHelpers;
 use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\models\ImgixSettings;
 use spacecatninja\imagerx\models\ImgixTransformedImageModel;
 use spacecatninja\imagerx\services\ImagerService;
-use spacecatninja\imagerx\exceptions\ImagerException;
-use spacecatninja\imagerx\helpers\ImgixHelpers;
 
 /**
  * ImgixTransformer
@@ -70,7 +70,7 @@ class ImgixTransformer extends Component implements TransformerInterface
         $imgixConfigArr = $config->getSetting('imgixConfig', $transform);
 
         if (!isset($imgixConfigArr[$profile])) {
-            $msg = 'Imgix profile “'.$profile.'” does not exist.';
+            $msg = 'Imgix profile “' . $profile . '” does not exist.';
             Craft::error($msg, __METHOD__);
             throw new ImagerException($msg);
         }
@@ -127,7 +127,7 @@ class ImgixTransformer extends Component implements TransformerInterface
             }
         }
 
-        // Set quality 
+        // Set quality
         if (
             !isset($transform['q'])
             && !$this->transformHasAutoCompressionEnabled($transform)
@@ -152,8 +152,8 @@ class ImgixTransformer extends Component implements TransformerInterface
 
         // unset quality
         unset(
-            $transform['jpegQuality'], 
-            $transform['pngCompressionLevel'], 
+            $transform['jpegQuality'],
+            $transform['pngCompressionLevel'],
             $transform['webpQuality']
         );
 
@@ -169,7 +169,7 @@ class ImgixTransformer extends Component implements TransformerInterface
                         $r['fit'] = 'scale';
                         break;
                     case 'croponly':
-                        // todo : Not really supported, need to figure out if there's a workaround 
+                        // todo : Not really supported, need to figure out if there's a workaround
                         break;
                     case 'letterbox':
                         $r['fit'] = 'fill';
@@ -201,14 +201,13 @@ class ImgixTransformer extends Component implements TransformerInterface
             if (isset($transform['cropZoom'])) {
                 $r['fp-z'] = $transform['cropZoom'];
             }
-
         }
         
         // unset everything that has to do with mode and crop
         unset(
-            $transform['mode'], 
-            $transform['fit'], 
-            $transform['cropZoom'], 
+            $transform['mode'],
+            $transform['fit'],
+            $transform['cropZoom'],
             $transform['position'],
             $transform['letterbox']
         );
@@ -223,7 +222,7 @@ class ImgixTransformer extends Component implements TransformerInterface
             unset($transform['transformerParams']);
         }
 
-        // Assume that the reset of the values left in the transform object is Imgix specific 
+        // Assume that the reset of the values left in the transform object is Imgix specific
         foreach ($transform as $key => $val) {
             $r[$key] = $val;
         }
@@ -256,7 +255,7 @@ class ImgixTransformer extends Component implements TransformerInterface
             $r['customEncoderOptions']
         );
 
-        // Remove any empty values in return array, since these will result in 
+        // Remove any empty values in return array, since these will result in
         // an empty query string value that will give us trouble with Facebook (!).
         foreach ($r as $key => $val) {
             if ($val === '') {
@@ -292,20 +291,20 @@ class ImgixTransformer extends Component implements TransformerInterface
         if (\strlen($color) === 3) {
             $opacity = dechex($opacity * 15);
 
-            return $opacity.$color;
+            return $opacity . $color;
         }
 
         if (\strlen($color) === 6) {
             $opacity = dechex($opacity * 255);
-            $val = $opacity.$color;
+            $val = $opacity . $color;
             if (\strlen($val) === 7) {
-                $val = '0'.$val;
+                $val = '0' . $val;
             }
 
             return $val;
         }
 
-        if (\strlen($color) === 4 || \strlen($color) === 8) { // assume color already is 4 or 8 digit rgba. 
+        if (\strlen($color) === 4 || \strlen($color) === 8) { // assume color already is 4 or 8 digit rgba.
             return $color;
         }
 

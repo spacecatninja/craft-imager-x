@@ -10,17 +10,17 @@
 
 namespace spacecatninja\imagerx\helpers;
 
-use craft\fs\Local;
 use Craft;
-
-use craft\helpers\App;
-use craft\models\Volume;
 use craft\elements\Asset;
-use craft\helpers\FileHelper;
 
+use craft\fs\Local;
+use craft\helpers\App;
+use craft\helpers\FileHelper;
+use craft\models\Volume;
+
+use Imgix\UrlBuilder;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\models\ImgixSettings;
-use Imgix\UrlBuilder;
 
 use yii\base\InvalidConfigException;
 
@@ -33,11 +33,11 @@ class ImgixHelpers
     {
         if (\is_string($image)) { // if $image is a string, just pass it to builder, we have to assume the user knows what he's doing (sry) :)
             return $image;
-        } 
+        }
         
         if ($config->sourceIsWebProxy) {
             return $image->getUrl() ?? '';
-        } 
+        }
             
         try {
             $volume = $image->getVolume();
@@ -78,5 +78,4 @@ class ImgixHelpers
             $config->signKey,
             false);
     }
-    
 }

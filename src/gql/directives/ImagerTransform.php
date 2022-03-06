@@ -18,9 +18,9 @@ use GraphQL\Type\Definition\Directive as GqlDirective;
 use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Type\Definition\ResolveInfo;
 
-use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\gql\arguments\ImagerTransformArguments;
+use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\ImagerService;
 
 /**
@@ -55,7 +55,7 @@ class ImagerTransform extends Directive
                 DirectiveLocation::FIELD,
             ],
             'args' => ImagerTransformArguments::getArguments(),
-            'description' => 'This directive is used to return a URL for an using Imager X.'
+            'description' => 'This directive is used to return a URL for an using Imager X.',
         ]));
     }
 

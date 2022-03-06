@@ -10,10 +10,10 @@
 
 namespace spacecatninja\imagerx\twigextensions;
 
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
-
 use spacecatninja\imagerx\ImagerX as Plugin;
+use Twig\Extension\AbstractExtension;
+
+use Twig\TwigFilter;
 
 /**
  * @author    André Elvan
@@ -36,7 +36,7 @@ class ImagerTwigExtension extends AbstractExtension
     public function getFilters(): array
     {
         return [
-            new TwigFilter('srcset', function (array $images, string $descriptor = 'w') : string {
+            new TwigFilter('srcset', function(array $images, string $descriptor = 'w'): string {
                 return $this->srcsetFilter($images, $descriptor);
             }),
         ];

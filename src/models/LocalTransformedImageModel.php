@@ -12,14 +12,14 @@ namespace spacecatninja\imagerx\models;
 
 use craft\helpers\FileHelper;
 
-use spacecatninja\imagerx\helpers\ImagerHelpers;
-use spacecatninja\imagerx\services\ImagerService;
-use spacecatninja\imagerx\exceptions\ImagerException;
-
 use Imagine\Exception\InvalidArgumentException;
 use Imagine\Image\Box;
-
 use kornrunner\Blurhash\Blurhash;
+
+use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\helpers\ImagerHelpers;
+
+use spacecatninja\imagerx\services\ImagerService;
 
 use yii\base\InvalidConfigException;
 
@@ -56,7 +56,8 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
         if (\is_array($imageInfo) && $imageInfo[0] !== '' && $imageInfo[1] !== '') {
             $this->width = $imageInfo[0];
             $this->height = $imageInfo[1];
-        } else { $config = ImagerService::getConfig();
+        } else {
+            $config = ImagerService::getConfig();
 
             $sourceImageInfo = @getimagesize($sourceModel->getFilePath());
 
@@ -101,7 +102,7 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
         $key = 'imager-x-local-blurhash-' . base64_encode($blurhashFile);
         $cache = \Craft::$app->getCache();
         
-        $blurhashData = $cache->getOrSet($key, static function () use ($blurhashFile) {
+        $blurhashData = $cache->getOrSet($key, static function() use ($blurhashFile) {
             $image = imagecreatefromstring(file_get_contents($blurhashFile));
             $width = imagesx($image);
             $height = imagesy($image);
@@ -131,5 +132,4 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
         
         return (string)$blurhashData;
     }
-    
 }

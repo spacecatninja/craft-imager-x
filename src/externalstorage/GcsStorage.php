@@ -22,12 +22,11 @@ use spacecatninja\imagerx\services\ImagerService;
 
 class GcsStorage implements ImagerStorageInterface
 {
-
     public static function upload(string $file, string $uri, bool $isFinal, array $settings): bool
     {
         $config = ImagerService::getConfig();
         
-        if (isset($settings['folder']) && $settings['folder']!=='') {
+        if (isset($settings['folder']) && $settings['folder'] !== '') {
             $uri = ltrim(FileHelper::normalizePath($settings['folder'] . '/' . $uri), '/');
         }
         
@@ -45,7 +44,7 @@ class GcsStorage implements ImagerStorageInterface
         }
         
         $storage = new StorageClient([
-            $configKey => $configValue 
+            $configKey => $configValue,
         ]);
         
         $bucket = $storage->bucket($settings['bucket']);
@@ -58,16 +57,15 @@ class GcsStorage implements ImagerStorageInterface
                     'name' => $uri,
                     'predefinedAcl' => 'publicRead',
                     'metadata' => [
-                        'cacheControl' => 'max-age=' . $cacheDuration . ', must-revalidate'
-                    ]
+                        'cacheControl' => 'max-age=' . $cacheDuration . ', must-revalidate',
+                    ],
                 ]
             );
-        } catch(\Throwable $throwable) {
+        } catch (\Throwable $throwable) {
             Craft::error('An error occured while uploading to Google Cloud Storage: ' . $throwable->getMessage(), __METHOD__);
             return false;
         }
 
         return true;
     }
-
 }

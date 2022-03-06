@@ -10,28 +10,27 @@
 
 namespace spacecatninja\imagerx\services;
 
-use function SSNepenthe\ColorUtils\color;
+use ColorThief\ColorThief;
+use craft\base\Component;
+use craft\elements\Asset;
+use JetBrains\PhpStorm\Pure;
+use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\models\LocalSourceImageModel;
 use function SSNepenthe\ColorUtils\brightness;
+use function SSNepenthe\ColorUtils\brightness_difference;
+use function SSNepenthe\ColorUtils\color;
+use function SSNepenthe\ColorUtils\color_difference;
+use function SSNepenthe\ColorUtils\contrast_ratio;
 use function SSNepenthe\ColorUtils\hue;
-use function SSNepenthe\ColorUtils\lightness;
 use function SSNepenthe\ColorUtils\is_bright;
 use function SSNepenthe\ColorUtils\is_light;
+use function SSNepenthe\ColorUtils\lightness;
+
 use function SSNepenthe\ColorUtils\looks_bright;
 use function SSNepenthe\ColorUtils\perceived_brightness;
 use function SSNepenthe\ColorUtils\relative_luminance;
+
 use function SSNepenthe\ColorUtils\saturation;
-use function SSNepenthe\ColorUtils\brightness_difference;
-use function SSNepenthe\ColorUtils\color_difference;
-use function SSNepenthe\ColorUtils\contrast_ratio;
-use craft\base\Component;
-use craft\elements\Asset;
-
-use JetBrains\PhpStorm\Pure;
-use spacecatninja\imagerx\models\LocalSourceImageModel;
-use spacecatninja\imagerx\exceptions\ImagerException;
-
-use ColorThief\ColorThief;
-
 
 /**
  * ImagerColorService Service
@@ -107,7 +106,7 @@ class ImagerColorService extends Component
     }
 
     /**
-     * Calculates color brightness (https://www.w3.org/TR/AERT#color-contrast) on a scale from 0 (black) to 255 (white). 
+     * Calculates color brightness (https://www.w3.org/TR/AERT#color-contrast) on a scale from 0 (black) to 255 (white).
      *
      *
      */
@@ -140,29 +139,29 @@ class ImagerColorService extends Component
     }
 
     /**
-     * Checks brightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 127.5. 
+     * Checks brightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 127.5.
      *
      *
      */
-    public function isBright(array|string $color, float $threshold=127.5): bool
+    public function isBright(array|string $color, float $threshold = 127.5): bool
     {
         $c = color($color);
         return is_bright($c, $threshold);
     }
 
     /**
-     * Checks lightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 50.0. 
+     * Checks lightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 50.0.
      *
      *
      */
-    public function isLight(array|string $color, int $threshold=50): bool
+    public function isLight(array|string $color, int $threshold = 50): bool
     {
         $c = color($color);
         return is_light($c, $threshold);
     }
 
     /**
-     * Checks perceived_brightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 127.5. 
+     * Checks perceived_brightness($color) >= $threshold. Accepts an optional $threshold float as the last parameter with a default of 127.5.
      *
      *
      */
@@ -177,7 +176,7 @@ class ImagerColorService extends Component
      *
      *
      */
-    public function getPercievedBrightness(array|string $color): float 
+    public function getPercievedBrightness(array|string $color): float
     {
         $c = color($color);
         return perceived_brightness($c);
@@ -188,7 +187,7 @@ class ImagerColorService extends Component
      *
      *
      */
-    public function getRelativeLuminance(array|string $color): float 
+    public function getRelativeLuminance(array|string $color): float
     {
         $c = color($color);
         return relative_luminance($c);
@@ -199,7 +198,7 @@ class ImagerColorService extends Component
      *
      *
      */
-    public function getSaturation(array|string $color): float 
+    public function getSaturation(array|string $color): float
     {
         $c = color($color);
         return saturation($c);

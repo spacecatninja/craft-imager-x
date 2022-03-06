@@ -13,10 +13,10 @@ namespace spacecatninja\imagerx\console\controllers;
 use Craft;
 use craft\base\Field;
 use craft\base\FieldInterface;
-use craft\models\Volume;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
+use craft\models\Volume;
 
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\GenerateService;
@@ -61,7 +61,7 @@ class GenerateController extends Controller
     public string $transforms;
 
     /**
-     * @var array 
+     * @var array
      */
     private array $volumes = [];
     
@@ -148,7 +148,7 @@ $field['handle'], $this->fields);
             }
         }
         
-        $transforms = $this->transforms!=='' ? explode(',', $this->transforms) : [];
+        $transforms = $this->transforms !== '' ? explode(',', $this->transforms) : [];
         
         // Get transforms from config if none were passed in
         if ($volumeSpecified && empty($transforms)) {
@@ -157,7 +157,7 @@ $field['handle'], $this->fields);
             if ($volumesTransforms && $volumesTransforms[$this->volume] && !empty($volumesTransforms[$this->volume])) {
                 $transforms = $volumesTransforms[$this->volume];
             }
-        }        
+        }
         
         if ($fieldSpecified && empty($transforms)) {
             $fieldTransforms = ImagerService::$generateConfig->fields ?? null;
@@ -165,7 +165,7 @@ $field['handle'], $this->fields);
             if ($fieldTransforms && $fieldTransforms[$this->field] && !empty($fieldTransforms[$this->field])) {
                 $transforms = $fieldTransforms[$this->field];
             }
-        }        
+        }
         
         $assets = [];
         
@@ -186,11 +186,11 @@ $field['handle'], $this->fields);
         $total = count($assets);
         $current = 0;
         $this->success(sprintf('> Generating %d named transforms for %d images.', $numTransforms, $total));
-        Console::startProgress(0, $total*$numTransforms);
+        Console::startProgress(0, $total * $numTransforms);
         
         foreach ($assets as $asset) {
             ++$current;
-            Console::updateProgress($current*$numTransforms, $total*$numTransforms);
+            Console::updateProgress($current * $numTransforms, $total * $numTransforms);
             ImagerX::$plugin->generate->generateTransformsForAsset($asset, $transforms);
         }
         
@@ -258,7 +258,7 @@ $field['handle'], $this->fields);
         }
         
         if (!empty($targetFieldIds)) {
-            if (count($targetFieldIds)>1) {
+            if (count($targetFieldIds) > 1) {
                 $this->success('> Processing ' . count($targetFieldIds) . sprintf(' fields with handle `%s`', $this->field));
             } else {
                 $this->success(sprintf('> Processing field with handle `%s`', $this->field));
@@ -285,7 +285,7 @@ $field['handle'], $this->fields);
         return $query ? $query->all() : [];
     }
 
-    private function getAllFields(): array 
+    private function getAllFields(): array
     {
         return (new Query())
             ->select(['fields.id', 'fields.handle'])

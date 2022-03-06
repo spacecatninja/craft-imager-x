@@ -10,15 +10,15 @@
 
 namespace spacecatninja\imagerx\services;
 
-use Imagine\Image\Palette\RGB;
-use Imagine\Imagick\Imagine;
-use spacecatninja\imagerx\lib\Potracio;
-use spacecatninja\imagerx\models\LocalSourceImageModel;
 use craft\base\Component;
-
-use spacecatninja\imagerx\exceptions\ImagerException;
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\Box;
+use Imagine\Image\Palette\RGB;
+use Imagine\Imagick\Imagine;
+
+use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\lib\Potracio;
+use spacecatninja\imagerx\models\LocalSourceImageModel;
 
 /**
  * PlaceholderService Service
@@ -98,7 +98,7 @@ class PlaceholderService extends Component
         
         $palette = new RGB();
         
-        $col = $color==='transparent' ? $palette->color('#000000', 0) : $palette->color($color);
+        $col = $color === 'transparent' ? $palette->color('#000000', 0) : $palette->color($color);
         
         $image = $imagineInstance->create(new Box($width, $height), $col);
         $data = $image->get('gif');

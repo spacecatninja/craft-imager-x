@@ -40,7 +40,7 @@ class LocalTargetImageModel
 
     /**
      * LocalTargetImageModel constructor
-     * 
+     *
      * @param LocalSourceImageModel $source
      * @param array                 $transform
      */
@@ -49,8 +49,8 @@ class LocalTargetImageModel
         $config = ImagerService::getConfig();
 
         $this->filename = $this->createTargetFilename($source, $transform);
-        $this->path = FileHelper::normalizePath($config->imagerSystemPath.'/'.$source->transformPath);
-        $this->url = ImagerHelpers::stripTrailingSlash($config->imagerUrl).FileHelper::normalizePath($source->transformPath.'/'.$this->filename, '/');
+        $this->path = FileHelper::normalizePath($config->imagerSystemPath . '/' . $source->transformPath);
+        $this->url = ImagerHelpers::stripTrailingSlash($config->imagerUrl) . FileHelper::normalizePath($source->transformPath . '/' . $this->filename, '/');
     }
 
     /**
@@ -58,7 +58,7 @@ class LocalTargetImageModel
      */
     public function getFilePath(): string
     {
-        return FileHelper::normalizePath($this->path.'/'.$this->filename);
+        return FileHelper::normalizePath($this->path . '/' . $this->filename);
     }
 
     /**
@@ -95,24 +95,24 @@ class LocalTargetImageModel
 
         $this->extension = $extension;
 
-        $transformFileString = ImagerHelpers::createTransformFilestring($transform).$config->getConfigOverrideString();
+        $transformFileString = ImagerHelpers::createTransformFilestring($transform) . $config->getConfigOverrideString();
 
         // If $useFilenamePattern is false, use old behavior with hashFilename config setting.
-        if (!$useFilenamePattern) { 
+        if (!$useFilenamePattern) {
             if ($hashFilename) {
                 if ($hashFilename === 'postfix') {
-                    return $basename.'_'.md5($transformFileString).'.'.$extension;
+                    return $basename . '_' . md5($transformFileString) . '.' . $extension;
                 }
 
-                return md5($basename.$transformFileString).'.'.$extension;
+                return md5($basename . $transformFileString) . '.' . $extension;
             }
 
-            return $basename.$transformFileString.'.'.$extension;
+            return $basename . $transformFileString . '.' . $extension;
         }
 
         // New behavior, uses filenamePattern config setting. Much joy.
         $transformFileString = ltrim($transformFileString, '_');
-        $fullname = $basename.'_'.$transformFileString;
+        $fullname = $basename . '_' . $transformFileString;
 
         $patternFilename = $config->getSetting('filenamePattern', $transform);
         $patternFilename = mb_ereg_replace('{extension}', $extension, $patternFilename);

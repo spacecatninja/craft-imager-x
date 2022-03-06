@@ -29,15 +29,15 @@ class JpegtranOptimizer implements ImagerOptimizeInterface
             $cmd .= ' ';
             $cmd .= $settings['optionString'];
             $cmd .= ' -outfile ';
-            $cmd .= '"'.$file.'"';
+            $cmd .= '"' . $file . '"';
             $cmd .= ' ';
-            $cmd .= '"'.$file.'"';
+            $cmd .= '"' . $file . '"';
 
             $result = self::runShellCommand($cmd);
             
-            Craft::info('Command "'.$cmd.'" returned "'.$result.'"');
+            Craft::info('Command "' . $cmd . '" returned "' . $result . '"');
         } else {
-            Craft::error('Optimizer '.self::class.' could not be found in path '.$settings['path'], __METHOD__);
+            Craft::error('Optimizer ' . self::class . ' could not be found in path ' . $settings['path'], __METHOD__);
         }
     }
 }

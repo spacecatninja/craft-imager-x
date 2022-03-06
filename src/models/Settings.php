@@ -10,9 +10,9 @@
 
 namespace spacecatninja\imagerx\models;
 
+use craft\base\Model;
 use craft\helpers\ConfigHelper;
 use craft\helpers\FileHelper;
-use craft\base\Model;
 
 class Settings extends Model
 {
@@ -76,7 +76,7 @@ class Settings extends Model
     public $shortHashLength = 10;
 
     public $hashFilename = 'postfix';
-     // deprecated
+    // deprecated
     public $hashPath = false;
 
     public $addVolumeToPath = true;
@@ -140,7 +140,7 @@ class Settings extends Model
             'defaultParams' => [],
             'apiKey' => '',
             'excludeFromPurge' => false,
-        ]
+        ],
     ];
 
     public $optimizeType = 'job';
@@ -188,12 +188,12 @@ class Settings extends Model
             'apiSecret' => '',
             'additionalParams' => [
                 'lossy' => true,
-            ]
+            ],
         ],
         'imageoptim' => [
             'extensions' => ['png', 'jpg', 'gif'],
             'apiUsername' => '',
-            'quality' => 'medium'
+            'quality' => 'medium',
         ],
     ];
 
@@ -255,7 +255,7 @@ class Settings extends Model
 
     public function init(): void
     {
-        // Set default based on devMode. Overridable through config.  
+        // Set default based on devMode. Overridable through config.
         $this->suppressExceptions = !\Craft::$app->getConfig()->general->devMode;
     }
 }

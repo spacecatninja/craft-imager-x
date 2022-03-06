@@ -12,11 +12,11 @@ namespace spacecatninja\imagerx\elementactions;
 
 use Craft;
 
-use craft\elements\db\ElementQueryInterface;
 use craft\base\ElementAction;
-use yii\base\Exception;
-
+use craft\elements\db\ElementQueryInterface;
 use spacecatninja\imagerx\ImagerX as Plugin;
+
+use yii\base\Exception;
 
 /**
  *

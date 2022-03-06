@@ -10,16 +10,16 @@
 
 namespace spacecatninja\imagerx\services;
 
-use spacecatninja\imagerx\exceptions\ImagerException;
-use spacecatninja\imagerx\helpers\ImgixHelpers;
-use spacecatninja\imagerx\models\ConfigModel;
-use spacecatninja\imagerx\models\ImgixSettings;
-
-use Imgix\UrlBuilder;
-
 use Craft;
 use craft\base\Component;
 use craft\elements\Asset;
+use Imgix\UrlBuilder;
+
+use spacecatninja\imagerx\exceptions\ImagerException;
+
+use spacecatninja\imagerx\helpers\ImgixHelpers;
+use spacecatninja\imagerx\models\ConfigModel;
+use spacecatninja\imagerx\models\ImgixSettings;
 
 /**
  * ImgixService Service
@@ -32,7 +32,6 @@ use craft\elements\Asset;
  */
 class ImgixService extends Component
 {
-
     /**
      *  The Imgix API endpoint for purging images
      * @var string
@@ -89,27 +88,27 @@ class ImgixService extends Component
      */
     public function purgeUrlFromImgix(string $url, string $apiKey): void
     {
-        $isOld = strlen($apiKey)<50;
+        $isOld = strlen($apiKey) < 50;
 
         try {
             if ($isOld) {
                 $headers = [
                     'Content-Type:application/json',
-                    'Authorization: Basic ' . base64_encode(sprintf('%s:', $apiKey))
+                    'Authorization: Basic ' . base64_encode(sprintf('%s:', $apiKey)),
                 ];
                 $payload = json_encode(["url" => $url], JSON_THROW_ON_ERROR);
             } else {
                 $headers = [
                     'Content-Type:application/json',
-                    'Authorization: Bearer ' . $apiKey
+                    'Authorization: Bearer ' . $apiKey,
                 ];
                 $payload = json_encode([
                     'data' => [
                         'attributes' => [
-                            'url' => $url
+                            'url' => $url,
                         ],
-                        'type' => 'purges'
-                    ]
+                        'type' => 'purges',
+                    ],
                 ]);
             }
 
@@ -120,7 +119,7 @@ class ImgixService extends Component
                 CURLOPT_POSTFIELDS => $payload,
                 CURLOPT_TIMEOUT => 30,
                 CURLOPT_POST => 1,
-                CURLOPT_RETURNTRANSFER => true
+                CURLOPT_RETURNTRANSFER => true,
             ];
 
             curl_setopt_array($curl, $opts);
@@ -140,7 +139,6 @@ class ImgixService extends Component
                 $msg = Craft::t('imager-x', 'An error occured when trying to purge “{url}”, status was “{httpStatus}” and respose was “{response}”', ['url' => $url, 'httpStatus' => $httpStatus, 'response' => $response]);
                 Craft::error($msg);
             }
-
         } catch (\Throwable $throwable) {
             Craft::error($throwable->getMessage(), __METHOD__);
             // We don't continue to throw this error, since it could be caused by a duplicated request.
@@ -165,7 +163,6 @@ class ImgixService extends Component
         }
 
         foreach ($imgixConfigArr as $imgixConfig) {
-
             $imgixConfig = new ImgixSettings($imgixConfig);
             if ($imgixConfig->sourceIsWebProxy || $imgixConfig->excludeFromPurge) {
                 continue;
@@ -189,12 +186,10 @@ class ImgixService extends Component
                 $url = $builder->createURL($path);
 
                 $this->purgeUrlFromImgix($url, $apiKey);
-
             } catch (\Throwable $throwable) {
                 Craft::error($throwable->getMessage(), __METHOD__);
                 throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
             }
-
         }
     }
 }

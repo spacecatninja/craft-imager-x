@@ -10,15 +10,14 @@
 
 namespace spacecatninja\imagerx\elementactions;
 
-
-use spacecatninja\imagerx\services\ImagerService;
 use Craft;
+use craft\base\ElementAction;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\elements\db\ElementQueryInterface;
-use craft\base\ElementAction;
-
 use spacecatninja\imagerx\ImagerX;
+
+use spacecatninja\imagerx\services\ImagerService;
 
 /**
  *
@@ -26,7 +25,6 @@ use spacecatninja\imagerx\ImagerX;
  */
 class GenerateTransformsAction extends ElementAction
 {
-
     /**
      * @inheritdoc
      */
@@ -36,7 +34,7 @@ class GenerateTransformsAction extends ElementAction
     }
 
     /**
-     * Generates transforms 
+     * Generates transforms
      *
      *
      */

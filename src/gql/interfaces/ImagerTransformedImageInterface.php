@@ -10,14 +10,14 @@
 
 namespace spacecatninja\imagerx\gql\interfaces;
 
-use spacecatninja\imagerx\gql\types\generators\ImagerGenerator;
-
 use craft\gql\base\InterfaceType as BaseInterfaceType;
-use craft\gql\TypeLoader;
-use craft\gql\GqlEntityRegistry;
 
+use craft\gql\GqlEntityRegistry;
+use craft\gql\TypeLoader;
 use GraphQL\Type\Definition\InterfaceType;
+
 use GraphQL\Type\Definition\Type;
+use spacecatninja\imagerx\gql\types\generators\ImagerGenerator;
 
 class ImagerTransformedImageInterface extends BaseInterfaceType
 {

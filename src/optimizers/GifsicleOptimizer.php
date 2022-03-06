@@ -30,11 +30,11 @@ class GifsicleOptimizer implements ImagerOptimizeInterface
             $cmd .= $settings['optionString'];
             $cmd .= ' ';
             $cmd .= '-b ';
-            $cmd .= '"'.$file.'"';
+            $cmd .= '"' . $file . '"';
             
             $result = self::runShellCommand($cmd);
 
-            Craft::info('Command "'.$cmd.'" returned "' . $result . '"');
+            Craft::info('Command "' . $cmd . '" returned "' . $result . '"');
         } else {
             Craft::error('Optimizer ' . self::class . ' could not be found in path ' . $settings['path'], __METHOD__);
         }

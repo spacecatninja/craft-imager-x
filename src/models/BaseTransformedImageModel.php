@@ -10,9 +10,8 @@
 
 namespace spacecatninja\imagerx\models;
 
-use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\exceptions\ImagerException;
-
+use spacecatninja\imagerx\ImagerX;
 
 class BaseTransformedImageModel implements \Stringable
 {
@@ -148,5 +147,4 @@ class BaseTransformedImageModel implements \Stringable
     {
         return $this->url;
     }
-
 }

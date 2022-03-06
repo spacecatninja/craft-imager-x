@@ -13,11 +13,11 @@ namespace spacecatninja\imagerx\utilities;
 use Craft;
 use craft\base\Utility;
 
-use craft\models\Volume;
 use craft\elements\Asset;
 use craft\helpers\Html;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
+use craft\models\Volume;
 use spacecatninja\imagerx\assetbundles\GenerateTransformsUtilityAssets;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\models\Settings;
@@ -79,7 +79,7 @@ class GenerateTransformsUtility extends Utility
 
             $volumeOptions[] = [
                 'label' => Template::raw(Html::encode($volume->name) . sprintf(' <span class=\'light\'>(%s images)</span>', $assetsCount)),
-                'value' => $volume->id
+                'value' => $volume->id,
             ];
         }
 
@@ -87,7 +87,7 @@ class GenerateTransformsUtility extends Utility
         $volumesCheckboxSelectHtml = $view->renderTemplate('_includes/forms/checkboxSelect', [
             'name' => 'volumes',
             'options' => $volumeOptions,
-            'showAllOption' => false
+            'showAllOption' => false,
         ]);
 
         $namedTransforms = ImagerService::$namedTransforms;
@@ -101,7 +101,7 @@ class GenerateTransformsUtility extends Utility
             
             $namedTransformsOptions[] = [
                 'label' => Html::encode($namedTransformValue['displayName'] ?? $namedTransformKey),
-                'value' => $namedTransformKey
+                'value' => $namedTransformKey,
             ];
         }
 
@@ -109,7 +109,7 @@ class GenerateTransformsUtility extends Utility
         $transformsCheckboxSelectHtml = $view->renderTemplate('_includes/forms/checkboxSelect', [
             'name' => 'namedTransforms',
             'options' => $namedTransformsOptions,
-            'showAllOption' => false
+            'showAllOption' => false,
         ]);
 
         

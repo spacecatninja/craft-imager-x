@@ -10,14 +10,13 @@
 
 namespace spacecatninja\imagerx\effects;
 
-use spacecatninja\imagerx\services\ImagerService;
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
 use Imagine\Imagick\Imagick;
+use spacecatninja\imagerx\services\ImagerService;
 
 class ColorBlendEffect implements ImagerEffectsInterface
 {
-
     /**
      * @param GdImage|ImagickImage        $imageInstance
      * @param array|string|int|float|null $params
@@ -30,7 +29,6 @@ class ColorBlendEffect implements ImagerEffectsInterface
             
             if (\is_array($params)) {
                 if (\count($params) > 1) {
-
                     self::colorBlend($imagickInstance, $params[0], $params[1]);
                 } else {
                     self::colorBlend($imagickInstance, $params[0]);

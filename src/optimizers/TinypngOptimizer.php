@@ -10,16 +10,15 @@
 
 namespace spacecatninja\imagerx\optimizers;
 
-use function Tinify\setKey;
-use function Tinify\validate;
-use function Tinify\fromFile;
 use Craft;
-
 use Tinify\Exception;
+use function Tinify\fromFile;
+use function Tinify\setKey;
+
+use function Tinify\validate;
 
 class TinypngOptimizer implements ImagerOptimizeInterface
 {
-
     public static function optimize(string $file, ?array $settings): void
     {
         try {

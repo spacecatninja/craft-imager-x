@@ -14,14 +14,14 @@ use Craft;
 use craft\base\Component;
 use craft\base\Element;
 use craft\base\ElementInterface;
-use craft\models\Volume;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\elements\db\ElementQuery;
+use craft\models\Volume;
 
 use spacecatninja\imagerx\exceptions\ImagerException;
-use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\helpers\FieldHelpers;
+use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\jobs\TransformJob;
 
 use yii\base\InvalidConfigException;
@@ -35,7 +35,6 @@ use yii\base\InvalidConfigException;
  */
 class GenerateService extends Component
 {
-
     /**
      * @param array|null $transforms
      */
@@ -260,12 +259,12 @@ class GenerateService extends Component
         $queue = Craft::$app->getQueue();
 
         $jobId = $queue->push(new TransformJob([
-            'description' => Craft::t('imager-x', 'Generating transforms for asset "'.$asset->filename.'" (ID '.$asset->id.')'),
+            'description' => Craft::t('imager-x', 'Generating transforms for asset "' . $asset->filename . '" (ID ' . $asset->id . ')'),
             'assetId' => $asset->id,
             'transforms' => $transforms,
         ]));
 
-        Craft::info('Created transform job for asset with id '.$asset->id.' (job id is '.$jobId.')', __METHOD__);
+        Craft::info('Created transform job for asset with id ' . $asset->id . ' (job id is ' . $jobId . ')', __METHOD__);
     }
 
     /**
@@ -297,5 +296,4 @@ class GenerateService extends Component
     {
         return $element instanceof Asset && $element->kind === 'image' && \in_array(strtolower($element->getExtension()), ImagerService::getConfig()->safeFileFormats, true);
     }
-
 }

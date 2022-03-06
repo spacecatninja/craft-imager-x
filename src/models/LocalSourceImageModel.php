@@ -12,17 +12,17 @@ namespace spacecatninja\imagerx\models;
 
 use Craft;
 
-use craft\fs\Local;
-use craft\models\Volume;
-use craft\helpers\FileHelper;
 use craft\elements\Asset;
 use craft\errors\AssetException;
-use craft\helpers\StringHelper;
+use craft\fs\Local;
 use craft\helpers\Assets as AssetsHelper;
+use craft\helpers\FileHelper;
+use craft\helpers\StringHelper;
+use craft\models\Volume;
 
+use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\services\ImagerService;
-use spacecatninja\imagerx\exceptions\ImagerException;
 
 use Yii;
 use yii\base\Exception;
@@ -85,7 +85,7 @@ class LocalSourceImageModel
             } else {
                 if (str_starts_with($image, '//')) {
                     // Protocol relative url, add https
-                    $image = 'https:'.$image;
+                    $image = 'https:' . $image;
                 }
 
                 if (str_starts_with($image, 'http') || str_starts_with($image, 'https')) {
@@ -121,12 +121,12 @@ class LocalSourceImageModel
 
     public function getFilePath(): string
     {
-        return FileHelper::normalizePath($this->path.'/'.$this->filename);
+        return FileHelper::normalizePath($this->path . '/' . $this->filename);
     }
 
     public function getTemporaryFilePath(): string
     {
-        return FileHelper::normalizePath($this->path.'/~'.$this->filename);
+        return FileHelper::normalizePath($this->path . '/~' . $this->filename);
     }
 
     /**
@@ -157,7 +157,7 @@ class LocalSourceImageModel
                         }
 
                         $volume->saveFileLocally($this->asset->getPath(), $this->getTemporaryFilePath());
-                    } catch (AssetException $assetException){
+                    } catch (AssetException $assetException) {
                         throw new ImagerException($assetException->getMessage(), $assetException->getCode(), $assetException);
                     }
 
@@ -212,7 +212,7 @@ class LocalSourceImageModel
             $fs = $image->getVolume()->getFs();
 
             $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
-            $this->path = FileHelper::normalizePath($fs->getRootPath().'/'.$image->folderPath);
+            $this->path = FileHelper::normalizePath($fs->getRootPath() . '/' . $image->folderPath);
             $this->url = $image->getUrl();
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
@@ -234,7 +234,7 @@ class LocalSourceImageModel
         $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
 
         try {
-            $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath().'/imager/';
+            $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath() . '/imager/';
         } catch (Exception $exception) {
             Craft::error($exception->getMessage(), __METHOD__);
             throw new ImagerException($exception->getMessage(), $exception->getCode(), $exception);
@@ -242,14 +242,14 @@ class LocalSourceImageModel
 
         try {
             $this->url = AssetsHelper::generateUrl($image->getVolume(), $image);
-            $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
+            $this->path = FileHelper::normalizePath($runtimeImagerPath . $this->transformPath . '/');
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
             $this->extension = $image->getExtension();
         } catch (\Throwable $throwable) {
             Craft::error($throwable->getMessage(), __METHOD__);
             throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
-        }   
+        }
 
 
         try {
@@ -269,12 +269,12 @@ class LocalSourceImageModel
     {
         $config = ImagerService::getConfig();
 
-        $imageString = '/'.str_replace($config->getSetting('imagerUrl'), '', $image);
+        $imageString = '/' . str_replace($config->getSetting('imagerUrl'), '', $image);
 
         $pathParts = pathinfo($imageString);
 
         $this->transformPath = $pathParts['dirname'];
-        $this->path = FileHelper::normalizePath($config->getSetting('imagerSystemPath').'/'.$pathParts['dirname']);
+        $this->path = FileHelper::normalizePath($config->getSetting('imagerSystemPath') . '/' . $pathParts['dirname']);
         $this->url = $image;
         $this->filename = $pathParts['basename'];
         $this->basename = $pathParts['filename'];
@@ -291,7 +291,7 @@ class LocalSourceImageModel
         $this->transformPath = ImagerHelpers::getTransformPathForPath($image);
         $pathParts = pathinfo($image);
 
-        $this->path = FileHelper::normalizePath(Yii::getAlias('@webroot').'/'.$pathParts['dirname']);
+        $this->path = FileHelper::normalizePath(Yii::getAlias('@webroot') . '/' . $pathParts['dirname']);
         $this->url = $image;
         $this->filename = $pathParts['basename'];
         $this->basename = $pathParts['filename'];
@@ -310,7 +310,7 @@ class LocalSourceImageModel
         $config = ImagerService::getConfig();
 
         try {
-            $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath().'/imager/';
+            $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath() . '/imager/';
         } catch (Exception $exception) {
             Craft::error($exception->getMessage(), __METHOD__);
             throw new ImagerException($exception->getMessage(), $exception->getCode(), $exception);
@@ -323,11 +323,11 @@ class LocalSourceImageModel
         $pathParts = pathinfo($urlParts['path']);
         $queryString = $config->getSetting('useRemoteUrlQueryString') ? ($urlParts['query'] ?? '') : '';
 
-        $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
+        $this->path = FileHelper::normalizePath($runtimeImagerPath . $this->transformPath . '/');
         $this->url = $image;
-        $this->basename = str_replace(' ', '-', $pathParts['filename']).($queryString !== '' ? '_'.md5($queryString) : '');
+        $this->basename = str_replace(' ', '-', $pathParts['filename']) . ($queryString !== '' ? '_' . md5($queryString) : '');
         $this->extension = $pathParts['extension'] ?? '';
-        $this->filename = FileHelper::sanitizeFilename($this->basename . ($this->extension !== ''  ? '.'.$this->extension : ''));
+        $this->filename = FileHelper::sanitizeFilename($this->basename . ($this->extension !== '' ? '.' . $this->extension : ''));
 
         try {
             FileHelper::createDirectory($this->path);
@@ -364,7 +364,7 @@ class LocalSourceImageModel
                 CURLOPT_FILE => $fp,
                 CURLOPT_HEADER => 0,
                 CURLOPT_FOLLOWLOCATION => 1,
-                CURLOPT_TIMEOUT => 30
+                CURLOPT_TIMEOUT => 30,
             ];
 
             // merge default options with config setting, config overrides default.

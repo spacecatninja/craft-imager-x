@@ -15,10 +15,10 @@ use craft\elements\Asset;
 use craft\queue\BaseJob;
 use craft\queue\QueueInterface;
 
-use yii\queue\Queue;
-
 use spacecatninja\imagerx\exceptions\ImagerException;
+
 use spacecatninja\imagerx\ImagerX;
+use yii\queue\Queue;
 
 class TransformJob extends BaseJob
 {

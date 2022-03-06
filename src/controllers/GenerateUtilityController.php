@@ -11,11 +11,11 @@
 
 namespace spacecatninja\imagerx\controllers;
 
-use yii\web\Response;
 use Craft;
 use craft\web\Controller;
-
 use spacecatninja\imagerx\ImagerX as Plugin;
+
+use yii\web\Response;
 
 /**
  * Class CacheController
@@ -24,7 +24,6 @@ use spacecatninja\imagerx\ImagerX as Plugin;
  */
 class GenerateUtilityController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 
@@ -58,7 +57,7 @@ class GenerateUtilityController extends Controller
         if ($hasErrors) {
             return $this->asJson([
                 'success' => false,
-                'errors' => $errors
+                'errors' => $errors,
             ]);
         }
         
@@ -70,14 +69,13 @@ class GenerateUtilityController extends Controller
             return $this->asJson([
                 'success' => false,
                 'errors' => [
-                    $throwable->getMessage()
-                ]
+                    $throwable->getMessage(),
+                ],
             ]);
         }
 
         return $this->asJson([
-            'success' => true
+            'success' => true,
         ]);
     }
-
 }

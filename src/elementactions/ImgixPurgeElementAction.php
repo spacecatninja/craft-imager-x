@@ -10,11 +10,11 @@
 
 namespace spacecatninja\imagerx\elementactions;
 
-use spacecatninja\imagerx\ImagerX;
-
 use Craft;
-use craft\elements\db\ElementQueryInterface;
+
 use craft\base\ElementAction;
+use craft\elements\db\ElementQueryInterface;
+use spacecatninja\imagerx\ImagerX;
 
 use spacecatninja\imagerx\ImagerX as Plugin;
 
@@ -24,7 +24,6 @@ use spacecatninja\imagerx\ImagerX as Plugin;
  */
 class ImgixPurgeElementAction extends ElementAction
 {
-
     /**
      * @inheritdoc
      */
@@ -40,7 +39,6 @@ class ImgixPurgeElementAction extends ElementAction
      */
     public function performAction(ElementQueryInterface $query): bool
     {
-
         $imagesToPurge = $query->kind('image')->all();
 
         if (empty($imagesToPurge)) {

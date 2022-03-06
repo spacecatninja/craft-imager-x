@@ -12,16 +12,14 @@ namespace spacecatninja\imagerx\optimizers;
 
 use Craft;
 
-
 class KrakenOptimizer implements ImagerOptimizeInterface
 {
-
     public static function optimize(string $file, ?array $settings): void
     {
         $kraken = new \Kraken($settings['apiKey'], $settings['apiSecret']);
         $params = [
             'file' => $file,
-            'wait' => true
+            'wait' => true,
         ];
 
         if (isset($settings['additionalParams']) && \is_array($settings['additionalParams'])) {

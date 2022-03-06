@@ -10,26 +10,26 @@
 
 namespace spacecatninja\imagerx;
 
-use craft\events\DefineAssetUrlEvent;
-use craft\events\DefineAssetThumbUrlEvent;
-use craft\gql\TypeManager;
-use craft\events\DefineGqlTypeFieldsEvent;
-use GraphQL\Type\Definition\Type;
 use Craft;
 use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
 use craft\elements\Asset;
+use craft\events\DefineAssetThumbUrlEvent;
+use craft\events\DefineAssetUrlEvent;
+use craft\events\DefineGqlTypeFieldsEvent;
 use craft\events\ElementEvent;
 use craft\events\GetAssetThumbUrlEvent;
 use craft\events\GetAssetUrlEvent;
 use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterElementActionsEvent;
+use craft\events\RegisterGqlDirectivesEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\ReplaceAssetEvent;
+use craft\gql\TypeManager;
 use craft\helpers\FileHelper;
 use craft\models\AssetTransform;
 use craft\services\Assets;
@@ -39,87 +39,87 @@ use craft\services\Plugins;
 use craft\services\Utilities;
 use craft\utilities\ClearCaches;
 use craft\web\twig\variables\CraftVariable;
-use craft\events\RegisterGqlDirectivesEvent;
+use GraphQL\Type\Definition\Type;
 
-use spacecatninja\imagerx\effects\BrightnessEffect;
-use spacecatninja\imagerx\effects\FloodFillPaintEffect;
-use spacecatninja\imagerx\effects\OpacityEffect;
-use spacecatninja\imagerx\effects\TransparentPaintEffect;
-use spacecatninja\imagerx\gql\resolvers\ImagerResolver;
-use spacecatninja\imagerx\helpers\VersionHelpers;
-use spacecatninja\imagerx\utilities\GenerateTransformsUtility;
-use yii\base\Event;
-
-use spacecatninja\imagerx\models\TransformedImageInterface;
-use spacecatninja\imagerx\elementactions\ClearTransformsElementAction;
-use spacecatninja\imagerx\elementactions\ImgixPurgeElementAction;
-use spacecatninja\imagerx\elementactions\GenerateTransformsAction;
-use spacecatninja\imagerx\exceptions\ImagerException;
-use spacecatninja\imagerx\models\Settings;
-use spacecatninja\imagerx\models\GenerateSettings;
-use spacecatninja\imagerx\services\PlaceholderService;
-use spacecatninja\imagerx\services\ImagerService;
-use spacecatninja\imagerx\services\ImagerColorService;
-use spacecatninja\imagerx\services\ImgixService;
-use spacecatninja\imagerx\services\GenerateService;
-use spacecatninja\imagerx\services\OptimizerService;
-use spacecatninja\imagerx\services\StorageService;
-use spacecatninja\imagerx\variables\ImagerVariable;
-use spacecatninja\imagerx\twigextensions\ImagerTwigExtension;
-use spacecatninja\imagerx\helpers\ImagerHelpers;
-
-use spacecatninja\imagerx\transformers\CraftTransformer;
-use spacecatninja\imagerx\transformers\ImgixTransformer;
-
+use spacecatninja\imagerx\effects\AdaptiveBlurEffect;
+use spacecatninja\imagerx\effects\AdaptiveSharpenEffect;
 use spacecatninja\imagerx\effects\BlurEffect;
+use spacecatninja\imagerx\effects\BrightnessEffect;
 use spacecatninja\imagerx\effects\ClutEffect;
 use spacecatninja\imagerx\effects\ColorBlendEffect;
 use spacecatninja\imagerx\effects\ColorizeEffect;
 use spacecatninja\imagerx\effects\ContrastEffect;
+
 use spacecatninja\imagerx\effects\ContrastStretchEffect;
-use spacecatninja\imagerx\effects\GammaEffect;
-use spacecatninja\imagerx\effects\GreyscaleEffect;
-use spacecatninja\imagerx\effects\LevelsEffect;
-use spacecatninja\imagerx\effects\ModulateEffect;
-use spacecatninja\imagerx\effects\NegativeEffect;
-use spacecatninja\imagerx\effects\NormalizeEffect;
-use spacecatninja\imagerx\effects\PosterizeEffect;
-use spacecatninja\imagerx\effects\QuantizeEffect;
-use spacecatninja\imagerx\effects\SepiaEffect;
-use spacecatninja\imagerx\effects\SharpenEffect;
-use spacecatninja\imagerx\effects\TintEffect;
-use spacecatninja\imagerx\effects\UnsharpMaskEffect;
-use spacecatninja\imagerx\effects\AdaptiveBlurEffect;
-use spacecatninja\imagerx\effects\AdaptiveSharpenEffect;
 use spacecatninja\imagerx\effects\DespeckleEffect;
 use spacecatninja\imagerx\effects\EnhanceEffect;
 use spacecatninja\imagerx\effects\EqualizeEffect;
+use spacecatninja\imagerx\effects\FloodFillPaintEffect;
+use spacecatninja\imagerx\effects\GammaEffect;
 use spacecatninja\imagerx\effects\GaussianBlurEffect;
+use spacecatninja\imagerx\effects\GreyscaleEffect;
+use spacecatninja\imagerx\effects\LevelsEffect;
+use spacecatninja\imagerx\effects\ModulateEffect;
 use spacecatninja\imagerx\effects\MotionBlurEffect;
+use spacecatninja\imagerx\effects\NegativeEffect;
+use spacecatninja\imagerx\effects\NormalizeEffect;
 use spacecatninja\imagerx\effects\OilPaintEffect;
-use spacecatninja\imagerx\effects\RadialBlurEffect;
+use spacecatninja\imagerx\effects\OpacityEffect;
+use spacecatninja\imagerx\effects\PosterizeEffect;
+use spacecatninja\imagerx\effects\QuantizeEffect;
 
+use spacecatninja\imagerx\effects\RadialBlurEffect;
+use spacecatninja\imagerx\effects\SepiaEffect;
+
+use spacecatninja\imagerx\effects\SharpenEffect;
+use spacecatninja\imagerx\effects\TintEffect;
+use spacecatninja\imagerx\effects\TransparentPaintEffect;
+use spacecatninja\imagerx\effects\UnsharpMaskEffect;
+use spacecatninja\imagerx\elementactions\ClearTransformsElementAction;
+use spacecatninja\imagerx\elementactions\GenerateTransformsAction;
+use spacecatninja\imagerx\elementactions\ImgixPurgeElementAction;
+use spacecatninja\imagerx\events\RegisterEffectsEvent;
+use spacecatninja\imagerx\events\RegisterExternalStoragesEvent;
+use spacecatninja\imagerx\events\RegisterOptimizersEvent;
+use spacecatninja\imagerx\events\RegisterTransformersEvent;
+use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\externalstorage\AwsStorage;
+use spacecatninja\imagerx\externalstorage\GcsStorage;
+use spacecatninja\imagerx\gql\directives\ImagerSrcset;
+use spacecatninja\imagerx\gql\directives\ImagerTransform;
+use spacecatninja\imagerx\gql\interfaces\ImagerTransformedImageInterface;
+use spacecatninja\imagerx\gql\queries\ImagerQuery;
+use spacecatninja\imagerx\gql\resolvers\ImagerResolver;
+use spacecatninja\imagerx\helpers\ImagerHelpers;
+use spacecatninja\imagerx\helpers\VersionHelpers;
+use spacecatninja\imagerx\models\GenerateSettings;
+use spacecatninja\imagerx\models\Settings;
+use spacecatninja\imagerx\models\TransformedImageInterface;
 use spacecatninja\imagerx\optimizers\GifsicleOptimizer;
 use spacecatninja\imagerx\optimizers\JpegoptimOptimizer;
 use spacecatninja\imagerx\optimizers\JpegtranOptimizer;
+
 use spacecatninja\imagerx\optimizers\KrakenOptimizer;
 use spacecatninja\imagerx\optimizers\MozjpegOptimizer;
 use spacecatninja\imagerx\optimizers\OptipngOptimizer;
 use spacecatninja\imagerx\optimizers\PngquantOptimizer;
 use spacecatninja\imagerx\optimizers\TinypngOptimizer;
+use spacecatninja\imagerx\services\GenerateService;
+use spacecatninja\imagerx\services\ImagerColorService;
+use spacecatninja\imagerx\services\ImagerService;
 
-use spacecatninja\imagerx\externalstorage\AwsStorage;
-use spacecatninja\imagerx\externalstorage\GcsStorage;
+use spacecatninja\imagerx\services\ImgixService;
+use spacecatninja\imagerx\services\OptimizerService;
 
-use spacecatninja\imagerx\gql\directives\ImagerTransform;
-use spacecatninja\imagerx\gql\directives\ImagerSrcset;
-use spacecatninja\imagerx\gql\interfaces\ImagerTransformedImageInterface;
-use spacecatninja\imagerx\gql\queries\ImagerQuery;
+use spacecatninja\imagerx\services\PlaceholderService;
+use spacecatninja\imagerx\services\StorageService;
+use spacecatninja\imagerx\transformers\CraftTransformer;
+use spacecatninja\imagerx\transformers\ImgixTransformer;
 
-use spacecatninja\imagerx\events\RegisterExternalStoragesEvent;
-use spacecatninja\imagerx\events\RegisterTransformersEvent;
-use spacecatninja\imagerx\events\RegisterEffectsEvent;
-use spacecatninja\imagerx\events\RegisterOptimizersEvent;
+use spacecatninja\imagerx\twigextensions\ImagerTwigExtension;
+use spacecatninja\imagerx\utilities\GenerateTransformsUtility;
+use spacecatninja\imagerx\variables\ImagerVariable;
+use yii\base\Event;
 
 /**
  * Class Imager
@@ -332,7 +332,7 @@ class ImagerX extends Plugin
      */
     private function registerCacheOptions(): void
     {
-        // Let's check if the user should see clear cache options 
+        // Let's check if the user should see clear cache options
         $config = ImagerService::getConfig();
         $identity = Craft::$app->getUser()->getIdentity();
 
@@ -350,12 +350,12 @@ class ImagerX extends Plugin
                 $event->options[] = [
                     'key' => 'imager-transform-cache',
                     'label' => Craft::t('imager-x', 'Imager image transform cache'),
-                    'action' => FileHelper::normalizePath(ImagerService::getConfig()->imagerSystemPath)
+                    'action' => FileHelper::normalizePath(ImagerService::getConfig()->imagerSystemPath),
                 ];
                 $event->options[] = [
                     'key' => 'imager-remote-images-cache',
                     'label' => Craft::t('imager-x', 'Imager remote images cache'),
-                    'action' => FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath().'/imager/')
+                    'action' => FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/'),
                 ];
             }
         );
@@ -405,7 +405,7 @@ class ImagerX extends Plugin
                         try {
                             $transform = $event->transform;
 
-                            // Transform is an AssetTransform 
+                            // Transform is an AssetTransform
                             if ($transform instanceof AssetTransform) {
                                 $transform = ImagerHelpers::normalizeAssetTransformToObject($transform);
                             }
@@ -519,7 +519,7 @@ class ImagerX extends Plugin
                                 'transform' => [
                                     'name' => 'transform',
                                     'type' => Type::string(),
-                                    'description' => 'The handle of the named transform you want to generate.'
+                                    'description' => 'The handle of the named transform you want to generate.',
                                 ],
                             ],
                             'resolve' => ImagerResolver::class . '::resolve',

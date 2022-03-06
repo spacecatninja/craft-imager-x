@@ -27,7 +27,7 @@ class QueueHelpers
             $options = [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CONNECTTIMEOUT => false,
-                CURLOPT_NOSIGNAL => true
+                CURLOPT_NOSIGNAL => true,
             ];
 
             if (\defined('CURLOPT_TIMEOUT_MS')) {

@@ -28,7 +28,7 @@ class ImagerSrcsetArguments extends Arguments
             'handle' => [
                 'name' => 'handle',
                 'type' => Type::string(),
-                'description' => 'Handle for named transform to use'
+                'description' => 'Handle for named transform to use',
             ],
         ];
     }

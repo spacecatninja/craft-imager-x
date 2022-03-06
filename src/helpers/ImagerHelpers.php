@@ -10,25 +10,25 @@
 
 namespace spacecatninja\imagerx\helpers;
 
-use craft\helpers\ArrayHelper;
-use spacecatninja\imagerx\models\LocalTargetImageModel;
 use Craft;
-use craft\models\Volume;
 use craft\db\Query;
 use craft\elements\Asset;
+use craft\helpers\ArrayHelper;
 use craft\helpers\FileHelper;
 use craft\models\AssetTransform;
-
+use craft\models\Volume;
 use Imagine\Exception\InvalidArgumentException;
+
 use Imagine\Image\Box;
 use Imagine\Image\BoxInterface;
 use Imagine\Image\ImageInterface;
 use Imagine\Image\Point;
 use Imagine\Imagick\Image as ImagickImage;
+use spacecatninja\imagerx\exceptions\ImagerException;
 
 use spacecatninja\imagerx\models\ConfigModel;
+use spacecatninja\imagerx\models\LocalTargetImageModel;
 use spacecatninja\imagerx\services\ImagerService;
-use spacecatninja\imagerx\exceptions\ImagerException;
 
 use yii\base\InvalidConfigException;
 
@@ -60,7 +60,7 @@ class ImagerHelpers
             $padHeight = $padding[0] + $padding[2];
         } else {
             $padWidth = 0;
-            $padHeight = 0; 
+            $padHeight = 0;
         }
 
         $aspect = $width / $height;
@@ -76,7 +76,7 @@ class ImagerHelpers
             $height = (int)$transform['height'];
         }
 
-        // check if we want to upscale. If not, adjust the transform here 
+        // check if we want to upscale. If not, adjust the transform here
         if (!$allowUpscale) {
             [$width, $height] = self::enforceMaxSize($width, $height, $originalSize, true);
         }
@@ -114,7 +114,7 @@ class ImagerHelpers
             $padHeight = $padding[0] + $padding[2];
         } else {
             $padWidth = 0;
-            $padHeight = 0; 
+            $padHeight = 0;
         }
         
         $mode = $transform['mode'] ?? 'crop';
@@ -158,7 +158,7 @@ class ImagerHelpers
             $height = (int)$transform['height'];
         }
 
-        // check if we want to upscale. If not, adjust the transform here 
+        // check if we want to upscale. If not, adjust the transform here
         if (!$allowUpscale) {
             [$width, $height] = self::enforceMaxSize((int)$width, (int)$height, $originalSize, false, self::getCropZoomFactor($transform));
         }

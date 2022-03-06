@@ -10,8 +10,8 @@
 
 namespace spacecatninja\imagerx\transformers;
 
-use spacecatninja\imagerx\exceptions\ImagerException;
 use craft\elements\Asset;
+use spacecatninja\imagerx\exceptions\ImagerException;
 
 interface TransformerInterface
 {
@@ -20,5 +20,4 @@ interface TransformerInterface
      * @throws ImagerException
      */
     public function transform(Asset|string $image, array $transforms): ?array;
-
 }

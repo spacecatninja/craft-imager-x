@@ -10,9 +10,9 @@
 
 namespace spacecatninja\imagerx\helpers;
 
-use spacecatninja\imagerx\services\ImagerService;
 use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
+use spacecatninja\imagerx\services\ImagerService;
 
 class TransformHelpers
 {
@@ -84,7 +84,7 @@ class TransformHelpers
         }
 
         return $r;
-    }    
+    }
     
     /**
      * Merges default transform object into an array of transforms
@@ -178,7 +178,7 @@ class TransformHelpers
             $transform['pad'] = self::normalizePadding($transform['pad']);
         }
 
-        // sort keys to get them in the same order 
+        // sort keys to get them in the same order
         ksort($transform);
 
         // Move certain keys around abit to make the filename a bit more sane when viewed unencoded
@@ -229,5 +229,4 @@ class TransformHelpers
         
         return null;
     }
-
 }

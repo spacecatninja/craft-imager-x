@@ -30,7 +30,7 @@ class ImagerQuery extends Query
                 'type' => Type::listOf(ImagerTransformedImageInterface::getType()),
                 'args' => ImagerTransformQueryArguments::getArguments(),
                 'resolve' => ImagerResolver::class . '::resolve',
-                'description' => 'This query is used to query for Imager X transforms.'
+                'description' => 'This query is used to query for Imager X transforms.',
             ],
         ];
     }

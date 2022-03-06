@@ -23,7 +23,6 @@ use spacecatninja\imagerx\ImagerX as Plugin;
  */
 class CacheController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 

@@ -16,8 +16,8 @@ use craft\gql\base\Resolver;
 
 use GraphQL\Type\Definition\ResolveInfo;
 
-use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\ImagerService;
 
 class ImagerResolver extends Resolver
