@@ -53,7 +53,7 @@ class ImgixHelpers
             $path = $image->getPath();
         }
         
-        if ($config->addPath) {
+        if (!empty($config->addPath)) {
             if (\is_string($config->addPath) && $config->addPath !== '') {
                 $path = implode('/', [$config->addPath, $path]);
             } elseif (is_array($config->addPath)) {
