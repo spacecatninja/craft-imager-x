@@ -222,20 +222,7 @@ class Settings extends Model
     public $customEncoders = [];
 
     public $transformerConfig;
-
-    /* deprecated */
-    public $useCwebp = false;
-
-    public $cwebpPath = '/usr/bin/cwebp';
-
-    public $cwebpOptions = '';
-
-    public $avifEncoderPath = '';
-
-    public $avifEncoderOptions = [];
-
-    public $avifConvertString = '{src} {dest}';
-
+    
 
     /**
      * Settings constructor.
