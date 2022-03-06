@@ -13,9 +13,9 @@ namespace spacecatninja\imagerx\services;
 use ColorThief\ColorThief;
 use craft\base\Component;
 use craft\elements\Asset;
-use JetBrains\PhpStorm\Pure;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\models\LocalSourceImageModel;
+
 use function SSNepenthe\ColorUtils\brightness;
 use function SSNepenthe\ColorUtils\brightness_difference;
 use function SSNepenthe\ColorUtils\color;
@@ -25,11 +25,9 @@ use function SSNepenthe\ColorUtils\hue;
 use function SSNepenthe\ColorUtils\is_bright;
 use function SSNepenthe\ColorUtils\is_light;
 use function SSNepenthe\ColorUtils\lightness;
-
 use function SSNepenthe\ColorUtils\looks_bright;
 use function SSNepenthe\ColorUtils\perceived_brightness;
 use function SSNepenthe\ColorUtils\relative_luminance;
-
 use function SSNepenthe\ColorUtils\saturation;
 
 /**
@@ -277,7 +275,7 @@ class ImagerColorService extends Component
      *
      *
      */
-    #[Pure] private function paletteToHex(array $palette): array
+    private function paletteToHex(array $palette): array
     {
         $r = [];
         foreach ($palette as $paletteColor) {

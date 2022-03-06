@@ -13,8 +13,6 @@ namespace spacecatninja\imagerx\variables;
 use Craft;
 
 use craft\elements\Asset;
-use JetBrains\PhpStorm\ArrayShape;
-use JetBrains\PhpStorm\Pure;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\NamedTransformHelpers;
 use spacecatninja\imagerx\ImagerX as Plugin;
@@ -105,7 +103,7 @@ class ImagerVariable
      *
      *
      */
-    #[Pure] public function rgb2hex(array $color): string
+    public function rgb2hex(array $color): string
     {
         return ImagerColorService::rgb2hex($color);
     }

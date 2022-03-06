@@ -13,7 +13,6 @@ namespace spacecatninja\imagerx\console\controllers;
 use Craft;
 
 use craft\helpers\FileHelper;
-use JetBrains\PhpStorm\ArrayShape;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\ImagerService;
 
