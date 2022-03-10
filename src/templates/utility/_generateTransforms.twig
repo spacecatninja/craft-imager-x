@@ -1,6 +1,6 @@
 {% import "_includes/forms" as forms %}
 
-<form id="imager-x-generate-utility" class="utility" method="post" accept-charset="UTF-8" data-action-url="{{ actionUrl('imager-x/generate-utility/generate-transforms') }}" data-queue-url="{{ queueUrl }}">
+<form id="imager-x-generate-utility" class="utility" method="post" accept-charset="UTF-8" data-action-url="imager-x/generate-utility/generate-transforms" data-queue-url="{{ queueUrl }}">
     {{ actionInput('imagerx/generate-utility/generate-transforms') }}
     {{ csrfInput() }}
 

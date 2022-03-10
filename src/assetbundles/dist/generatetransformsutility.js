@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(document).ready(function() {
     var isPosting = false;
     var $form = $('#imager-x-generate-utility');
     var $btn = $('#imager-x-generate-utility [data-imager-x-btn]');
@@ -22,8 +22,8 @@ $(document).ready(function () {
             $spinner.removeClass('invisible');
             $status.text('Creating transform jobs...');
             
-            var jqxhr = $.post($form.data('action-url'), $form.serialize())
-                .done(function (result) {
+            Craft.sendActionRequest('POST', $form.data('action-url'), { data: $form.serialize() })
+                .then((response) => {
                     console.log(result);
                     if (result && result.success) {
                         if ($form.data('queue-url') !== '') {
@@ -36,27 +36,56 @@ $(document).ready(function () {
                     } else {
                         $status.html('An error occurred:<br>' + result.errors.join('<br>'));
                     }
-                }).fail(function () {
+                    
+                    $spinner.addClass('invisible');
+                    $btn.removeClass('disabled');
+                    isPosting = false;
+                })
+                .catch(({ response }) => {
                     $status.html('An error occurred, check you logs!');
-                }).always(function () {
+                    
                     $spinner.addClass('invisible');
                     $btn.removeClass('disabled');
                     isPosting = false;
                 });
+/*
+            var jqxhr = $.post($form.data('action-url'), $form.serialize())
+                .done(function(result) {
+                    console.log(result);
+                    if (result && result.success) {
+                        if ($form.data('queue-url') !== '') {
+                            $status.html('Generate transforms jobs created. You can <a href="' + $form.data('queue-url') + '">view the queue here</a>.');
+                        } else {
+                            $status.html('Generate transforms jobs created.');
+                        }
+                        $spinner.addClass('invisible');
+                        $btn.removeClass('disabled');
+                    } else {
+                        $status.html('An error occurred:<br>' + result.errors.join('<br>'));
+                    }
+                }).fail(function() {
+                    $status.html('An error occurred, check you logs!');
+                }).always(function() {
+                    $spinner.addClass('invisible');
+                    $btn.removeClass('disabled');
+                    isPosting = false;
+                });
+                
+ */
         }
     }
-    
+
     function onToggleUseConfigured() {
         var useConfigured = $useConfiguredInput.val() === '1';
         $transformsBlock.css({ display: useConfigured ? 'none' : 'block' });
     }
 
-    $form.on('submit', function (e) {
+    $form.on('submit', function(e) {
         e.preventDefault();
         createJobs();
     });
-    
-    $useConfiguredToggle.on('click', function (e) {
+
+    $useConfiguredToggle.on('click', function(e) {
         onToggleUseConfigured();
     });
 });
