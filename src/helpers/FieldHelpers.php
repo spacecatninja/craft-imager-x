@@ -53,7 +53,7 @@ class FieldHelpers
                 return null;
             }
             
-            if (!$parentField instanceof MatrixBlockQuery && !$parentField instanceof SuperTableBlockQuery) {
+            if (!$parentField instanceof MatrixBlockQuery && !$parentField instanceof \verbb\supertable\elements\db\SuperTableBlockQuery && !$parentField instanceof \benf\neo\elements\db\BlockQuery) {
                 return null;
             }
 
