@@ -133,6 +133,7 @@ class GenerateService extends Component
             $fields = $config['fields'] ?? null;
             $criteria = $config['criteria'] ?? null;
             $transforms = $config['transforms'] ?? null;
+            $limit = $config['limit'] ?? null;
 
             if ($elementType && $element instanceof $elementType && is_array($fields) && is_array($transforms) && count($fields) > 0 && count($transforms) > 0) {
                 // Check if criteria matches
@@ -169,7 +170,7 @@ class GenerateService extends Component
                     if (is_array($fields)) {
                         foreach ($fields as $field) {
                             if ($field instanceof ElementQuery) {
-                                $assets[] = $field->all();
+                                $assets[] = $field->limit($limit)->all();
                             }
                         }
                     }
