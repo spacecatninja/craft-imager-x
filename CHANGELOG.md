@@ -1,5 +1,12 @@
 # Imager X Changelog
 
+## 3.5.6 - 2022-03-22
+
+### Added
+- Added limit to element auto generate settings (closes #134).
+- Added support for auto generating transforms from images in Neo fields (closes #76).
+
+
 ## 3.5.5 - 2021-12-27
 
 ### Added
