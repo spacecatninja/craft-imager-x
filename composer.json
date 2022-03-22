@@ -26,7 +26,7 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^4.0.0-alpha.1",
+        "craftcms/cms": "^4.0.0-beta",
         "mikehaertl/php-shellcommand": "^1.2",
         "tinify/tinify": ">=1.1.1",
         "ksubileau/color-thief-php": "^1.4.0",
