@@ -20,8 +20,6 @@ use craft\events\DefineAssetThumbUrlEvent;
 use craft\events\DefineAssetUrlEvent;
 use craft\events\DefineGqlTypeFieldsEvent;
 use craft\events\ElementEvent;
-use craft\events\GetAssetThumbUrlEvent;
-use craft\events\GetAssetUrlEvent;
 use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterElementActionsEvent;
@@ -31,7 +29,7 @@ use craft\events\RegisterGqlTypesEvent;
 use craft\events\ReplaceAssetEvent;
 use craft\gql\TypeManager;
 use craft\helpers\FileHelper;
-use craft\models\AssetTransform;
+use craft\models\ImageTransform;
 use craft\services\Assets;
 use craft\services\Elements;
 use craft\services\Gql;
@@ -399,6 +397,7 @@ class ImagerX extends Plugin
 
         // Event listener for overriding Craft's internal transform functionality
         if ($config->useForNativeTransforms) {
+            /*
             Event::on(Assets::class, Assets::EVENT_DEFINE_ASSET_URL,
                 static function(DefineAssetUrlEvent $event) {
                     if ($event->asset !== null && $event->transform !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
@@ -406,13 +405,13 @@ class ImagerX extends Plugin
                             $transform = $event->transform;
 
                             // Transform is an AssetTransform
-                            if ($transform instanceof AssetTransform) {
+                            if ($transform instanceof ImageTransform) {
                                 $transform = ImagerHelpers::normalizeAssetTransformToObject($transform);
                             }
 
                             // Transform is a named asset transform
                             if (is_string($transform)) {
-                                $assetTransform = Craft::$app->getAssetTransforms()->getTransformByHandle($transform);
+                                $assetTransform = Craft::$app->getImageTransforms()->getTransformByHandle($transform);
 
                                 if ($assetTransform) {
                                     $transform = ImagerHelpers::normalizeAssetTransformToObject($assetTransform);
@@ -438,16 +437,17 @@ class ImagerX extends Plugin
                         }
                     }
                 }
-            );
+            );*/
         }
 
         // Event listener for overriding Craft's internal thumb url
         if ($config->useForCpThumbs) {
+            /*
             Event::on(Assets::class, Assets::EVENT_DEFINE_THUMB_URL,
                 static function(DefineAssetThumbUrlEvent $event) {
                     if ($event->asset !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
-                            /** @var TransformedImageInterface $transformedImage */
+                            /-** @var TransformedImageInterface $transformedImage *-/
                             $transformedImage = ImagerX::$plugin->imagerx->transformImage($event->asset, ['width' => $event->width, 'height' => $event->height, 'mode' => 'fit']);
 
                             if ($transformedImage !== null) {
@@ -459,6 +459,7 @@ class ImagerX extends Plugin
                     }
                 }
             );
+            */
         }
     }
 

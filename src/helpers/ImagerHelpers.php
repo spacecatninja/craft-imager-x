@@ -15,7 +15,7 @@ use craft\db\Query;
 use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
 use craft\helpers\FileHelper;
-use craft\models\AssetTransform;
+use craft\models\ImageTransform;
 use craft\models\Volume;
 use Imagine\Exception\InvalidArgumentException;
 
@@ -26,7 +26,6 @@ use Imagine\Image\Point;
 use Imagine\Imagick\Image as ImagickImage;
 use spacecatninja\imagerx\exceptions\ImagerException;
 
-use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\models\LocalTargetImageModel;
 use spacecatninja\imagerx\services\ImagerService;
 
@@ -404,9 +403,9 @@ class ImagerHelpers
     /**
      * Converts a native asset transform object into an Imager transform.
      *
-     * @param AssetTransform $assetTransform
+     * @param ImageTransform $assetTransform
      */
-    public static function normalizeAssetTransformToObject($assetTransform): array
+    public static function normalizeAssetTransformToObject(ImageTransform $assetTransform): array
     {
         $transformArray = $assetTransform->toArray();
         $validParams = ['width', 'height', 'format', 'mode', 'position', 'interlace', 'quality'];
