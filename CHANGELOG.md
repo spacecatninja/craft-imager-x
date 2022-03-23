@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.5.6.1 - 2022-03-23
+
+### Fixed
+- Fixed a bug introduced when adding limit support to element auto generation (closes #134 (again))
+
 ## 3.5.6 - 2022-03-22
 
 ### Added
