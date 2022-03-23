@@ -170,7 +170,8 @@ class GenerateService extends Component
                     if (is_array($fields)) {
                         foreach ($fields as $field) {
                             if ($field instanceof ElementQuery) {
-                                $assets[] = $field->limit($limit)->all();
+                                $query = clone($field);
+                                $assets[] = $query->limit($limit)->all();
                             }
                         }
                     }
