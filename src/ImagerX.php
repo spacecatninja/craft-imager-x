@@ -442,12 +442,11 @@ class ImagerX extends Plugin
 
         // Event listener for overriding Craft's internal thumb url
         if ($config->useForCpThumbs) {
-            /*
             Event::on(Assets::class, Assets::EVENT_DEFINE_THUMB_URL,
                 static function(DefineAssetThumbUrlEvent $event) {
-                    if ($event->asset !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+                    if ($event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
-                            /-** @var TransformedImageInterface $transformedImage *-/
+                            /** @var TransformedImageInterface $transformedImage */
                             $transformedImage = ImagerX::$plugin->imagerx->transformImage($event->asset, ['width' => $event->width, 'height' => $event->height, 'mode' => 'fit']);
 
                             if ($transformedImage !== null) {
@@ -459,7 +458,6 @@ class ImagerX extends Plugin
                     }
                 }
             );
-            */
         }
     }
 
