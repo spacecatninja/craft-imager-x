@@ -47,7 +47,6 @@ use spacecatninja\imagerx\effects\ClutEffect;
 use spacecatninja\imagerx\effects\ColorBlendEffect;
 use spacecatninja\imagerx\effects\ColorizeEffect;
 use spacecatninja\imagerx\effects\ContrastEffect;
-
 use spacecatninja\imagerx\effects\ContrastStretchEffect;
 use spacecatninja\imagerx\effects\DespeckleEffect;
 use spacecatninja\imagerx\effects\EnhanceEffect;
@@ -65,14 +64,13 @@ use spacecatninja\imagerx\effects\OilPaintEffect;
 use spacecatninja\imagerx\effects\OpacityEffect;
 use spacecatninja\imagerx\effects\PosterizeEffect;
 use spacecatninja\imagerx\effects\QuantizeEffect;
-
 use spacecatninja\imagerx\effects\RadialBlurEffect;
 use spacecatninja\imagerx\effects\SepiaEffect;
-
 use spacecatninja\imagerx\effects\SharpenEffect;
 use spacecatninja\imagerx\effects\TintEffect;
 use spacecatninja\imagerx\effects\TransparentPaintEffect;
 use spacecatninja\imagerx\effects\UnsharpMaskEffect;
+
 use spacecatninja\imagerx\elementactions\ClearTransformsElementAction;
 use spacecatninja\imagerx\elementactions\GenerateTransformsAction;
 use spacecatninja\imagerx\elementactions\ImgixPurgeElementAction;
@@ -93,30 +91,30 @@ use spacecatninja\imagerx\helpers\VersionHelpers;
 use spacecatninja\imagerx\models\GenerateSettings;
 use spacecatninja\imagerx\models\Settings;
 use spacecatninja\imagerx\models\TransformedImageInterface;
+
 use spacecatninja\imagerx\optimizers\GifsicleOptimizer;
 use spacecatninja\imagerx\optimizers\JpegoptimOptimizer;
 use spacecatninja\imagerx\optimizers\JpegtranOptimizer;
-
 use spacecatninja\imagerx\optimizers\KrakenOptimizer;
 use spacecatninja\imagerx\optimizers\MozjpegOptimizer;
 use spacecatninja\imagerx\optimizers\OptipngOptimizer;
 use spacecatninja\imagerx\optimizers\PngquantOptimizer;
 use spacecatninja\imagerx\optimizers\TinypngOptimizer;
+
 use spacecatninja\imagerx\services\GenerateService;
 use spacecatninja\imagerx\services\ImagerColorService;
 use spacecatninja\imagerx\services\ImagerService;
-
 use spacecatninja\imagerx\services\ImgixService;
 use spacecatninja\imagerx\services\OptimizerService;
-
 use spacecatninja\imagerx\services\PlaceholderService;
 use spacecatninja\imagerx\services\StorageService;
+
 use spacecatninja\imagerx\transformers\CraftTransformer;
 use spacecatninja\imagerx\transformers\ImgixTransformer;
-
 use spacecatninja\imagerx\twigextensions\ImagerTwigExtension;
 use spacecatninja\imagerx\utilities\GenerateTransformsUtility;
 use spacecatninja\imagerx\variables\ImagerVariable;
+
 use yii\base\Event;
 
 /**
@@ -353,7 +351,7 @@ class ImagerX extends Plugin
                 $event->options[] = [
                     'key' => 'imager-remote-images-cache',
                     'label' => Craft::t('imager-x', 'Imager remote images cache'),
-                    'action' => FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/'),
+                    'action' => FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath().'/imager/'),
                 ];
             }
         );
@@ -397,14 +395,13 @@ class ImagerX extends Plugin
 
         // Event listener for overriding Craft's internal transform functionality
         if ($config->useForNativeTransforms) {
-            /*
-            Event::on(Assets::class, Assets::EVENT_DEFINE_ASSET_URL,
+            Event::on(Asset::class, Asset::EVENT_DEFINE_URL,
                 static function(DefineAssetUrlEvent $event) {
-                    if ($event->asset !== null && $event->transform !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+                    if ($event->transform !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
                             $transform = $event->transform;
 
-                            // Transform is an AssetTransform
+                            // Transform is an ImageTransform 
                             if ($transform instanceof ImageTransform) {
                                 $transform = ImagerHelpers::normalizeAssetTransformToObject($transform);
                             }
@@ -432,12 +429,12 @@ class ImagerX extends Plugin
                                     $event->url = $transformedImage->getUrl();
                                 }
                             }
-                        } catch (ImagerException) {
+                        } catch (ImagerException $e) {
                             return null;
                         }
                     }
                 }
-            );*/
+            );
         }
 
         // Event listener for overriding Craft's internal thumb url
@@ -521,7 +518,7 @@ class ImagerX extends Plugin
                                     'description' => 'The handle of the named transform you want to generate.',
                                 ],
                             ],
-                            'resolve' => ImagerResolver::class . '::resolve',
+                            'resolve' => ImagerResolver::class.'::resolve',
                             'description' => 'Returns a list of images produced from the named Imager X transform.',
                         ];
                     }

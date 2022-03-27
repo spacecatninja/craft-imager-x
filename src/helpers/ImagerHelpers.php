@@ -98,7 +98,6 @@ class ImagerHelpers
     /**
      * Creates the resize size box
      *
-     *
      * @throws ImagerException
      */
     public static function getResizeSize(BoxInterface $originalSize, array $transform, bool $allowUpscale, bool $usePadding = true): Box
@@ -177,8 +176,6 @@ class ImagerHelpers
 
     /**
      * Enforces a max size if allowUpscale is false
-     *
-     *
      */
     public static function enforceMaxSize(int $width, int $height, BoxInterface $originalSize, bool $maintainAspect, float $zoomFactor = 1.0): array
     {
@@ -206,8 +203,6 @@ class ImagerHelpers
 
     /**
      * Get the crop zoom factor
-     *
-     *
      */
     public static function getCropZoomFactor(array $transform): float
     {
@@ -220,7 +215,6 @@ class ImagerHelpers
 
     /**
      * Gets crop point
-     *
      *
      * @throws ImagerException
      */
@@ -249,7 +243,6 @@ class ImagerHelpers
 
     /**
      * Returns the transform path for a given asset.
-     *
      *
      * @throws ImagerException
      */
@@ -283,8 +276,6 @@ class ImagerHelpers
 
     /**
      * Returns the transform path for a given local path.
-     *
-     *
      */
     public static function getTransformPathForPath(string $path): string
     {
@@ -335,8 +326,6 @@ class ImagerHelpers
 
     /**
      * Creates additional file string that is appended to filename
-     *
-     *
      */
     public static function createTransformFilestring(array $transform): string
     {
@@ -404,6 +393,8 @@ class ImagerHelpers
      * Converts a native asset transform object into an Imager transform.
      *
      * @param ImageTransform $assetTransform
+     *
+     * @return array
      */
     public static function normalizeAssetTransformToObject(ImageTransform $assetTransform): array
     {
@@ -423,8 +414,6 @@ class ImagerHelpers
 
     /**
      * Returns something that can be used as a fallback image for the transform method.
-     *
-     *
      */
     public static function getTransformableFromConfigSetting(Asset|int|string|null $configValue): Asset|string|null
     {
@@ -471,8 +460,6 @@ class ImagerHelpers
 
     /**
      * Moves a named key in an associative array to a given position
-     *
-     *
      */
     public static function moveArrayKeyToPos(string $key, int $pos, array $arr): array
     {
@@ -509,8 +496,6 @@ class ImagerHelpers
 
     /**
      * Fixes slashes in path
-     *
-     *
      */
     public static function fixSlashes(string $str, bool $removeInitial, bool $removeTrailing): array|string
     {
@@ -532,13 +517,21 @@ class ImagerHelpers
     /**
      * Strip trailing slash
      *
-     * @param $str
+     * @param string $str
+     *
+     * @return string
      */
-    public static function stripTrailingSlash($str): string
+    public static function stripTrailingSlash(string $str): string
     {
         return rtrim($str, '/');
     }
 
+    /**
+     * @param array $obj
+     *
+     * @return string
+     * @throws \JsonException
+     */
     public static function encodeTransformObject(array $obj): string
     {
         ksort($obj);
