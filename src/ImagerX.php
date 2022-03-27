@@ -351,7 +351,7 @@ class ImagerX extends Plugin
                 $event->options[] = [
                     'key' => 'imager-remote-images-cache',
                     'label' => Craft::t('imager-x', 'Imager remote images cache'),
-                    'action' => FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath().'/imager/'),
+                    'action' => FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/'),
                 ];
             }
         );
@@ -401,7 +401,7 @@ class ImagerX extends Plugin
                         try {
                             $transform = $event->transform;
 
-                            // Transform is an ImageTransform 
+                            // Transform is an ImageTransform
                             if ($transform instanceof ImageTransform) {
                                 $transform = ImagerHelpers::normalizeAssetTransformToObject($transform);
                             }
@@ -518,7 +518,7 @@ class ImagerX extends Plugin
                                     'description' => 'The handle of the named transform you want to generate.',
                                 ],
                             ],
-                            'resolve' => ImagerResolver::class.'::resolve',
+                            'resolve' => ImagerResolver::class . '::resolve',
                             'description' => 'Returns a list of images produced from the named Imager X transform.',
                         ];
                     }

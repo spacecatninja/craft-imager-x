@@ -10,7 +10,6 @@
 
 namespace spacecatninja\imagerx\traits;
 
-use Craft;
 use mikehaertl\shellcommand\Command;
 
 trait RunShellCommandTrait

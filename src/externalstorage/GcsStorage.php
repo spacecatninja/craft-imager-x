@@ -14,10 +14,8 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\FileHelper;
 
-use Google\Cloud\Core\Exception\ServiceException;
 use Google\Cloud\Storage\StorageClient;
 
-use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\services\ImagerService;
 
 class GcsStorage implements ImagerStorageInterface

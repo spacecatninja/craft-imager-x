@@ -10,8 +10,6 @@
 
 namespace spacecatninja\imagerx\models;
 
-use Craft;
-
 use craft\helpers\FileHelper;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\services\ImagerService;

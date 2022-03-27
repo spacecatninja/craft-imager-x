@@ -18,7 +18,6 @@ use Aws\S3\S3Client;
 use Craft;
 use craft\helpers\FileHelper;
 
-use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\services\ImagerService;
 
 class AwsStorage implements ImagerStorageInterface

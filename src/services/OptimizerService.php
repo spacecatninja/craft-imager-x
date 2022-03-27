@@ -14,7 +14,6 @@ use Craft;
 use craft\base\Component;
 
 use spacecatninja\imagerx\jobs\OptimizeJob;
-use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\models\TransformedImageInterface;
 use spacecatninja\imagerx\optimizers\ImagerOptimizeInterface;
 

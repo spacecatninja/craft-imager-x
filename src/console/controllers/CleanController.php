@@ -10,8 +10,6 @@
 
 namespace spacecatninja\imagerx\console\controllers;
 
-use Craft;
-
 use craft\helpers\FileHelper;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\ImagerService;

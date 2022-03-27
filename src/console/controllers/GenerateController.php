@@ -12,7 +12,6 @@ namespace spacecatninja\imagerx\console\controllers;
 
 use Craft;
 use craft\base\Field;
-use craft\base\FieldInterface;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;

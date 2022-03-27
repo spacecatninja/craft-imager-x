@@ -12,7 +12,6 @@ namespace spacecatninja\imagerx\effects;
 
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
-use spacecatninja\imagerx\services\ImagerService;
 
 class BrightnessEffect implements ImagerEffectsInterface
 {

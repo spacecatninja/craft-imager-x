@@ -17,7 +17,6 @@ use craft\queue\QueueInterface;
 
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\ImagerX;
-use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\optimizers\ImagerOptimizeInterface;
 use spacecatninja\imagerx\services\ImagerService;
 

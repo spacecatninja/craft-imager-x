@@ -14,7 +14,6 @@ use Craft;
 
 use craft\base\ElementAction;
 use craft\elements\db\ElementQueryInterface;
-use spacecatninja\imagerx\ImagerX;
 
 use spacecatninja\imagerx\ImagerX as Plugin;
 

@@ -17,7 +17,6 @@ use craft\elements\Asset;
 use craft\helpers\Html;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
-use craft\models\Volume;
 use spacecatninja\imagerx\assetbundles\GenerateTransformsUtilityAssets;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\models\Settings;

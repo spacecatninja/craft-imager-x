@@ -11,7 +11,6 @@
 namespace spacecatninja\imagerx\models;
 
 use craft\base\Model;
-use craft\errors\DeprecationException;
 
 use craft\helpers\App;
 use craft\helpers\ConfigHelper;

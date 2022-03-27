@@ -12,7 +12,6 @@ namespace spacecatninja\imagerx\optimizers;
 
 use Craft;
 
-use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\traits\RunShellCommandTrait;
 

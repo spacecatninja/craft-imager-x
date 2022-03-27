@@ -11,8 +11,6 @@
 namespace spacecatninja\imagerx\models;
 
 use craft\base\Model;
-use craft\helpers\ConfigHelper;
-use craft\helpers\FileHelper;
 
 class Settings extends Model
 {

@@ -16,7 +16,6 @@ use craft\base\Component;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\externalstorage\ImagerStorageInterface;
 use spacecatninja\imagerx\ImagerX;
-use spacecatninja\imagerx\models\ConfigModel;
 
 /**
  * StorageService Service

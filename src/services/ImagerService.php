@@ -21,7 +21,6 @@ use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 
 use spacecatninja\imagerx\helpers\TransformHelpers;
-use spacecatninja\imagerx\helpers\VersionHelpers;
 use spacecatninja\imagerx\ImagerX as Plugin;
 use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\models\GenerateSettings;

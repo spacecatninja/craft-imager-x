@@ -19,8 +19,6 @@ use craft\elements\db\MatrixBlockQuery;
 use craft\elements\MatrixBlock;
 use craft\models\FieldLayout;
 
-use verbb\supertable\elements\db\SuperTableBlockQuery;
-
 class FieldHelpers
 {
     /**

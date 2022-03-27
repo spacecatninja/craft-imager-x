@@ -16,7 +16,6 @@ use craft\elements\Asset;
 use craft\fs\Local;
 use craft\helpers\App;
 use craft\helpers\FileHelper;
-use craft\models\Volume;
 
 use Imgix\UrlBuilder;
 use spacecatninja\imagerx\exceptions\ImagerException;

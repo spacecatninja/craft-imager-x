@@ -17,7 +17,6 @@ use craft\elements\Asset;
 
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImgixHelpers;
-use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\models\ImgixSettings;
 use spacecatninja\imagerx\models\ImgixTransformedImageModel;
 use spacecatninja\imagerx\services\ImagerService;

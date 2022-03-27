@@ -31,7 +31,6 @@ use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\helpers\QueueHelpers;
 
 use spacecatninja\imagerx\ImagerX;
-use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\models\LocalSourceImageModel;
 use spacecatninja\imagerx\models\LocalTargetImageModel;
 use spacecatninja\imagerx\models\LocalTransformedImageModel;
