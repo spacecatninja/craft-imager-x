@@ -460,7 +460,6 @@ class CraftTransformer extends Component implements TransformerInterface
 
             $opts = $r;
 
-            // Convert to avif
             $command = escapeshellcmd($encoder['path'].' '.strtr($encoder['paramsString'], $opts));
             $r = shell_exec($command);
 
