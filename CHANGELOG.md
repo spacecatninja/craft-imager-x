@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.5.7 - 2022-04-13
+
+### Fixed
+- Fixed an issue where `isAnimated` would throw an exception if the source file was missing (fixes #137)
+
 ## 3.5.6.1 - 2022-03-23
 
 ### Fixed

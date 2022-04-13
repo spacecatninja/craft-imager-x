@@ -2,7 +2,7 @@
     "name": "spacecatninja/imager-x",
     "description": "Ninja powered image transforms.",
     "type": "craft-plugin",
-    "version": "v3.5.6.1",
+    "version": "v3.5.7",
     "license": "proprietary",
     "keywords": [
         "craft",
