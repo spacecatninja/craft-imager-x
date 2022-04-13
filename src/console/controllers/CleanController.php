@@ -24,12 +24,12 @@ class CleanController extends Controller
     /**
      * @var string|null Handle of volume to clean transforms for
      */
-    public ?string $volume = null;
+    public $volume = null;
     
     /**
      * @var string|null Overrides the default cache duration settings
      */
-    public ?string $duration = null;
+    public $duration = null;
     
     
     // Public Methods

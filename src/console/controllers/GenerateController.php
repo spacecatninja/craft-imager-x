@@ -37,27 +37,27 @@ class GenerateController extends Controller
     /**
      * @var string Handle of volume to generate transforms for
      */
-    public string $volume;
+    public $volume;
 
     /**
      * @var int Folder ID to generate transforms for
      */
-    public int $folderId;
+    public $folderId;
 
     /**
      * @var bool Enable or disable recursive handling of folders
      */
-    public bool $recursive = false;
+    public $recursive = false;
 
     /**
      * @var string Field to generate transforms for
      */
-    public string $field;
+    public $field;
 
     /**
      * @var string Which transforms to generate
      */
-    public string $transforms;
+    public $transforms;
 
     /**
      * @var array
