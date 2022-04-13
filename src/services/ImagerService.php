@@ -506,8 +506,13 @@ class ImagerService extends Component
      */
     public function isAnimated($asset): bool
     {
-        $source = new LocalSourceImageModel($asset);
-        $source->getLocalCopy();
+        try {
+            $source = new LocalSourceImageModel($asset);
+            $source->getLocalCopy();
+        } catch (ImagerException $e) {
+            Craft::error($e->getMessage(), __METHOD__);
+            return false;
+        }
 
         if ($source->extension !== 'gif') {
             return false;
