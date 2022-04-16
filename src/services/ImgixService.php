@@ -32,12 +32,6 @@ use spacecatninja\imagerx\models\ImgixSettings;
 class ImgixService extends Component
 {
     /**
-     *  The Imgix API endpoint for purging images
-     * @var string
-     */
-    public const PURGE_ENDPOINT_OLD = 'https://api.imgix.com/v2/image/purger';
-
-    /**
      * @var string
      */
     public const PURGE_ENDPOINT = 'https://api.imgix.com/api/v1/purge';
@@ -87,31 +81,21 @@ class ImgixService extends Component
      */
     public function purgeUrlFromImgix(string $url, string $apiKey): void
     {
-        $isOld = strlen($apiKey) < 50;
-
         try {
-            if ($isOld) {
-                $headers = [
-                    'Content-Type:application/json',
-                    'Authorization: Basic ' . base64_encode(sprintf('%s:', $apiKey)),
-                ];
-                $payload = json_encode(["url" => $url], JSON_THROW_ON_ERROR);
-            } else {
-                $headers = [
-                    'Content-Type:application/json',
-                    'Authorization: Bearer ' . $apiKey,
-                ];
-                $payload = json_encode([
-                    'data' => [
-                        'attributes' => [
-                            'url' => $url,
-                        ],
-                        'type' => 'purges',
+            $headers = [
+                'Content-Type:application/json',
+                'Authorization: Bearer ' . $apiKey,
+            ];
+            $payload = json_encode([
+                'data' => [
+                    'attributes' => [
+                        'url' => $url,
                     ],
-                ]);
-            }
+                    'type' => 'purges',
+                ],
+            ], JSON_THROW_ON_ERROR);
 
-            $curl = curl_init($isOld ? self::PURGE_ENDPOINT_OLD : self::PURGE_ENDPOINT);
+            $curl = curl_init(self::PURGE_ENDPOINT);
 
             $opts = [
                 CURLOPT_HTTPHEADER => $headers,
@@ -155,7 +139,7 @@ class ImgixService extends Component
         $imgixApiKey = $config->getSetting('imgixApiKey');
         $imgixConfigArr = $config->getSetting('imgixConfig');
 
-        if (!$imgixConfigArr || !\is_array($imgixConfigArr) || empty($imgixConfigArr)) {
+        if (empty($imgixConfigArr) || !\is_array($imgixConfigArr)) {
             $msg = Craft::t('imager-x', 'The `imgixConfig` config setting is missing, or is not correctly set up.');
             Craft::error($msg, __METHOD__);
             throw new ImagerException($msg);
