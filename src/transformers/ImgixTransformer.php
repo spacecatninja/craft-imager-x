@@ -110,7 +110,8 @@ class ImgixTransformer extends Component implements TransformerInterface
         if (isset($transform['imgixParams'])) {
             $transform['transformerParams'] = array_merge($transform['transformerParams'] ?? [], $transform['imgixParams']);
             unset($transform['imgixParams']);
-            // Deprecate use of imgixParams in 4.0, remove in 5.0
+            
+            \Craft::$app->deprecator->log(__METHOD__, 'The `imgixParams` transform parameter has been deprecated, use `transformerParams` instead.');
         }
         
         // Merge in default values
