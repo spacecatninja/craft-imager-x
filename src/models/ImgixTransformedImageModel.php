@@ -194,7 +194,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
         return false;
     }
 
-    public function getPalette(string $format = 'json', int $numColors = 6, string $cssPrefix = ''): ?string
+    public function getPalette(string $format = 'json', int $numColors = 6, string $cssPrefix = ''): ?object
     {
         $builder = ImgixHelpers::getBuilder($this->profileConfig);
 
@@ -206,19 +206,19 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
             $params['prefix'] = $cssPrefix;
         }
 
-        $blurhashUrl = $builder->createURL($this->imgixPath, $params);
-        $key = 'imager-x-imgix-palette-' . base64_encode($blurhashUrl);
+        $paletteUrl = $builder->createURL($this->imgixPath, $params);
+        $key = 'imager-x-imgix-palette-' . base64_encode($paletteUrl);
 
         $cache = \Craft::$app->getCache();
-        $blurhashData = $cache->getOrSet($key, static fn() => @file_get_contents($blurhashUrl));
+        $paletteData = $cache->getOrSet($key, static fn() => @file_get_contents($paletteUrl));
 
-        if (!$blurhashData) {
-            \Craft::error('An error occured when trying to get palette data from Imgix. The URL was: ' . $blurhashUrl);
+        if (!$paletteData) {
+            \Craft::error('An error occured when trying to get palette data from Imgix. The URL was: ' . $paletteUrl);
 
             return null;
         }
-
-        return $format === 'json' ? json_decode($blurhashData, false, 512, JSON_THROW_ON_ERROR) : $blurhashData;
+        
+        return $format === 'json' ? json_decode($paletteData, false, 512, JSON_THROW_ON_ERROR) : $paletteData;
     }
 
     public function getBlurhash(): string
