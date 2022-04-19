@@ -13,8 +13,9 @@ namespace spacecatninja\imagerx\models;
 use Craft;
 
 use craft\elements\Asset;
-use craft\errors\AssetException;
+use craft\errors\FsException;
 use craft\fs\Local;
+use craft\helpers\Assets;
 use craft\helpers\Assets as AssetsHelper;
 use craft\helpers\FileHelper;
 use craft\helpers\StringHelper;
@@ -39,19 +40,19 @@ use yii\base\InvalidConfigException;
  */
 class LocalSourceImageModel
 {
-    public $type = 'local';
+    public string $type = 'local';
 
-    public $path = '';
+    public string $path = '';
 
-    public $transformPath = '';
+    public string $transformPath = '';
 
-    public $url = '';
+    public string $url = '';
 
-    public $filename = '';
+    public string $filename = '';
 
-    public $basename = '';
+    public string $basename = '';
 
-    public $extension = '';
+    public string $extension = '';
 
     private ?Asset $asset = null;
 
@@ -141,9 +142,8 @@ class LocalSourceImageModel
         if ($this->type !== 'local') {
             if (!$this->isValidFile($this->getFilePath()) || (($config->cacheDurationRemoteFiles !== false) && ((FileHelper::lastModifiedTime($this->getFilePath()) + $config->cacheDurationRemoteFiles) < time()))) {
                 if ($this->asset && $this->type === 'volume') {
-                    /** @var Volume $volume */
                     try {
-                        $volume = $this->asset->getVolume();
+                        $fs = $this->asset->getVolume()->getFs();
                     } catch (InvalidConfigException $invalidConfigException) {
                         Craft::error($invalidConfigException->getMessage(), __METHOD__);
                         throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
@@ -156,9 +156,9 @@ class LocalSourceImageModel
                             @unlink($this->getTemporaryFilePath());
                         }
 
-                        $volume->saveFileLocally($this->asset->getPath(), $this->getTemporaryFilePath());
-                    } catch (AssetException $assetException) {
-                        throw new ImagerException($assetException->getMessage(), $assetException->getCode(), $assetException);
+                        Assets::downloadFile($fs, $this->asset->getPath(), $this->getTemporaryFilePath());
+                    } catch (FsException $fsException) {
+                        throw new ImagerException($fsException->getMessage(), $fsException->getCode(), $fsException);
                     }
 
                     if (file_exists($this->getTemporaryFilePath())) {
@@ -188,6 +188,8 @@ class LocalSourceImageModel
      * Checks if a file exists and is valid, or should be overwritten
      *
      * @param $file
+     *
+     * @return bool
      */
     private function isValidFile($file): bool
     {
@@ -241,7 +243,7 @@ class LocalSourceImageModel
         }
 
         try {
-            $this->url = AssetsHelper::generateUrl($image->getVolume(), $image);
+            $this->url = AssetsHelper::generateUrl($image->getVolume()->getFs(), $image);
             $this->path = FileHelper::normalizePath($runtimeImagerPath . $this->transformPath . '/');
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
