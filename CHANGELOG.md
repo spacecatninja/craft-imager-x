@@ -1,5 +1,34 @@
 # Imager X Changelog
 
+## Unreleased
+
+### Added
+- Craft 4.0 support
+
+### Removed
+- Removed deprecated config settings `useCwebp`, `cwebpPath`, `avifEncoderPath`, `avifEncoderOptions`, `avifConvertString`. 
+- Removed deprecated Imgix profile config settings `domains` and `shardStrategy`. 
+- Removed support for old Imgix purge API endpoint.
+
+### Deprecated
+- Deprecated the use of `imgixParams` transform parameter, `transformerParams` should be used instead.
+
+## 3.5.7 - 2022-04-13
+
+### Fixed
+- Fixed an issue where `isAnimated` would throw an exception if the source file was missing (fixes #137)
+
+## 3.5.6.1 - 2022-03-23
+
+### Fixed
+- Fixed a bug introduced when adding limit support to element auto generation (closes #134 (again))
+
+## 3.5.6 - 2022-03-22
+
+### Added
+- Added limit to element auto generate settings (closes #134).
+- Added support for auto generating transforms from images in Neo fields (closes #76).
+
 ## 3.5.5 - 2021-12-27
 
 ### Added
