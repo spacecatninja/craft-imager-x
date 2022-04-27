@@ -85,8 +85,8 @@ class LocalTargetImageModel
             $source->getLocalCopy();
 
             try {
-                $extension = FileHelper::getExtensionByMimeType(FileHelper::getMimeType($source->path . '/' . $source->filename)) ?? '';
-            } catch (InvalidConfigException) {
+                $extension = FileHelper::getExtensionByMimeType(FileHelper::getMimeType($source->path . '/' . $source->filename) ?? '') ?? '';
+            } catch (\Throwable) {
                 // just continue, we can handle it
             }
         }

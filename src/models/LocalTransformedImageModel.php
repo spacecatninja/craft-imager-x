@@ -46,7 +46,7 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
         $this->size = @filesize($targetModel->getFilePath());
 
         try {
-            $this->mimeType = FileHelper::getMimeType($targetModel->getFilePath());
+            $this->mimeType = FileHelper::getMimeType($targetModel->getFilePath()) ?? '';
         } catch (InvalidConfigException $invalidConfigException) {
             // just ignore
         }
