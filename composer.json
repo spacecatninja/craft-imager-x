@@ -30,7 +30,7 @@
         "craftcms/cms": "^4.0.0-beta",
         "mikehaertl/php-shellcommand": "^1.2",
         "tinify/tinify": ">=1.1.1",
-        "ksubileau/color-thief-php": "^1.4.0",
+        "ksubileau/color-thief-php": "^2.0.0",
         "ssnepenthe/color-utils": "~0.4",
         "imgix/imgix-php": "^3.0",
         "kraken-io/kraken-php": "^1.2",
