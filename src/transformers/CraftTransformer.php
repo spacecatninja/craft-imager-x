@@ -259,14 +259,6 @@ class CraftTransformer extends Component implements TransformerInterface
             // Save the transform
             if (isset($customEncoders[$targetModel->extension])) {
                 $this->saveWithCustomEncoder($customEncoders[$targetModel->extension], $this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $transform);
-            } elseif ($targetModel->extension === 'webp') {
-                if (ImagerService::hasSupportForWebP()) {
-                    $this->saveAsWebp($this->imageInstance, $targetModel->getFilePath(), $saveOptions);
-                } else {
-                    $msg = Craft::t('imager-x', 'This version of {imageDriver} does not support the webp format, and cwebp does not seem to be configured. You should use “craft.imager.serverSupportsWebp” in your templates to test for it.', ['imageDriver' => ImagerService::$imageDriver === 'gd' ? 'GD' : \Imagick::class]);
-                    Craft::error($msg, __METHOD__);
-                    throw new ImagerException($msg);
-                }
             } elseif ($targetModel->extension === 'avif') {
                 if (ImagerService::hasSupportForAvif()) {
                     $this->saveAsAvif($this->imageInstance, $targetModel->getFilePath(), $saveOptions);
@@ -455,73 +447,6 @@ class CraftTransformer extends Component implements TransformerInterface
         }
     }
 
-
-    /**
-     * Saves image as webp
-     *
-     *
-     * @throws ImagerException
-     * @throws Exception
-     */
-    private function saveAsWebp(ImagickImage|ImageInterface|GdImage $imageInstance, string $path, array $saveOptions): void
-    {
-        ImagerService::getConfig();
-
-
-        if (ImagerService::$imageDriver === 'gd') {
-            /** @var GdImage $imageInstance */
-            $instance = $imageInstance->getGdResource();
-
-            if (!\imagewebp($instance, $path, $saveOptions['webp_quality'])) {
-                $msg = Craft::t('imager-x', 'GD WebP save operation failed');
-                Craft::error($msg, __METHOD__);
-                throw new ImagerException($msg);
-            }
-
-            // Fix for corrupt file bug (http://stackoverflow.com/questions/30078090/imagewebp-php-creates-corrupted-webp-files)
-            if (filesize($path) % 2 === 1) {
-                file_put_contents($path, "\0", FILE_APPEND);
-            }
-        }
-
-        if (ImagerService::$imageDriver === 'imagick') {
-            /** @var ImagickImage $imageInstance */
-            $instance = $imageInstance->getImagick();
-
-            try {
-                $instance->setImageFormat('webp');
-
-                $hasTransparency = $instance->getImageAlphaChannel();
-
-                if ($hasTransparency !== 0) {
-                    $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
-                    $instance->setBackgroundColor(new \ImagickPixel('transparent'));
-                }
-
-                $instance->setImageCompressionQuality($saveOptions['webp_quality']);
-                $imagickOptions = $saveOptions['webp_imagick_options'];
-
-                if ($imagickOptions && (is_countable($imagickOptions) ? \count($imagickOptions) : 0) > 0) {
-                    foreach ($imagickOptions as $key => $val) {
-                        $instance->setOption('webp:' . $key, $val);
-                    }
-                }
-            } catch (\Throwable) {
-                $msg = Craft::t('imager-x', 'An error occured when trying to set WebP options in Imagick instance.');
-                Craft::error($msg, __METHOD__);
-                throw new ImagerException($msg);
-            }
-
-            try {
-                $instance->writeImage($path);
-            } catch (\Throwable) {
-                $msg = Craft::t('imager-x', 'Imageick WebP save operation failed');
-                Craft::error($msg, __METHOD__);
-                throw new ImagerException($msg);
-            }
-        }
-    }
-
     /**
      * Saves image as avif
      *
@@ -532,8 +457,7 @@ class CraftTransformer extends Component implements TransformerInterface
     private function saveAsAvif(ImagickImage|ImageInterface|GdImage $imageInstance, string $path, array $saveOptions): void
     {
         ImagerService::getConfig();
-
-
+        
         if (ImagerService::$imageDriver === 'gd') {
             /** @var GdImage $imageInstance */
             $instance = $imageInstance->getGdResource();
@@ -692,6 +616,7 @@ class CraftTransformer extends Component implements TransformerInterface
             'png' => ['png_compression_level' => $config->getSetting('pngCompressionLevel', $transform)],
             'webp' => ['webp_quality' => $config->getSetting('webpQuality', $transform), 'webp_imagick_options' => $config->getSetting('webpImagickOptions', $transform)],
             'avif' => ['avif_quality' => $config->getSetting('avifQuality', $transform)],
+            'jxl' => ['jxl_quality' => $config->getSetting('jxlQuality', $transform)],
             default => [],
         };
     }
