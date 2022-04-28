@@ -195,6 +195,6 @@ class Settings extends Model
     public function init()
     {
         // Set default based on devMode. Overridable through config.  
-        $this->suppressExceptions = !\Craft::$app->getConfig()->general->devMode;
+        $this->suppressExceptions = !\Craft::$app->getConfig()->getGeneral()->devMode;
     }
 }
