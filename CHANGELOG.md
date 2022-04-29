@@ -1,14 +1,20 @@
 # Imager X Changelog
 
+## 3.5.8 - 2022-04-29
+
+### Fixed
+- Fixed an issue where colors would be distorted when using letterbox on a non-RGB image (fixes #147).
+- Fixed the use of `general` magic property when calling getConfig() (thanks @jamesmacwhite).
+
 ## 3.5.7 - 2022-04-13
 
 ### Fixed
-- Fixed an issue where `isAnimated` would throw an exception if the source file was missing (fixes #137)
+- Fixed an issue where `isAnimated` would throw an exception if the source file was missing (fixes #137).
 
 ## 3.5.6.1 - 2022-03-23
 
 ### Fixed
-- Fixed a bug introduced when adding limit support to element auto generation (closes #134 (again))
+- Fixed a bug introduced when adding limit support to element auto generation (closes #134 (again)).
 
 ## 3.5.6 - 2022-03-22
 
