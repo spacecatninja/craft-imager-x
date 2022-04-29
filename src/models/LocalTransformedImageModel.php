@@ -30,11 +30,11 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
      *
      * @param LocalTargetImageModel $targetModel
      * @param LocalSourceImageModel $sourceModel
-     * @param array $transform
+     * @param array                 $transform
      *
      * @throws ImagerException
      */
-    public function __construct($targetModel, $sourceModel, $transform)
+    public function __construct(LocalTargetImageModel $targetModel, LocalSourceImageModel $sourceModel, array $transform)
     {
         $this->source = $sourceModel;
         $this->path = $targetModel->getFilePath();

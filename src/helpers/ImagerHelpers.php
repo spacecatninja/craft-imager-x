@@ -326,6 +326,8 @@ class ImagerHelpers
 
     /**
      * Creates additional file string that is appended to filename
+     *
+     * @throws \JsonException
      */
     public static function createTransformFilestring(array $transform): string
     {
@@ -380,7 +382,7 @@ class ImagerHelpers
                     $optString .= ($optK . '-' . $optV . '-');
                 }
 
-                $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . '_' . mb_substr($optString, 0, strlen($optString) - 1);
+                $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . '_' . mb_substr($optString, 0, -1);
             } else {
                 $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . (\is_array($v) ? implode('-', $v) : $v);
             }

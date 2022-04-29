@@ -22,14 +22,14 @@ use yii\helpers\Console;
 class CleanController extends Controller
 {
     /**
-     * @var string|null Handle of volume to clean transforms for
+     * @var string Handle of volume to clean transforms for
      */
-    public $volume = null;
+    public string $volume = '';
     
     /**
      * @var string|null Overrides the default cache duration settings
      */
-    public $duration = null;
+    public ?string $duration = null;
     
     
     // Public Methods

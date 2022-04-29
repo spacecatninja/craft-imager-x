@@ -11,9 +11,9 @@
 namespace spacecatninja\imagerx\models;
 
 use craft\helpers\FileHelper;
+use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\services\ImagerService;
-use yii\base\InvalidConfigException;
 
 /**
  * LocalTargetImageModel
@@ -26,23 +26,25 @@ use yii\base\InvalidConfigException;
  */
 class LocalTargetImageModel
 {
-    public $path = '';
+    public string $path = '';
 
-    public $url = '';
+    public string $url = '';
 
-    public $filename = '';
+    public string $filename = '';
 
-    public $extension = '';
+    public string $extension = '';
 
-    public $isNew = false;
+    public bool $isNew = false;
 
     /**
      * LocalTargetImageModel constructor
      *
      * @param LocalSourceImageModel $source
      * @param array                 $transform
+     *
+     * @throws ImagerException
      */
-    public function __construct($source, $transform)
+    public function __construct(LocalSourceImageModel $source, array $transform)
     {
         $config = ImagerService::getConfig();
 
@@ -64,8 +66,11 @@ class LocalTargetImageModel
      *
      * @param LocalSourceImageModel $source
      * @param array                 $transform
+     *
+     * @return string
+     * @throws ImagerException|\JsonException
      */
-    private function createTargetFilename($source, $transform): string
+    private function createTargetFilename(LocalSourceImageModel $source, array $transform): string
     {
         $config = ImagerService::getConfig();
 

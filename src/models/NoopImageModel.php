@@ -90,16 +90,6 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
         }
     }
 
-    public function getWidth(): int
-    {
-        return $this->width;
-    }
-
-    public function getHeight(): int
-    {
-        return $this->height;
-    }
-
     public function getSize(string $unit = 'b', int $precision = 2): float|int
     {
         $unit = strtolower($unit);
