@@ -4,11 +4,13 @@
 
 ### Added
 - Craft 4.0 support
+- Added new Imager utility with cache clearing, transform generation and debug information.
 
 ### Removed
 - Removed deprecated config settings `useCwebp`, `cwebpPath`, `avifEncoderPath`, `avifEncoderOptions`, `avifConvertString`. 
 - Removed deprecated Imgix profile config settings `domains` and `shardStrategy`. 
 - Removed support for old Imgix purge API endpoint.
+- Removed old generate transforms utility, replaced with Imager utility.
 
 ### Deprecated
 - Deprecated the use of `imgixParams` transform parameter, `transformerParams` should be used instead.
