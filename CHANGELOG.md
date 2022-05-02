@@ -11,6 +11,7 @@
 - Removed deprecated Imgix profile config settings `domains` and `shardStrategy`. 
 - Removed support for old Imgix purge API endpoint.
 - Removed old generate transforms utility, replaced with Imager utility.
+- Removed Imager caches from Craft's built in cache clearing, use console commands, controller actions or utility instead.
 
 ### Deprecated
 - Deprecated the use of `imgixParams` transform parameter, `transformerParams` should be used instead.
