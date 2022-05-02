@@ -10,9 +10,9 @@
 
 namespace spacecatninja\imagerx\console\controllers;
 
-use craft\helpers\FileHelper;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\ImagerService;
+use spacecatninja\imagerx\helpers\FileHelper;
 
 use yii\console\Controller;
 use yii\console\ExitCode;
@@ -94,16 +94,8 @@ class CleanController extends Controller
         }
         
         $this->success(sprintf('> Scanning %s', $systemPath));
-        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($systemPath));
-        $files = [];
         
-        foreach ($rii as $file) {
-            if ($file->isDir()) {
-                continue;
-            }
-        
-            $files[] = $file->getPathname();
-        }
+        $files = FileHelper::filesInPath($systemPath);
         
         if (empty($files)) {
             $this->error("No transforms found.");

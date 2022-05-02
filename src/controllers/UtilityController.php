@@ -13,8 +13,10 @@ namespace spacecatninja\imagerx\controllers;
 
 use Craft;
 use craft\web\Controller;
+use spacecatninja\imagerx\helpers\FileHelper;
 use spacecatninja\imagerx\ImagerX as Plugin;
 
+use spacecatninja\imagerx\services\ImagerService;
 use yii\web\Response;
 
 /**
@@ -22,7 +24,7 @@ use yii\web\Response;
  *
  * @package spacecatninja\imagerx\controllers
  */
-class GenerateUtilityController extends Controller
+class UtilityController extends Controller
 {
     // Protected Properties
     // =========================================================================
@@ -33,7 +35,7 @@ class GenerateUtilityController extends Controller
     // =========================================================================
 
     /**
-     * Controller action to generate transforms. Called by geerate transforms utility.
+     * Controller action to generate transforms from utility
      */
     public function actionGenerateTransforms(): Response
     {
@@ -76,6 +78,49 @@ class GenerateUtilityController extends Controller
 
         return $this->asJson([
             'success' => true,
+        ]);
+    }
+    
+    /**
+     * Controller action to clear caches from utility.
+     */
+    public function actionClearCache(): Response
+    {
+        $request = Craft::$app->getRequest();
+        $cacheClearType = $request->getParam('cacheClearType', '');
+        
+        if (!in_array($cacheClearType, ['all', 'transforms', 'runtime'])) {
+            return $this->asJson([
+                'success' => false,
+                'errors' => ['Unknown cache clear type.'],
+            ]);
+        }
+        
+        if ($cacheClearType === 'all' || $cacheClearType === 'transforms') {
+            Plugin::$plugin->imagerx->deleteImageTransformCaches();
+        }
+        
+        if ($cacheClearType === 'all' || $cacheClearType === 'runtime') {
+            Plugin::$plugin->imagerx->deleteRemoteImageCaches();
+        }
+        
+        $counts = [];
+        $transformsCachePath = FileHelper::normalizePath(ImagerService::getConfig()->imagerSystemPath);
+        $runtimeCachePath = FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/');
+
+        $counts[] = [
+            'handle' => 'transforms',
+            'fileCount' => count(FileHelper::filesInPath($transformsCachePath)),
+        ];
+        
+        $counts[] = [
+            'handle' => 'runtime',
+            'fileCount' => count(FileHelper::filesInPath($runtimeCachePath))
+        ];
+
+        return $this->asJson([
+            'success' => true,
+            'counts' => $counts
         ]);
     }
 }

@@ -502,7 +502,7 @@ class ImagerService extends Component
      *
      * @param $asset
      *
-     * @throws ImagerException
+     * @return bool
      */
     public function isAnimated($asset): bool
     {
@@ -573,7 +573,7 @@ class ImagerService extends Component
      */
     public function deleteImageTransformCaches(): void
     {
-        $path = Plugin::$plugin->getSettings()->imagerSystemPath;
+        $path = self::getConfig()->imagerSystemPath;
 
         try {
             $dir = FileHelper::normalizePath($path);

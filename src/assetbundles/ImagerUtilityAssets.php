@@ -15,10 +15,10 @@ use craft\web\assets\cp\CpAsset;
 
 /**
  * @author    Værsågod
- * @package   GeoMate
- * @since     3.1.0
+ * @package   Imager
+ * @since     4.0.0
  */
-class GenerateTransformsUtilityAssets extends AssetBundle
+class ImagerUtilityAssets extends AssetBundle
 {
     // Public Methods
     // =========================================================================
@@ -26,7 +26,7 @@ class GenerateTransformsUtilityAssets extends AssetBundle
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init():void
     {
         $this->sourcePath = '@spacecatninja/imagerx/assetbundles/dist';
 
@@ -35,11 +35,11 @@ class GenerateTransformsUtilityAssets extends AssetBundle
         ];
 
         $this->js = [
-            'generatetransformsutility.js',
+            'imagerutility.js',
         ];
 
         $this->css = [
-            'generatetransformsutility.css',
+            'imagerutility.css',
         ];
 
         parent::init();

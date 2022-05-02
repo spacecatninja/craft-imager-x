@@ -112,7 +112,7 @@ use spacecatninja\imagerx\services\StorageService;
 use spacecatninja\imagerx\transformers\CraftTransformer;
 use spacecatninja\imagerx\transformers\ImgixTransformer;
 use spacecatninja\imagerx\twigextensions\ImagerTwigExtension;
-use spacecatninja\imagerx\utilities\GenerateTransformsUtility;
+use spacecatninja\imagerx\utilities\ImagerUtility;
 use spacecatninja\imagerx\variables\ImagerVariable;
 
 use yii\base\Event;
@@ -229,7 +229,7 @@ class ImagerX extends Plugin
         if (self::getInstance()?->is(self::EDITION_PRO)) {
             Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITY_TYPES,
                 static function(RegisterComponentTypesEvent $event) {
-                    $event->types[] = GenerateTransformsUtility::class;
+                    $event->types[] = ImagerUtility::class;
                 }
             );
         }
@@ -237,13 +237,11 @@ class ImagerX extends Plugin
         // Event listener for clearing caches when an asset is replaced
         Event::on(Assets::class, Assets::EVENT_AFTER_REPLACE_ASSET,
             static function(ReplaceAssetEvent $event) use ($config) {
-                if ($event->asset) {
-                    ImagerX::$plugin->imagerx->removeTransformsForAsset($event->asset);
+                ImagerX::$plugin->imagerx->removeTransformsForAsset($event->asset);
 
-                    // If Imgix purging is possible, do that too
-                    if ($config->imgixEnableAutoPurging && ImgixService::getCanPurge()) {
-                        ImagerX::$plugin->imgix->purgeAssetFromImgix($event->asset);
-                    }
+                // If Imgix purging is possible, do that too
+                if ($config->imgixEnableAutoPurging && ImgixService::getCanPurge()) {
+                    ImagerX::$plugin->imgix->purgeAssetFromImgix($event->asset);
                 }
             }
         );
