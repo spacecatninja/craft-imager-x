@@ -45,5 +45,3 @@ PASTE THE ERROR MESSAGE / STACK TRACE HERE
 - Craft version:
 - PHP version:
 - Image driver & version:
-- Database driver & version:
-- Plugins & versions (if relevant):
