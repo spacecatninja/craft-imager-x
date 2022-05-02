@@ -658,6 +658,15 @@ class CraftTransformer extends Component implements TransformerInterface
 
             if ($this->imagineInstance !== null) {
                 $backgroundImage = $this->imagineInstance->create($size, $color);
+                
+                // Set palette of created image. This is necessary to avoid colors being skewed
+                // when pasting an image into one with a different color palette.   
+                if ($config->getSetting('convertToRGB', $transform)) {
+                    $this->imageInstance->usePalette(new RGB());
+                } else {
+                    $backgroundImage->usePalette($imageInstance->palette());
+                }
+                
                 $backgroundImage->paste($imageInstance, $position);
 
                 $imageInstance = $backgroundImage;
