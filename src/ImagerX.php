@@ -268,9 +268,6 @@ class ImagerX extends Plugin
             Plugins::EVENT_AFTER_LOAD_PLUGINS,
 
             function() {
-                // Register cache options
-                $this->registerCacheOptions();
-
                 // Register transformers
                 $this->registerTransformers();
 
@@ -307,52 +304,13 @@ class ImagerX extends Plugin
         // Named transforms
         $transformsConfig = Craft::$app->config->getConfigFromFile('imager-x-transforms');
 
-        if (is_array($transformsConfig)) {
-            foreach ($transformsConfig as $transformname => $transformConfig) {
-                ImagerService::registerNamedTransform($transformname, $transformConfig);
-            }
+        foreach ($transformsConfig as $transformname => $transformConfig) {
+            ImagerService::registerNamedTransform($transformname, $transformConfig);
         }
 
         // Generate setup
         $generateConfig = Craft::$app->config->getConfigFromFile('imager-x-generate');
-
-        if (is_array($generateConfig)) {
-            ImagerService::$generateConfig = new GenerateSettings($generateConfig);
-        }
-    }
-
-    /**
-     * Register cache options
-     */
-    private function registerCacheOptions(): void
-    {
-        // Let's check if the user should see clear cache options
-        $config = ImagerService::getConfig();
-        $identity = Craft::$app->getUser()->getIdentity();
-
-        if ($identity && count($config->hideClearCachesForUserGroups) > 0) {
-            foreach ($config->hideClearCachesForUserGroups as $userGroup) {
-                if ($identity->isInGroup($userGroup)) {
-                    return;
-                }
-            }
-        }
-
-        // Adds Imager paths to the list of things the Clear Caches tool can delete
-        Event::on(ClearCaches::class, ClearCaches::EVENT_REGISTER_CACHE_OPTIONS,
-            static function(RegisterCacheOptionsEvent $event) {
-                $event->options[] = [
-                    'key' => 'imager-transform-cache',
-                    'label' => Craft::t('imager-x', 'Imager image transform cache'),
-                    'action' => FileHelper::normalizePath(ImagerService::getConfig()->imagerSystemPath),
-                ];
-                $event->options[] = [
-                    'key' => 'imager-remote-images-cache',
-                    'label' => Craft::t('imager-x', 'Imager remote images cache'),
-                    'action' => FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/'),
-                ];
-            }
-        );
+        ImagerService::$generateConfig = new GenerateSettings($generateConfig);
     }
 
     /**
@@ -516,7 +474,7 @@ class ImagerX extends Plugin
                                     'description' => 'The handle of the named transform you want to generate.',
                                 ],
                             ],
-                            'resolve' => ImagerResolver::class . '::resolve',
+                            'resolve' => ImagerResolver::class.'::resolve',
                             'description' => 'Returns a list of images produced from the named Imager X transform.',
                         ];
                     }
@@ -544,30 +502,28 @@ class ImagerX extends Plugin
                     /** @var Element $element */
                     $element = $event->element;
 
-                    if ($element !== null) {
-                        if ($element instanceof Asset && $element->getScenario() === Asset::SCENARIO_INDEX) {
-                            return;
-                        }
+                    if ($element instanceof Asset && $element->getScenario() === Asset::SCENARIO_INDEX) {
+                        return;
+                    }
 
-                        if (ImagerX::$plugin->generate->shouldGenerateByVolumes($element)) {
-                            ImagerX::$plugin->generate->processAssetByVolumes($element);
-                        }
+                    if (ImagerX::$plugin->generate->shouldGenerateByVolumes($element)) {
+                        ImagerX::$plugin->generate->processAssetByVolumes($element);
+                    }
 
-                        if ($element->getIsRevision()) {
-                            return;
-                        }
+                    if ($element->getIsRevision()) {
+                        return;
+                    }
 
-                        if (!$config->generateForDrafts && $element->getIsDraft()) {
-                            return;
-                        }
+                    if (!$config->generateForDrafts && $element->getIsDraft()) {
+                        return;
+                    }
 
-                        if (ImagerX::$plugin->generate->shouldGenerateByElements($element)) {
-                            ImagerX::$plugin->generate->processElementByElements($element);
-                        }
+                    if (ImagerX::$plugin->generate->shouldGenerateByElements($element)) {
+                        ImagerX::$plugin->generate->processElementByElements($element);
+                    }
 
-                        if (ImagerX::$plugin->generate->shouldGenerateByFields($element)) {
-                            ImagerX::$plugin->generate->processElementByFields($element);
-                        }
+                    if (ImagerX::$plugin->generate->shouldGenerateByFields($element)) {
+                        ImagerX::$plugin->generate->processElementByFields($element);
                     }
                 });
         }
