@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Added
-- Craft 4.0 support
+- Craft 4.0 support.
 - Added new Imager utility with cache clearing, transform generation and debug information.
 
 ### Removed
@@ -14,6 +14,13 @@
 
 ### Deprecated
 - Deprecated the use of `imgixParams` transform parameter, `transformerParams` should be used instead.
+
+
+## 3.5.8 - 2022-04-29
+
+### Fixed
+- Fixed an issue where colors would be distorted when using letterbox on a non-RGB image (fixes #147).
+- Fixed the use of `general` magic property when calling getConfig() (thanks @jamesmacwhite).
 
 ## 3.5.7 - 2022-04-13
 
