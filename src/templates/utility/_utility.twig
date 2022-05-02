@@ -24,6 +24,7 @@
                 <th scope="col" class="heading-cell">Cache</th>
                 <th scope="col" class="code html-cell">Path</th>
                 <th scope="col" class="html-cell">Files</th>
+                <th scope="col" class="html-cell">Size</th>
                 <th scope="col" class="html-cell"></th>
             </tr>
             </thead>
@@ -33,6 +34,7 @@
                     <th scope="row" class="heading-cell">{{ cache.name }}</th>
                     <td class="code html-cell">{{ cache.path }}</td>
                     <td class="html-cell" data-cache-file-count="{{ cache.handle }}">{{ cache.fileCount }}</td>
+                    <td class="html-cell" data-cache-file-size="{{ cache.handle }}">{{ cache.size }}</td>
                     <td class="html-cell" style="width: 115px;">
                         <div class="flex">
                             <input type="submit" class="btn small secondary" value="{{ 'Clear'|t('imager-x') }}" data-cache-clear-btn="{{ cache.handle }}"/>

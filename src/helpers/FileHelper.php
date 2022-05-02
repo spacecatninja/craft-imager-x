@@ -37,4 +37,22 @@ class FileHelper extends \craft\helpers\FileHelper
 
         return $files;
     }
+
+    public static function pathSize(string $path): int
+    {
+        $bytesTotal = 0;
+        $path = realpath($path);
+        
+        if ($path !== false && $path !== '' && file_exists($path)) {
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS)) as $object) {
+                try {
+                    $bytesTotal += $object->getSize();
+                } catch (\Throwable) {
+                    // just ignore
+                }
+            }
+        }
+
+        return $bytesTotal;
+    }
 }

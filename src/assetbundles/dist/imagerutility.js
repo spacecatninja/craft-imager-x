@@ -78,7 +78,7 @@ $(document).ready(function() {
                         $cacheStatus.html('An error occurred:<br>' + data.errors.join('<br>'));
                     }
                     
-                    updateCounts(data.counts);
+                    updateInfo(data.cacheInfo);
                     
                     $cacheForm.find('[data-imager-x-cache-spinner]').addClass('invisible');
                     $cacheBtns.removeClass('disabled');
@@ -95,12 +95,17 @@ $(document).ready(function() {
         }
     }
     
-    function updateCounts(counts) {
-        if (Array.isArray(counts)) {
-            counts.forEach(function(el) {
+    function updateInfo(info) {
+        if (Array.isArray(info)) {
+            info.forEach(function(el) {
                 var $countElem = $cacheForm.find('[data-cache-file-count="' + el.handle + '"]');
                 if ($countElem.length > 0) {
                     $countElem.text(el.fileCount);
+                }
+                
+                var $sizeElem = $cacheForm.find('[data-cache-file-size="' + el.handle + '"]');
+                if ($sizeElem.length > 0) {
+                    $sizeElem.text(el.size);
                 }
             });
         }

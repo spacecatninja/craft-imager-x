@@ -14,6 +14,7 @@ namespace spacecatninja\imagerx\controllers;
 use Craft;
 use craft\web\Controller;
 use spacecatninja\imagerx\helpers\FileHelper;
+use spacecatninja\imagerx\helpers\FormatHelper;
 use spacecatninja\imagerx\ImagerX as Plugin;
 
 use spacecatninja\imagerx\services\ImagerService;
@@ -104,23 +105,25 @@ class UtilityController extends Controller
             Plugin::$plugin->imagerx->deleteRemoteImageCaches();
         }
         
-        $counts = [];
+        $cacheInfo = [];
         $transformsCachePath = FileHelper::normalizePath(ImagerService::getConfig()->imagerSystemPath);
         $runtimeCachePath = FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/');
 
-        $counts[] = [
+        $cacheInfo[] = [
             'handle' => 'transforms',
             'fileCount' => count(FileHelper::filesInPath($transformsCachePath)),
+            'size' => FormatHelper::formatBytes(FileHelper::pathSize($transformsCachePath), 'm', 1) . ' MB',
         ];
         
-        $counts[] = [
+        $cacheInfo[] = [
             'handle' => 'runtime',
-            'fileCount' => count(FileHelper::filesInPath($runtimeCachePath))
+            'fileCount' => count(FileHelper::filesInPath($runtimeCachePath)),
+            'size' => FormatHelper::formatBytes(FileHelper::pathSize($runtimeCachePath), 'm', 1) . ' MB',
         ];
 
         return $this->asJson([
             'success' => true,
-            'counts' => $counts
+            'cacheInfo' => $cacheInfo
         ]);
     }
 }

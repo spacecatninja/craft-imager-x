@@ -20,6 +20,7 @@ use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use spacecatninja\imagerx\assetbundles\ImagerUtilityAssets;
 use spacecatninja\imagerx\helpers\FileHelper;
+use spacecatninja\imagerx\helpers\FormatHelper;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\models\Settings;
 use spacecatninja\imagerx\services\ImagerService;
@@ -76,13 +77,15 @@ class ImagerUtility extends Utility
             'name' => 'Transforms Cache',
             'path' => $transformsCachePath,
             'fileCount' => count(FileHelper::filesInPath($transformsCachePath)),
+            'size' => FormatHelper::formatBytes(FileHelper::pathSize($transformsCachePath), 'm', 1) . ' MB',
         ];
         
         $caches[] = [
             'handle' => 'runtime',
             'name' => 'Runtime Cache',
             'path' => $runtimeCachePath,
-            'fileCount' => count(FileHelper::filesInPath($runtimeCachePath))
+            'fileCount' => count(FileHelper::filesInPath($runtimeCachePath)),
+            'size' => FormatHelper::formatBytes(FileHelper::pathSize($runtimeCachePath), 'm', 1) . ' MB',
         ];
         
         
