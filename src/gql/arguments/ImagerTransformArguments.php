@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\gql\arguments;
