@@ -478,8 +478,8 @@ class CraftTransformer extends Component implements TransformerInterface
                 $instance->setImageFormat('avif');
 
                 $hasTransparency = $instance->getImageAlphaChannel();
-
-                if ($hasTransparency !== 0) {
+                
+                if ($hasTransparency != false) { // This has to be non-strict to deal with different return values from `getImageAlphaChannel` 
                     $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
                     $instance->setBackgroundColor(new \ImagickPixel('transparent'));
                 }
@@ -536,7 +536,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
                 $hasTransparency = $instance->getImageAlphaChannel();
 
-                if ($hasTransparency !== 0) {
+                if ($hasTransparency != false) { // This has to be non-strict to deal with different return values from `getImageAlphaChannel` 
                     $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
                     $instance->setBackgroundColor(new \ImagickPixel('transparent'));
                 }

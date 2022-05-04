@@ -33,7 +33,7 @@ class GreyscaleEffect implements ImagerEffectsInterface
             $hasTransparency = $imagickInstance->getImageAlphaChannel();
             $imagickInstance->setImageType(\Imagick::IMGTYPE_GRAYSCALE);
 
-            if ($hasTransparency !== 0) {
+            if ($hasTransparency != false) { // This has to be non-strict to deal with different return values from `getImageAlphaChannel` 
                 $imagickInstance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
                 $imagickInstance->setBackgroundColor(new \ImagickPixel('transparent'));
             }
