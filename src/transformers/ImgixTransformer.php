@@ -170,6 +170,7 @@ class ImgixTransformer extends Component implements TransformerInterface
                         break;
                     case 'croponly':
                         // todo : Not really supported, need to figure out if there's a workaround
+                        $r['fit'] = 'clip';
                         break;
                     case 'letterbox':
                         $r['fit'] = 'fill';
