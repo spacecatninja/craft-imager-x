@@ -1,10 +1,10 @@
 # Imager X Changelog
 
-## Unreleased
+## 4.0.0 - 2022-05-04
 
 ### Added
 - Craft 4.0 support.
-- Added new Imager utility with cache clearing, transform generation and debug information.
+- Added new Imager X utility with cache clearing, transform generation and debug information.
 
 ### Removed
 - Removed deprecated config settings `useCwebp`, `cwebpPath`, `avifEncoderPath`, `avifEncoderOptions`, `avifConvertString`. 
