@@ -5,28 +5,17 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\helpers;
 
 use spacecatninja\imagerx\services\ImagerService;
-use Craft;
-use craft\elements\Asset;
-use craft\helpers\ArrayHelper;
 
 class NamedTransformHelpers
 {
-    /**
-     * @param string $name
-     * @return array|null
-     */
-    public static function getNamedTransform($name)
+    public static function getNamedTransform(string $name): ?array
     {
-        if (!isset(ImagerService::$namedTransforms[$name])) {
-            return null;
-        }
-        
-        return ImagerService::$namedTransforms[$name];
+        return ImagerService::$namedTransforms[$name] ?? null;
     }
 }

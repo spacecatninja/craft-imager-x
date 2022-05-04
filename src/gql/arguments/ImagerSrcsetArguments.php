@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\gql\arguments;
@@ -28,7 +28,7 @@ class ImagerSrcsetArguments extends Arguments
             'handle' => [
                 'name' => 'handle',
                 'type' => Type::string(),
-                'description' => 'Handle for named transform to use'
+                'description' => 'Handle for named transform to use',
             ],
         ];
     }

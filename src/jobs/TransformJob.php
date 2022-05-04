@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\jobs;
@@ -15,11 +15,10 @@ use craft\elements\Asset;
 use craft\queue\BaseJob;
 use craft\queue\QueueInterface;
 
-use yii\queue\Queue;
-
-use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\exceptions\ImagerException;
+
 use spacecatninja\imagerx\ImagerX;
+use yii\queue\Queue;
 
 class TransformJob extends BaseJob
 {
@@ -29,12 +28,12 @@ class TransformJob extends BaseJob
     /**
      * @var null|int
      */
-    public $assetId;
+    public ?int $assetId = null;
     
     /**
      * @var array
      */
-    public $transforms = [];
+    public array $transforms = [];
     
 
     // Public Methods
@@ -44,8 +43,9 @@ class TransformJob extends BaseJob
      * @param QueueInterface|Queue $queue
      * @throws ImagerException
      */
-    public function execute($queue)
+    public function execute($queue): void
     {
+        $criteria = [];
         if ($this->assetId === null) {
             throw new ImagerException(Craft::t('imager-x', 'Asset ID in transform job was null'));
         }
@@ -70,9 +70,9 @@ class TransformJob extends BaseJob
     /**
      * Returns a default description for [[getDescription()]], if [[description]] isn’t set.
      *
-     * @return string The default task description
+     * @return string|null The default task description
      */
-    protected function defaultDescription(): string
+    protected function defaultDescription(): ?string
     {
         return Craft::t('imager-x', 'Transforming asset');
     }

@@ -5,19 +5,17 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\effects;
 
-use spacecatninja\imagerx\services\ImagerService;
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
-use Imagine\Imagick\Imagick;
+use spacecatninja\imagerx\services\ImagerService;
 
 class QuantizeEffect implements ImagerEffectsInterface
 {
-
     /**
      * @param GdImage|ImagickImage             $imageInstance
      * @param array|string|int|float|bool|null $params
@@ -30,7 +28,7 @@ class QuantizeEffect implements ImagerEffectsInterface
             
             if (\is_array($params) && \count($params) === 3) {
                 $imagickInstance->quantizeImage($params[0], \Imagick::COLORSPACE_RGB, $params[1], $params[2], false);
-            } else if (\is_int($params)) {
+            } elseif (\is_int($params)) {
                 $imagickInstance->quantizeImage($params, \Imagick::COLORSPACE_RGB, 0, false, false);
             }
         }

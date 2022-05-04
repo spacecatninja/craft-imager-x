@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\gql\resolvers;
@@ -16,8 +16,8 @@ use craft\gql\base\Resolver;
 
 use GraphQL\Type\Definition\ResolveInfo;
 
-use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\ImagerService;
 
 class ImagerResolver extends Resolver
@@ -25,7 +25,7 @@ class ImagerResolver extends Resolver
     /**
      * @inheritDoc
      */
-    public static function resolve($source, array $arguments, $context, ResolveInfo $resolveInfo)
+    public static function resolve(mixed $source, array $arguments, mixed $context, ResolveInfo $resolveInfo): mixed
     {
         $asset = null;
         $transform = $arguments['transform'];
@@ -54,18 +54,16 @@ class ImagerResolver extends Resolver
             }
         }
         
-        if ($asset instanceof Asset) {
-            if ($asset->kind !== 'image' || !\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
-                return null;
-            }
+        if ($asset instanceof Asset && ($asset->kind !== 'image' || !\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true))) {
+            return null;
         }
         
         if ($asset !== null) {
             try {
                 $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform);
                 return self::prepResults($transformedImages);
-            } catch (ImagerException $e) {
-                Craft::error('An error occured when transforming asset in GraphQL query: ' . $e->getMessage(), __METHOD__);
+            } catch (ImagerException $imagerException) {
+                Craft::error('An error occured when transforming asset in GraphQL query: ' . $imagerException->getMessage(), __METHOD__);
                 return null;
             }
         }

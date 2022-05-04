@@ -5,17 +5,15 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\models;
 
-use Craft;
-
 use craft\helpers\FileHelper;
+use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\services\ImagerService;
-use yii\base\InvalidConfigException;
 
 /**
  * LocalTargetImageModel
@@ -28,49 +26,52 @@ use yii\base\InvalidConfigException;
  */
 class LocalTargetImageModel
 {
-    public $path = '';
-    public $url = '';
-    public $filename = '';
-    public $extension = '';
-    public $isNew = false;
+    public string $path = '';
+
+    public string $url = '';
+
+    public string $filename = '';
+
+    public string $extension = '';
+
+    public bool $isNew = false;
 
     /**
      * LocalTargetImageModel constructor
-     * 
+     *
      * @param LocalSourceImageModel $source
      * @param array                 $transform
+     *
+     * @throws ImagerException
      */
-    public function __construct($source, $transform)
+    public function __construct(LocalSourceImageModel $source, array $transform)
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $this->filename = $this->createTargetFilename($source, $transform);
-        $this->path = FileHelper::normalizePath($config->imagerSystemPath.'/'.$source->transformPath);
-        $this->url = ImagerHelpers::stripTrailingSlash($config->imagerUrl).FileHelper::normalizePath($source->transformPath.'/'.$this->filename, '/');
+        $this->path = FileHelper::normalizePath($config->imagerSystemPath . '/' . $source->transformPath);
+        $this->url = ImagerHelpers::stripTrailingSlash($config->imagerUrl) . FileHelper::normalizePath($source->transformPath . '/' . $this->filename, '/');
     }
 
     /**
      * Get file path
-     * 
-     * @return string
      */
     public function getFilePath(): string
     {
-        return FileHelper::normalizePath($this->path.'/'.$this->filename);
+        return FileHelper::normalizePath($this->path . '/' . $this->filename);
     }
 
     /**
      * Creates target filename base on source and transform
-     * 
+     *
      * @param LocalSourceImageModel $source
      * @param array                 $transform
      *
      * @return string
+     * @throws ImagerException|\JsonException
      */
-    private function createTargetFilename($source, $transform): string
+    private function createTargetFilename(LocalSourceImageModel $source, array $transform): string
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $useFilenamePattern = $config->getSetting('useFilenamePattern', $transform);
@@ -87,34 +88,34 @@ class LocalTargetImageModel
 
         if ($extension === '') {
             $source->getLocalCopy();
-            
+
             try {
-                $extension = FileHelper::getExtensionByMimeType(FileHelper::getMimeType($source->path . '/' . $source->filename)) ?? '';
-            } catch (InvalidConfigException $e) {
+                $extension = FileHelper::getExtensionByMimeType(FileHelper::getMimeType($source->path . '/' . $source->filename) ?? '') ?? '';
+            } catch (\Throwable) {
                 // just continue, we can handle it
             }
         }
 
         $this->extension = $extension;
 
-        $transformFileString = ImagerHelpers::createTransformFilestring($transform).$config->getConfigOverrideString();
+        $transformFileString = ImagerHelpers::createTransformFilestring($transform) . $config->getConfigOverrideString();
 
         // If $useFilenamePattern is false, use old behavior with hashFilename config setting.
-        if (!$useFilenamePattern) { 
+        if (!$useFilenamePattern) {
             if ($hashFilename) {
-                if (\is_string($hashFilename) && $hashFilename === 'postfix') {
-                    return $basename.'_'.md5($transformFileString).'.'.$extension;
+                if ($hashFilename === 'postfix') {
+                    return $basename . '_' . md5($transformFileString) . '.' . $extension;
                 }
 
-                return md5($basename.$transformFileString).'.'.$extension;
+                return md5($basename . $transformFileString) . '.' . $extension;
             }
 
-            return $basename.$transformFileString.'.'.$extension;
+            return $basename . $transformFileString . '.' . $extension;
         }
 
         // New behavior, uses filenamePattern config setting. Much joy.
         $transformFileString = ltrim($transformFileString, '_');
-        $fullname = $basename.'_'.$transformFileString;
+        $fullname = $basename . '_' . $transformFileString;
 
         $patternFilename = $config->getSetting('filenamePattern', $transform);
         $patternFilename = mb_ereg_replace('{extension}', $extension, $patternFilename);

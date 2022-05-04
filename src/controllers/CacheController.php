@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 
@@ -23,14 +23,13 @@ use spacecatninja\imagerx\ImagerX as Plugin;
  */
 class CacheController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 
     /**
-     * @var array
+     * @var int|bool|array
      */
-    protected $allowAnonymous = ['actionClearTransforms', 'actionClearRemoteImages'];
+    protected int|bool|array $allowAnonymous = ['actionClearTransforms', 'actionClearRemoteImages'];
 
     // Public Methods
     // =========================================================================
@@ -38,18 +37,18 @@ class CacheController extends Controller
     /**
      * Controller action to clear image transforms
      *
-     * @throws \yii\base\ErrorException
+     * @throws \Throwable
      */
-    public function actionClearTransforms()
+    public function actionClearTransforms(): bool
     {
         $config = Plugin::$plugin->getSettings();
         $request = Craft::$app->getRequest();
 
         $key = $request->getParam('key', '');
-        $setKey = $config->clearKey;
+        $setKey = $config->clearKey ?? '';
 
-        if ($setKey === '' || $key != $setKey) {
-            throw new \Exception('Unautorized key');
+        if ($setKey === '' || $key !== $setKey) {
+            throw new \RuntimeException('Unautorized key');
         }
 
         Plugin::$plugin->imagerx->deleteImageTransformCaches();
@@ -60,18 +59,18 @@ class CacheController extends Controller
     /**
      * Controller action to clear remote images
      *
-     * @throws \yii\base\ErrorException
+     * @throws \Throwable
      */
-    public function actionClearRemoteImages()
+    public function actionClearRemoteImages(): bool
     {
         $config = Plugin::$plugin->getSettings();
         $request = Craft::$app->getRequest();
 
         $key = $request->getParam('key', '');
-        $setKey = $config->clearKey;
+        $setKey = $config->clearKey ?? '';
 
-        if ($setKey === '' || $key != $setKey) {
-            throw new \Exception('Unautorized key');
+        if ($setKey === '' || $key !== $setKey) {
+            throw new \RuntimeException('Unautorized key');
         }
 
         Plugin::$plugin->imagerx->deleteRemoteImageCaches();

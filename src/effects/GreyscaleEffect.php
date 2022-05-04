@@ -5,18 +5,17 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\effects;
 
-use spacecatninja\imagerx\services\ImagerService;
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
+use spacecatninja\imagerx\services\ImagerService;
 
 class GreyscaleEffect implements ImagerEffectsInterface
 {
-
     /**
      * @param GdImage|ImagickImage        $imageInstance
      * @param array|string|int|float|null $params
@@ -34,7 +33,7 @@ class GreyscaleEffect implements ImagerEffectsInterface
             $hasTransparency = $imagickInstance->getImageAlphaChannel();
             $imagickInstance->setImageType(\Imagick::IMGTYPE_GRAYSCALE);
 
-            if ($hasTransparency) {
+            if ($hasTransparency != false) { // This has to be non-strict to deal with different return values from `getImageAlphaChannel` 
                 $imagickInstance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
                 $imagickInstance->setBackgroundColor(new \ImagickPixel('transparent'));
             }

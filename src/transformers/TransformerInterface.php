@@ -5,24 +5,19 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\transformers;
 
-use spacecatninja\imagerx\exceptions\ImagerException;
 use craft\elements\Asset;
+use spacecatninja\imagerx\exceptions\ImagerException;
 
 interface TransformerInterface
 {
     /**
-     * @param Asset|string $image
-     * @param array        $transforms
-     *
-     * @return array|null
      *
      * @throws ImagerException
      */
-    public function transform($image, $transforms);
-
+    public function transform(Asset|string $image, array $transforms): ?array;
 }

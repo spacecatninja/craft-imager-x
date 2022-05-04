@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\services;
@@ -16,7 +16,6 @@ use craft\base\Component;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\externalstorage\ImagerStorageInterface;
 use spacecatninja\imagerx\ImagerX;
-use spacecatninja\imagerx\models\ConfigModel;
 
 /**
  * StorageService Service
@@ -30,14 +29,11 @@ class StorageService extends Component
     /**
      * Store transformed image in configured storages
      *
-     * @param string $path
-     * @param bool $isFinalVersion
      *
      * @throws ImagerException
      */
-    public function store(string $path, bool $isFinalVersion)
+    public function store(string $path, bool $isFinalVersion): void
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         if (empty($config->storages)) {
@@ -70,7 +66,7 @@ class StorageService extends Component
             } else {
                 $msg = 'Could not find a registered storage with handle "' . $storage . '".';
                 
-                if (!ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
+                if (!ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
                     $msg .= ' External storages are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
                 }
                 

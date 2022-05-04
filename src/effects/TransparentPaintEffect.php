@@ -5,19 +5,18 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\effects;
 
-use spacecatninja\imagerx\services\ImagerService;
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
 use Imagine\Imagick\Imagick;
+use spacecatninja\imagerx\services\ImagerService;
 
 class TransparentPaintEffect implements ImagerEffectsInterface
 {
-
     /**
      * @param GdImage|ImagickImage $imageInstance
      * @param array                $params
@@ -37,8 +36,8 @@ class TransparentPaintEffect implements ImagerEffectsInterface
                     }
 
                     $imagickInstance->transparentPaintImage($searchColor, $params[1], Imagick::getQuantum() * $params[2], false);
-                } catch (\Throwable $e) {
-                    \Craft::error('An error occured when trying to apply transparentpaint effect: '.$e->getMessage(), __METHOD__);
+                } catch (\Throwable $throwable) {
+                    \Craft::error('An error occured when trying to apply transparentpaint effect: ' . $throwable->getMessage(), __METHOD__);
                 }
             } else {
                 \Craft::error('An incorrect number of parameters were passed to transparentpaint effect.', __METHOD__);

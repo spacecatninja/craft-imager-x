@@ -5,13 +5,14 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\models;
 
 use craft\base\Model;
 
+use craft\helpers\App;
 use craft\helpers\ConfigHelper;
 use craft\helpers\FileHelper;
 use spacecatninja\imagerx\services\ImagerService;
@@ -21,20 +22,19 @@ class ConfigModel extends Settings
     /**
      * @var string
      */
-    private $configOverrideString = '';
+    private string $configOverrideString = '';
 
     /**
      * TransformSettings constructor.
      *
      * @param Settings|Model $settings
-     * @param array          $overrides
-     * @param array          $config
+     * @param array|null     $overrides
      */
-    public function __construct($settings, $overrides = null, $config = [])
+    public function __construct($settings, array $overrides = null, array $config = [])
     {
         parent::__construct($config);
 
-        // Reset model to get overrides from config file 
+        // Reset model to get overrides from config file
         foreach ($settings as $key => $value) {
             $this->$key = $value;
         }
@@ -69,68 +69,26 @@ class ConfigModel extends Settings
         $parseables = ['imagerSystemPath', 'imagerUrl'];
 
         foreach ($parseables as $parseable) {
-            $this->{$parseable} = \Craft::parseEnv($this->{$parseable});
+            $this->{$parseable} = App::parseEnv($this->{$parseable});
         }
         
-        // Normalize imager system path 
+        // Normalize imager system path
         $this->imagerSystemPath = FileHelper::normalizePath($this->imagerSystemPath);
-        
-        // Imgix API Key deprecation error
-        if ($this->imgixApiKey !== '' && strlen($this->imgixApiKey) < 50) {
-            \Craft::$app->deprecator->log(__METHOD__, 'You appear to be using an API key for the old version of the Imgix API. You need to acquire a new one, with permissions to purge, and replace the old one in your imager-x.php config file with it. See https://blog.imgix.com/2020/10/16/api-deprecation for more information.');
-        }
-        
-        // avifEncoderPath deprecation error
-        if ($this->avifEncoderPath !== '') {
-            \Craft::$app->deprecator->log(__METHOD__, 'Configuring encoder for AVIF through `avifEncoderPath` and the related config settings has been deprecated. Please use `customEncoders` instead ([see documentation](https://imager-x.spacecat.ninja/configuration.html#customencoders-array)).');
-            
-            if (!isset($this->customEncoders['avif'])) {
-                $this->customEncoders['avif'] = [
-                    'path' => $this->avifEncoderPath,
-                    'options' => $this->avifEncoderOptions,
-                    'paramsString' => $this->avifConvertString,
-                ];
-            }
-        }
-        
-        // useCwebp deprecation error
-        if ($this->useCwebp === true) {
-            \Craft::$app->deprecator->log(__METHOD__, 'Configuring encoder for WebP through `useCwebp` and `cwebpPath` config settings has been deprecated. Please use `customEncoders` instead ([see documentation](https://imager-x.spacecat.ninja/configuration.html#customencoders-array)).');
-            
-            if (!isset($this->customEncoders['webp'])) {
-                $this->customEncoders['webp'] = [
-                    'path' => $this->cwebpPath,
-                    'options' => [
-                        'quality' => $this->webpQuality,
-                        'effort' => 4
-                    ],
-                    'paramsString' => '-q {quality} -m {effort} {src} -o {dest}',
-                ];
-            }
-        }
     }
 
     /**
      * Get setting by key. If there is an override in transform, that is returned instead of the value in the model.
      *
-     * @param string     $key
      * @param array|null $transform
      *
-     * @return mixed
      */
-    public function getSetting($key, $transform = null)
+    public function getSetting(string $key, array $transform = null): mixed
     {
-        if (isset($transform[$key])) {
-            return $transform[$key];
-        }
-
-        return $this[$key];
+        return $transform[$key] ?? $this[$key];
     }
 
     /**
      * Returns config override string for this config model
-     *
-     * @return string
      */
     public function getConfigOverrideString(): string
     {
@@ -139,14 +97,10 @@ class ConfigModel extends Settings
 
     /**
      * Creates additional file string based on config overrides that is appended to filename
-     *
-     * @param string $key
-     * @param mixed  $value
      */
-    private function addToOverrideFilestring($key, $value)
+    private function addToOverrideFilestring(string $key, mixed $value): void
     {
-        $r = (ImagerService::$transformKeyTranslate[$key] ?? $key).(\is_array($value) ? md5(implode('-', $value)) : $value);
-        $this->configOverrideString .= '_'.str_replace('%', '', str_replace([' ', '.'], '-', $r));
+        $r = (ImagerService::$transformKeyTranslate[$key] ?? $key) . (\is_array($value) ? md5(implode('-', $value)) : $value);
+        $this->configOverrideString .= '_' . str_replace('%', '', str_replace([' ', '.'], '-', $r));
     }
-
 }

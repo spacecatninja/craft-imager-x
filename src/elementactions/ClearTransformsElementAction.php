@@ -5,19 +5,23 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\elementactions;
 
 use Craft;
 
-use craft\elements\db\ElementQueryInterface;
 use craft\base\ElementAction;
-use yii\base\Exception;
-
+use craft\elements\db\ElementQueryInterface;
 use spacecatninja\imagerx\ImagerX as Plugin;
 
+use yii\base\Exception;
+
+/**
+ *
+ * @property-read string $triggerLabel
+ */
 class ClearTransformsElementAction extends ElementAction
 {
     /**
@@ -30,10 +34,8 @@ class ClearTransformsElementAction extends ElementAction
 
     /**
      * Clears transforms for selected assets
-     * 
-     * @param ElementQueryInterface $query
      *
-     * @return bool
+     *
      */
     public function performAction(ElementQueryInterface $query): bool
     {

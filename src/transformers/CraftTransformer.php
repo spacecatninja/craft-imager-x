@@ -5,40 +5,38 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\transformers;
 
 use Craft;
-
 use craft\base\Component;
+
 use craft\elements\Asset;
 use craft\helpers\FileHelper;
-
-use spacecatninja\imagerx\helpers\ImagerHelpers;
-use spacecatninja\imagerx\models\ConfigModel;
-use spacecatninja\imagerx\models\LocalTransformedImageModel;
-use spacecatninja\imagerx\models\LocalSourceImageModel;
-use spacecatninja\imagerx\models\LocalTargetImageModel;
-use spacecatninja\imagerx\services\ImagerService;
-use spacecatninja\imagerx\exceptions\ImagerException;
-use spacecatninja\imagerx\effects\ImagerEffectsInterface;
-use spacecatninja\imagerx\helpers\QueueHelpers;
-use spacecatninja\imagerx\ImagerX;
-use spacecatninja\imagerx\models\NoopImageModel;
-use spacecatninja\imagerx\models\TransformedImageInterface;
+use Imagine\Exception\InvalidArgumentException;
 
 use Imagine\Gd\Image as GdImage;
-use Imagine\Imagick\Image as ImagickImage;
-use Imagine\Exception\InvalidArgumentException;
-use Imagine\Exception\OutOfBoundsException;
-use Imagine\Exception\RuntimeException;
+use Imagine\Gd\Imagine;
 use Imagine\Image\Box;
 use Imagine\Image\ImageInterface;
 use Imagine\Image\LayersInterface;
 use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
+use Imagine\Imagick\Image as ImagickImage;
+use spacecatninja\imagerx\effects\ImagerEffectsInterface;
+use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\helpers\ImagerHelpers;
+use spacecatninja\imagerx\helpers\QueueHelpers;
+
+use spacecatninja\imagerx\ImagerX;
+use spacecatninja\imagerx\models\LocalSourceImageModel;
+use spacecatninja\imagerx\models\LocalTargetImageModel;
+use spacecatninja\imagerx\models\LocalTransformedImageModel;
+use spacecatninja\imagerx\models\NoopImageModel;
+use spacecatninja\imagerx\models\TransformedImageInterface;
+use spacecatninja\imagerx\services\ImagerService;
 
 use yii\base\ErrorException;
 use yii\base\Exception;
@@ -52,8 +50,9 @@ use yii\base\Exception;
  */
 class CraftTransformer extends Component implements TransformerInterface
 {
-    private $imagineInstance = null;
-    private $imageInstance = null;
+    private null|Imagine|\Imagine\Imagick\Imagine $imagineInstance = null;
+
+    private null|GdImage|ImageInterface|ImagickImage $imageInstance = null;
 
     /**
      * CraftTransformer constructor.
@@ -70,17 +69,13 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Main transform method
      *
-     * @param Asset|string $image
-     * @param array        $transforms
      *
-     * @return array|null
      *
      * @throws ImagerException
      * @throws Exception
      */
-    public function transform($image, $transforms): ?array
+    public function transform(Asset|string $image, array $transforms): ?array
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $sourceModel = new LocalSourceImageModel($image);
@@ -99,7 +94,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
         $taskCreated = false;
 
-        // Loop over transformed images and do post optimizations and upload to external storage 
+        // Loop over transformed images and do post optimizations and upload to external storage
         foreach ($transformedImages as $transformedImage) {
             /** @var TransformedImageInterface $transformedImage */
             if ($transformedImage->getIsNew()) {
@@ -122,21 +117,16 @@ class CraftTransformer extends Component implements TransformerInterface
 
     // Private Methods
     // =========================================================================
-
     /**
      * Gets one transformed image based on source image and transform
      *
-     * @param LocalSourceImageModel $sourceModel
-     * @param array                 $transform
      *
-     * @return LocalTransformedImageModel|null
      *
      * @throws ImagerException
      * @throws Exception
      */
     private function getTransformedImage(LocalSourceImageModel $sourceModel, array $transform): ?LocalTransformedImageModel
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         if ($this->imagineInstance === null) {
@@ -172,7 +162,7 @@ class CraftTransformer extends Component implements TransformerInterface
             if (!realpath($targetModel->path)) {
                 try {
                     FileHelper::createDirectory($targetModel->path);
-                } catch (Exception $e) {
+                } catch (Exception $exception) {
                     // ignore for now, trying to create
                 }
 
@@ -185,7 +175,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
             try {
                 $targetPathIsWriteable = FileHelper::isWritable($targetModel->path);
-            } catch (ErrorException $e) {
+            } catch (ErrorException $errorException) {
                 $targetPathIsWriteable = false;
             }
 
@@ -201,7 +191,7 @@ class CraftTransformer extends Component implements TransformerInterface
                     Craft::error($msg, __METHOD__);
                     throw new ImagerException($msg);
                 }
-            } catch (ErrorException $e) {
+            } catch (ErrorException $errorException) {
                 // Do nothing, assume we have enough memory.
             }
 
@@ -209,8 +199,8 @@ class CraftTransformer extends Component implements TransformerInterface
             if ($this->imageInstance === null || !$config->getSetting('instanceReuseEnabled', $transform)) {
                 try {
                     $this->imageInstance = $this->imagineInstance->open($sourceModel->getFilePath());
-                } catch (\Throwable $e) {
-                    $msg = Craft::t('imager-x', 'An error occured when trying to open image: ' . $e->getMessage());
+                } catch (\Throwable $throwable) {
+                    $msg = Craft::t('imager-x', 'An error occured when trying to open image: ' . $throwable->getMessage());
                     Craft::error($msg, __METHOD__);
                     throw new ImagerException($msg);
                 }
@@ -269,17 +259,9 @@ class CraftTransformer extends Component implements TransformerInterface
             // Save the transform
             if (isset($customEncoders[$targetModel->extension])) {
                 $this->saveWithCustomEncoder($customEncoders[$targetModel->extension], $this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $transform);
-            } elseif ($targetModel->extension === 'webp') {
-                if (ImagerService::hasSupportForWebP()) {
-                    $this->saveAsWebp($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $saveOptions);
-                } else {
-                    $msg = Craft::t('imager-x', 'This version of {imageDriver} does not support the webp format, and cwebp does not seem to be configured. You should use “craft.imager.serverSupportsWebp” in your templates to test for it.', ['imageDriver' => ImagerService::$imageDriver === 'gd' ? 'GD' : 'Imagick']);
-                    Craft::error($msg, __METHOD__);
-                    throw new ImagerException($msg);
-                }
             } elseif ($targetModel->extension === 'avif') {
                 if (ImagerService::hasSupportForAvif()) {
-                    $this->saveAsAvif($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $saveOptions);
+                    $this->saveAsAvif($this->imageInstance, $targetModel->getFilePath(), $saveOptions);
                 } else {
                     $msg = Craft::t('imager-x', 'You have not configured support for AVIF yet.');
                     Craft::error($msg, __METHOD__);
@@ -287,7 +269,7 @@ class CraftTransformer extends Component implements TransformerInterface
                 }
             } elseif ($targetModel->extension === 'jxl') {
                 if (ImagerService::hasSupportForJxl()) {
-                    $this->saveAsJxl($this->imageInstance, $targetModel->getFilePath(), $sourceModel->extension, $saveOptions);
+                    $this->saveAsJxl($this->imageInstance, $targetModel->getFilePath(), $saveOptions);
                 } else {
                     $msg = Craft::t('imager-x', 'You have not configured support for JXL yet.');
                     Craft::error($msg, __METHOD__);
@@ -307,15 +289,11 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Apply transforms to an image or layer.
      *
-     * @param GdImage|ImagickImage|ImageInterface|object $layer
-     * @param array                                      $transform
-     * @param string                                     $sourceExtension
      *
      * @throws ImagerException
      */
-    private function transformLayer(&$layer, array $transform, string $sourceExtension): void
+    private function transformLayer(ImagickImage|ImageInterface|GdImage &$layer, array $transform, string $sourceExtension): void
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         // Apply any pre resize filters
@@ -347,8 +325,8 @@ class CraftTransformer extends Component implements TransformerInterface
                 $cropPoint = ImagerHelpers::getCropPoint($resizeSize, $cropSize, $config->getSetting('position', $transform));
                 $layer->crop($cropPoint, $cropSize);
             }
-        } catch (\Throwable $e) {
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (\Throwable $throwable) {
+            throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
 
         // Apply post resize effects
@@ -390,20 +368,18 @@ class CraftTransformer extends Component implements TransformerInterface
 
     /**
      * Creates the Imagine instance depending on the chosen image driver.
-     *
-     * @return \Imagine\Gd\Imagine|\Imagine\Imagick\Imagine|null
      */
-    private function createImagineInstance()
+    private function createImagineInstance(): \Imagine\Imagick\Imagine|Imagine|null
     {
         try {
             if (ImagerService::$imageDriver === 'gd') {
-                return new \Imagine\Gd\Imagine();
+                return new Imagine();
             }
 
             if (ImagerService::$imageDriver === 'imagick') {
                 return new \Imagine\Imagick\Imagine();
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // just ignore for now
         }
 
@@ -413,29 +389,21 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Returns the filter method for resize operations
      *
-     * @param array $transform
      *
-     * @return string
      */
     private function getFilterMethod(array $transform): string
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         return ImagerService::$imageDriver === 'imagick' ? ImagerService::$filterKeyTranslate[(string)$config->getSetting('resizeFilter', $transform)] : ImageInterface::FILTER_UNDEFINED;
     }
 
     /**
-     * @param array                                      $encoder
-     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
-     * @param string                                     $path
-     * @param string                                     $sourceExtension
-     * @param array                                      $transform
      *
      * @throws Exception
      * @throws ImagerException
      */
-    private function saveWithCustomEncoder(array $encoder, $imageInstance, string $path, string $sourceExtension, array $transform)
+    private function saveWithCustomEncoder(array $encoder, ImagickImage|ImageInterface|GdImage $imageInstance, string $path, string $sourceExtension, array $transform): void
     {
         if (!empty($encoder['path']) && file_exists($encoder['path'])) {
             // Save temp file
@@ -445,14 +413,14 @@ class CraftTransformer extends Component implements TransformerInterface
 
             $opts = array_merge([
                 '{src}' => $tempFile,
-                '{dest}' => $path
+                '{dest}' => $path,
             ], $encoder['options'], $customEncoderOptions);
 
             $r = [];
 
             foreach ($opts as $k => $v) {
-                if (strpos($k, '{') !== 0) {
-                    $r['{'.$k.'}'] = $v;
+                if (!str_starts_with($k, '{')) {
+                    $r['{' . $k . '}'] = $v;
                 } else {
                     $r[$k] = $v;
                 }
@@ -460,12 +428,12 @@ class CraftTransformer extends Component implements TransformerInterface
 
             $opts = $r;
 
-            $command = escapeshellcmd($encoder['path'].' '.strtr($encoder['paramsString'], $opts));
+            $command = escapeshellcmd($encoder['path'] . ' ' . strtr($encoder['paramsString'], $opts));
             $r = shell_exec($command);
 
             if (!file_exists($path)) {
                 unlink($tempFile);
-                $msg = Craft::t('imager-x', "Custom encoder failed. Output was:\n".$r."\nThe executed command was \"$command\"");
+                $msg = Craft::t('imager-x', "Custom encoder failed. Output was:\n" . $r . "\nThe executed command was \"{$command}\"");
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg);
             }
@@ -479,95 +447,17 @@ class CraftTransformer extends Component implements TransformerInterface
         }
     }
 
-
-    /**
-     * Saves image as webp
-     *
-     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
-     * @param string                                     $path
-     * @param string                                     $sourceExtension
-     * @param array                                      $saveOptions
-     *
-     * @throws ImagerException
-     * @throws Exception
-     */
-    private function saveAsWebp($imageInstance, string $path, string $sourceExtension, array $saveOptions): void
-    {
-        /** @var ConfigModel $settings */
-        $config = ImagerService::getConfig();
-
-
-        if (ImagerService::$imageDriver === 'gd') {
-            /** @var GdImage $imageInstance */
-            $instance = $imageInstance->getGdResource();
-
-            if (false === /** @scrutinizer ignore-call */ \imagewebp($instance, $path, $saveOptions['webp_quality'])) {
-                $msg = Craft::t('imager-x', 'GD WebP save operation failed');
-                Craft::error($msg, __METHOD__);
-                throw new ImagerException($msg);
-            }
-
-            // Fix for corrupt file bug (http://stackoverflow.com/questions/30078090/imagewebp-php-creates-corrupted-webp-files)
-            if (filesize($path) % 2 === 1) {
-                file_put_contents($path, "\0", FILE_APPEND);
-            }
-        }
-
-        if (ImagerService::$imageDriver === 'imagick') {
-            /** @var ImagickImage $imageInstance */
-            $instance = $imageInstance->getImagick();
-
-            try {
-                $instance->setImageFormat('webp');
-
-                $hasTransparency = $instance->getImageAlphaChannel();
-
-                if ($hasTransparency) {
-                    $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
-                    $instance->setBackgroundColor(new \ImagickPixel('transparent'));
-                }
-
-                $instance->setImageCompressionQuality($saveOptions['webp_quality']);
-                $imagickOptions = $saveOptions['webp_imagick_options'];
-
-                if ($imagickOptions && \count($imagickOptions) > 0) {
-                    foreach ($imagickOptions as $key => $val) {
-                        $instance->setOption('webp:'.$key, $val);
-                    }
-                }
-            } catch (\Throwable $e) {
-                $msg = Craft::t('imager-x', 'An error occured when trying to set WebP options in Imagick instance.');
-                Craft::error($msg, __METHOD__);
-                throw new ImagerException($msg);
-            }
-
-            try {
-                $instance->writeImage($path);
-            } catch (\Throwable $e) {
-                $msg = Craft::t('imager-x', 'Imageick WebP save operation failed');
-                Craft::error($msg, __METHOD__);
-                throw new ImagerException($msg);
-            }
-        }
-    }
-
     /**
      * Saves image as avif
      *
-     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
-     * @param string                                     $path
-     * @param string                                     $sourceExtension
-     * @param array                                      $saveOptions
      *
      * @throws Exception
      * @throws ImagerException
      */
-    private function saveAsAvif($imageInstance, string $path, string $sourceExtension, array $saveOptions): void
+    private function saveAsAvif(ImagickImage|ImageInterface|GdImage $imageInstance, string $path, array $saveOptions): void
     {
-        /** @var ConfigModel $settings */
-        $config = ImagerService::getConfig();
-
-
+        ImagerService::getConfig();
+        
         if (ImagerService::$imageDriver === 'gd') {
             /** @var GdImage $imageInstance */
             $instance = $imageInstance->getGdResource();
@@ -588,8 +478,8 @@ class CraftTransformer extends Component implements TransformerInterface
                 $instance->setImageFormat('avif');
 
                 $hasTransparency = $instance->getImageAlphaChannel();
-
-                if ($hasTransparency) {
+                
+                if ($hasTransparency != false) { // This has to be non-strict to deal with different return values from `getImageAlphaChannel` 
                     $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
                     $instance->setBackgroundColor(new \ImagickPixel('transparent'));
                 }
@@ -598,7 +488,7 @@ class CraftTransformer extends Component implements TransformerInterface
                 // Setting both, just to be sure. ¯\_(ツ)_/¯
                 $instance->setCompressionQuality($saveOptions['avif_quality']);
                 $instance->setImageCompressionQuality($saveOptions['avif_quality']);
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 $msg = Craft::t('imager-x', 'An error occured when trying to set AVIF options in Imagick instance.');
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg);
@@ -606,7 +496,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
             try {
                 $instance->writeImage($path);
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 $msg = Craft::t('imager-x', 'Imagick AVIF save operation failed');
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg);
@@ -617,18 +507,13 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Saves image as JPEG XL
      *
-     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
-     * @param string                                     $path
-     * @param string                                     $sourceExtension
-     * @param array                                      $saveOptions
      *
      * @throws Exception
      * @throws ImagerException
      */
-    private function saveAsJxl($imageInstance, string $path, string $sourceExtension, array $saveOptions): void
+    private function saveAsJxl(ImagickImage|ImageInterface|GdImage $imageInstance, string $path, array $saveOptions): void
     {
-        /** @var ConfigModel $settings */
-        $config = ImagerService::getConfig();
+        ImagerService::getConfig();
 
         if (ImagerService::$imageDriver === 'gd') {
             /** @var GdImage $imageInstance */
@@ -651,7 +536,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
                 $hasTransparency = $instance->getImageAlphaChannel();
 
-                if ($hasTransparency) {
+                if ($hasTransparency != false) { // This has to be non-strict to deal with different return values from `getImageAlphaChannel` 
                     $instance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
                     $instance->setBackgroundColor(new \ImagickPixel('transparent'));
                 }
@@ -660,7 +545,7 @@ class CraftTransformer extends Component implements TransformerInterface
                 // Setting both, just to be sure. ¯\_(ツ)_/¯
                 $instance->setCompressionQuality($saveOptions['jxl_quality']);
                 $instance->setImageCompressionQuality($saveOptions['jxl_quality']);
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 $msg = Craft::t('imager-x', 'An error occured when trying to set JPEG XL options in Imagick instance.');
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg);
@@ -668,7 +553,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
             try {
                 $instance->writeImage($path);
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 $msg = Craft::t('imager-x', 'Imagick JPEG XL save operation failed');
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg);
@@ -679,23 +564,20 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Save temporary file and return filename
      *
-     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
-     * @param string                                     $sourceExtension
      *
-     * @return string
      *
      * @throws ImagerException
      * @throws Exception
      */
-    private function saveTemporaryFile($imageInstance, string $sourceExtension): string
+    private function saveTemporaryFile(ImagickImage|ImageInterface|GdImage $imageInstance, string $sourceExtension): string
     {
-        $tempPath = Craft::$app->getPath()->getRuntimePath().DIRECTORY_SEPARATOR.'imager'.DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR;
+        $tempPath = Craft::$app->getPath()->getRuntimePath() . DIRECTORY_SEPARATOR . 'imager' . DIRECTORY_SEPARATOR . 'temp' . DIRECTORY_SEPARATOR;
 
         // Check if the path exists
         if (!realpath($tempPath)) {
             try {
                 FileHelper::createDirectory($tempPath);
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // just ignore for now, trying to create
             }
 
@@ -706,12 +588,12 @@ class CraftTransformer extends Component implements TransformerInterface
             }
         }
 
-        $targetFilePath = $tempPath.md5(microtime()).'.'.$sourceExtension;
+        $targetFilePath = $tempPath . md5(microtime()) . '.' . $sourceExtension;
 
         $saveOptions = [
             'jpeg_quality' => 100,
             'png_compression_level' => 1,
-            'flatten' => true
+            'flatten' => true,
         ];
 
         $imageInstance->save($targetFilePath, $saveOptions);
@@ -722,45 +604,32 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Get the save options based on extension and transform
      *
-     * @param string $extension
-     * @param array  $transform
      *
-     * @return array
      */
     private function getSaveOptions(string $extension, array $transform): array
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
-        switch (mb_strtolower($extension)) {
-            case 'jpg':
-            case 'jpeg':
-                return ['jpeg_quality' => $config->getSetting('jpegQuality', $transform)];
-            case 'gif':
-                return ['flatten' => false];
-            case 'png':
-                return ['png_compression_level' => $config->getSetting('pngCompressionLevel', $transform)];
-            case 'webp':
-                return ['webp_quality' => $config->getSetting('webpQuality', $transform), 'webp_imagick_options' => $config->getSetting('webpImagickOptions', $transform)];
-            case 'avif':
-                return ['avif_quality' => $config->getSetting('avifQuality', $transform)];
-        }
-
-        return [];
+        return match (mb_strtolower($extension)) {
+            'jpg', 'jpeg' => ['jpeg_quality' => $config->getSetting('jpegQuality', $transform)],
+            'gif' => ['flatten' => false],
+            'png' => ['png_compression_level' => $config->getSetting('pngCompressionLevel', $transform)],
+            'webp' => ['webp_quality' => $config->getSetting('webpQuality', $transform), 'webp_imagick_options' => $config->getSetting('webpImagickOptions', $transform)],
+            'avif' => ['avif_quality' => $config->getSetting('avifQuality', $transform)],
+            'jxl' => ['jxl_quality' => $config->getSetting('jxlQuality', $transform)],
+            default => [],
+        };
     }
 
     /**
      * Apply letterbox to image
      *
-     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
-     * @param array                                      $transform
      *
      * @throws ImagerException
      */
-    private function applyLetterbox(&$imageInstance, array $transform): void
+    private function applyLetterbox(ImagickImage|ImageInterface|GdImage &$imageInstance, array $transform): void
     {
-        if (isset($transform['width'], $transform['height'])) { // if both isn't set, there's no need for a letterbox
-            /** @var ConfigModel $settings */
+        if (isset($transform['width'], $transform['height'])) {
             $config = ImagerService::getConfig();
 
             $letterboxDef = $config->getSetting('letterbox', $transform);
@@ -776,15 +645,15 @@ class CraftTransformer extends Component implements TransformerInterface
                     (int)floor(((int)$transform['width'] - $padWidth - $imageInstance->getSize()->getWidth()) / 2),
                     (int)floor(((int)$transform['height'] - $padHeight - $imageInstance->getSize()->getHeight()) / 2)
                 );
-            } catch (InvalidArgumentException $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            } catch (InvalidArgumentException $invalidArgumentException) {
+                Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+                throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
             }
 
             $palette = new RGB();
             $color = $palette->color(
                 $letterboxDef['color'] ?? '#000',
-                isset($letterboxDef['opacity']) ? (int)($letterboxDef['opacity'] * 100) : 0
+                isset($letterboxDef['opacity']) ? ($letterboxDef['opacity'] * 100) : 0
             );
 
             if ($this->imagineInstance !== null) {
@@ -799,6 +668,7 @@ class CraftTransformer extends Component implements TransformerInterface
                 }
                 
                 $backgroundImage->paste($imageInstance, $position);
+
                 $imageInstance = $backgroundImage;
             }
         }
@@ -807,16 +677,12 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Apply padding to image
      *
-     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
-     * @param array                                      $transform
-     * @param string                                     $sourceExtension
      *
      * @throws ImagerException
      */
-    private function applyPadding(&$imageInstance, array $transform, string $sourceExtension): void
+    private function applyPadding(ImagickImage|ImageInterface|GdImage &$imageInstance, array $transform, string $sourceExtension): void
     {
         if (isset($transform['pad'])) {
-            /** @var ConfigModel $settings */
             $config = ImagerService::getConfig();
 
             $bgColor = $config->getSetting('bgColor', $transform);
@@ -834,18 +700,14 @@ class CraftTransformer extends Component implements TransformerInterface
             try {
                 $size = new Box($imageWidth + $padWidth, $imageHeight + $padHeight);
                 $position = new Point($padding[3], $padding[0]);
-            } catch (InvalidArgumentException $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            } catch (InvalidArgumentException $invalidArgumentException) {
+                Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+                throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
             }
 
             $palette = new RGB();
 
-            if ($bgColor === 'transparent') {
-                $color = $palette->color('#000', 0);
-            } else {
-                $color = $palette->color($bgColor);
-            }
+            $color = $bgColor === 'transparent' ? $palette->color('#000', 0) : $palette->color($bgColor);
 
             if ($this->imagineInstance !== null) {
                 $backgroundImage = $this->imagineInstance->create($size, $color);
@@ -858,26 +720,20 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Apply background color to image when converting from transparent to non-transparent
      *
-     * @param GdImage|ImagickImage|ImageInterface|object $imageInstance
-     * @param string                                     $bgColor
      *
      * @throws ImagerException
      */
-    private function applyBackgroundColor(&$imageInstance, string $bgColor): void
+    private function applyBackgroundColor(ImagickImage|ImageInterface|GdImage &$imageInstance, string $bgColor): void
     {
         $palette = new RGB();
 
-        if ($bgColor === 'transparent') {
-            $color = $palette->color('#000', 0);
-        } else {
-            $color = $palette->color($bgColor);
-        }
+        $color = $bgColor === 'transparent' ? $palette->color('#000', 0) : $palette->color($bgColor);
 
         try {
             $topLeft = new Point(0, 0);
-        } catch (InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         if ($this->imagineInstance !== null) {
@@ -890,12 +746,10 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Apply watermark to image
      *
-     * @param GdImage|ImagickImage|ImageInterface $imageInstance
-     * @param array                               $watermark
      *
      * @throws ImagerException
      */
-    private function applyWatermark($imageInstance, array $watermark): void
+    private function applyWatermark(ImagickImage|ImageInterface|GdImage $imageInstance, array $watermark): void
     {
         if (!isset($watermark['image'])) {
             $msg = Craft::t('imager-x', 'Watermark image property not set');
@@ -917,13 +771,14 @@ class CraftTransformer extends Component implements TransformerInterface
 
         $sourceModel = new LocalSourceImageModel($watermark['image']);
         $sourceModel->getLocalCopy();
+
         $watermarkInstance = $this->imagineInstance->open($sourceModel->getFilePath());
 
         try {
             $watermarkBox = new Box($watermark['width'], $watermark['height']);
-        } catch (InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         $watermarkInstance->resize($watermarkBox, ImageInterface::FILTER_UNDEFINED);
@@ -933,22 +788,18 @@ class CraftTransformer extends Component implements TransformerInterface
 
             if (isset($position['top'])) {
                 $posY = (int)$position['top'];
+            } elseif (isset($position['bottom'])) {
+                $posY = $imageInstance->getSize()->getHeight() - (int)$watermark['height'] - (int)$position['bottom'];
             } else {
-                if (isset($position['bottom'])) {
-                    $posY = $imageInstance->getSize()->getHeight() - (int)$watermark['height'] - (int)$position['bottom'];
-                } else {
-                    $posY = $imageInstance->getSize()->getHeight() - (int)$watermark['height'] - 10;
-                }
+                $posY = $imageInstance->getSize()->getHeight() - (int)$watermark['height'] - 10;
             }
 
             if (isset($position['left'])) {
                 $posX = (int)$position['left'];
+            } elseif (isset($position['right'])) {
+                $posX = $imageInstance->getSize()->getWidth() - (int)$watermark['width'] - (int)$position['right'];
             } else {
-                if (isset($position['right'])) {
-                    $posX = $imageInstance->getSize()->getWidth() - (int)$watermark['width'] - (int)$position['right'];
-                } else {
-                    $posX = $imageInstance->getSize()->getWidth() - (int)$watermark['width'] - 10;
-                }
+                $posX = $imageInstance->getSize()->getWidth() - (int)$watermark['width'] - 10;
             }
         } else {
             $posY = $imageInstance->getSize()->getHeight() - (int)$watermark['height'] - 10;
@@ -957,9 +808,9 @@ class CraftTransformer extends Component implements TransformerInterface
 
         try {
             $positionPoint = new Point($posX, $posY);
-        } catch (InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         if (ImagerService::$imageDriver === 'imagick') {
@@ -969,8 +820,8 @@ class CraftTransformer extends Component implements TransformerInterface
             if (isset($watermark['opacity'])) {
                 try {
                     $watermarkImagick->evaluateImage(\Imagick::EVALUATE_MULTIPLY, (float)$watermark['opacity'], \Imagick::CHANNEL_ALPHA);
-                } catch (\Throwable $e) {
-                    Craft::error('Could not set watermark opacity: '.$e->getMessage(), __METHOD__);
+                } catch (\Throwable $throwable) {
+                    Craft::error('Could not set watermark opacity: ' . $throwable->getMessage(), __METHOD__);
                 }
             }
 
@@ -981,24 +832,26 @@ class CraftTransformer extends Component implements TransformerInterface
             }
 
             /** @var ImagickImage $imageInstance */
-            $imageInstance->getImagick()->compositeImage($watermarkImagick, $blendMode, $positionPoint->getX(), $positionPoint->getY());
+            try {
+                $imageInstance->getImagick()->compositeImage($watermarkImagick, $blendMode, $positionPoint->getX(), $positionPoint->getY());
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable->getMessage(), __METHOD__);
+                throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
+            }
         } else { // it's GD :(
             try {
                 $imageInstance->paste($watermarkInstance, $positionPoint);
-            } catch (\Throwable $e) {
-                Craft::error($e->getMessage(), __METHOD__);
-                throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable->getMessage(), __METHOD__);
+                throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
             }
         }
     }
 
     /**
      * Applies effects to image.
-     *
-     * @param GdImage|ImagickImage $image
-     * @param array                $effects
      */
-    private function applyEffects($image, array $effects): void
+    private function applyEffects(ImagickImage|GdImage $image, array $effects): void
     {
         foreach ($effects as $effect => $value) {
             $effect = mb_strtolower($effect);
@@ -1014,21 +867,19 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Applies trim to image.
      *
-     * @param GdImage|ImagickImage $image
-     * @param float                $fuzz
      *
      * @throws ImagerException
      */
-    private function trim($image, float $fuzz): void
+    private function trim(ImagickImage|GdImage $image, float $fuzz): void
     {
         if (ImagerService::$imageDriver === 'imagick') {
             try {
                 $image->getImagick()->trimImage(\Imagick::getQuantum() * $fuzz);
                 $image->getImagick()->setImagePage(0, 0, 0, 0);
-            } catch (\Throwable $e) {
-                $msg = 'An error occured when trying to trim image: '.$e->getMessage();
+            } catch (\Throwable $throwable) {
+                $msg = 'An error occured when trying to trim image: ' . $throwable->getMessage();
                 Craft::error($msg, __METHOD__);
-                throw new ImagerException($msg, $e->getCode(), $e);
+                throw new ImagerException($msg, $throwable->getCode(), $throwable);
             }
         }
     }
@@ -1036,12 +887,9 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Get vars for animated gif frames setup
      *
-     * @param LayersInterface|array $layers
-     * @param array                 $transform
      *
-     * @return array
      */
-    private function getFramesVars($layers, array $transform): array
+    private function getFramesVars(array|LayersInterface $layers, array $transform): array
     {
         $startFrame = 0;
         $endFrame = \count($layers) - 1;
@@ -1062,7 +910,8 @@ class CraftTransformer extends Component implements TransformerInterface
                     $endFrame = $framesArr[1];
                 }
             } else {
-                $startFrame = $endFrame = $framesArr[0];
+                $startFrame = $framesArr[0];
+                $endFrame = $framesArr[0];
             }
 
             if ($endFrame > \count($layers) - 1) {

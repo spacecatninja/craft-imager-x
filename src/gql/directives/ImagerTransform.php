@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\gql\directives;
@@ -18,9 +18,9 @@ use GraphQL\Type\Definition\Directive as GqlDirective;
 use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Type\Definition\ResolveInfo;
 
-use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\gql\arguments\ImagerTransformArguments;
+use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\ImagerService;
 
 /**
@@ -49,16 +49,14 @@ class ImagerTransform extends Directive
             return $type;
         }
 
-        $type = GqlEntityRegistry::createEntity(static::name(), new self([
+        return GqlEntityRegistry::createEntity(static::name(), new self([
             'name' => static::name(),
             'locations' => [
                 DirectiveLocation::FIELD,
             ],
             'args' => ImagerTransformArguments::getArguments(),
-            'description' => 'This directive is used to return a URL for an using Imager X.'
+            'description' => 'This directive is used to return a URL for an using Imager X.',
         ]));
-
-        return $type;
     }
 
     /**
@@ -72,7 +70,7 @@ class ImagerTransform extends Directive
     /**
      * @inheritdoc
      */
-    public static function apply($source, $value, array $arguments, ResolveInfo $resolveInfo)
+    public static function apply(mixed $source, mixed $value, array $arguments, ResolveInfo $resolveInfo): mixed
     {
         if ($resolveInfo->fieldName !== 'url') {
             return $value;
@@ -85,11 +83,7 @@ class ImagerTransform extends Directive
             unset($arguments['return']);
         }
 
-        if (isset($arguments['handle'])) {
-            $transform = $arguments['handle'];
-        } else {
-            $transform = $arguments;
-        }
+        $transform = $arguments['handle'] ?? $arguments;
         
         if ($source->kind !== 'image' || !\in_array(strtolower($source->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
             return null;
@@ -97,8 +91,8 @@ class ImagerTransform extends Directive
         
         try {
             $transformedImage = ImagerX::$plugin->imagerx->transformImage($source, $transform);
-        } catch (ImagerException $e) {
-            Craft::error('An error occured when trying to transform image in GraphQL directive: ' . $e->getMessage(), __METHOD__);
+        } catch (ImagerException $imagerException) {
+            Craft::error('An error occured when trying to transform image in GraphQL directive: ' . $imagerException->getMessage(), __METHOD__);
             return null;
         }
         

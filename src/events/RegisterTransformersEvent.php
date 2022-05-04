@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\events;
@@ -20,5 +20,5 @@ class RegisterTransformersEvent extends Event
     /**
      * @var array List of transformers
      */
-    public $transformers = [];
+    public array $transformers = [];
 }

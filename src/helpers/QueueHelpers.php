@@ -5,21 +5,19 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\helpers;
 
-use Craft;
 use craft\helpers\UrlHelper;
-
 
 class QueueHelpers
 {
     /**
      * Trigger queue/run immediately
      */
-    public static function triggerQueueNow()
+    public static function triggerQueueNow(): void
     {
         $url = UrlHelper::actionUrl('queue/run');
 
@@ -29,7 +27,7 @@ class QueueHelpers
             $options = [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CONNECTTIMEOUT => false,
-                CURLOPT_NOSIGNAL => true
+                CURLOPT_NOSIGNAL => true,
             ];
 
             if (\defined('CURLOPT_TIMEOUT_MS')) {

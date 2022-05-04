@@ -5,22 +5,24 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\elementactions;
 
-use spacecatninja\imagerx\ImagerX;
-
 use Craft;
-use craft\elements\db\ElementQueryInterface;
+
 use craft\base\ElementAction;
+use craft\elements\db\ElementQueryInterface;
 
 use spacecatninja\imagerx\ImagerX as Plugin;
 
+/**
+ *
+ * @property-read string $triggerLabel
+ */
 class ImgixPurgeElementAction extends ElementAction
 {
-
     /**
      * @inheritdoc
      */
@@ -32,13 +34,10 @@ class ImgixPurgeElementAction extends ElementAction
     /**
      * Purges selected image Assets from Imgix
      *
-     * @param ElementQueryInterface $query
      *
-     * @return bool
      */
     public function performAction(ElementQueryInterface $query): bool
     {
-
         $imagesToPurge = $query->kind('image')->all();
 
         if (empty($imagesToPurge)) {
@@ -46,19 +45,18 @@ class ImgixPurgeElementAction extends ElementAction
             return true;
         }
 
-        /** @var ImagerX $imagerPlugin */
         $imagerPlugin = Plugin::$plugin;
 
         try {
             foreach ($imagesToPurge as $imageToPurge) {
                 $imagerPlugin->imgix->purgeAssetFromImgix($imageToPurge);
             }
-        } catch (\Throwable $e) {
-            $this->setMessage($e->getMessage());
+        } catch (\Throwable $throwable) {
+            $this->setMessage($throwable->getMessage());
             return false;
         }
 
-        $numImagesToPurge = \count($imagesToPurge);
+        $numImagesToPurge = is_countable($imagesToPurge) ? \count($imagesToPurge) : 0;
         if ($numImagesToPurge > 1) {
             $this->setMessage(Craft::t('imager-x', 'Purging {count} images from Imgix...', [
                 'count' => $numImagesToPurge,

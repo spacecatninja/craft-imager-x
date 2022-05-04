@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\transformers;
@@ -15,14 +15,11 @@ use Craft;
 use craft\base\Component;
 use craft\elements\Asset;
 
-use spacecatninja\imagerx\models\ConfigModel;
+use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\helpers\ImgixHelpers;
 use spacecatninja\imagerx\models\ImgixSettings;
 use spacecatninja\imagerx\models\ImgixTransformedImageModel;
 use spacecatninja\imagerx\services\ImagerService;
-use spacecatninja\imagerx\exceptions\ImagerException;
-use spacecatninja\imagerx\helpers\ImgixHelpers;
-
-use Imgix\UrlBuilder;
 
 /**
  * ImgixTransformer
@@ -33,33 +30,20 @@ use Imgix\UrlBuilder;
  */
 class ImgixTransformer extends Component implements TransformerInterface
 {
-    public static $transformKeyTranslate = [
+    public static array $transformKeyTranslate = [
         'width' => 'w',
         'height' => 'h',
         'format' => 'fm',
         'bgColor' => 'bg',
     ];
-
-    /**
-     * ImgixTransformer constructor.
-     *
-     * @param array $config
-     */
-    public function __construct($config = [])
-    {
-        parent::__construct($config);
-    }
-
+    
     /**
      * Main transform method
      *
-     * @param Asset|string $image
-     * @param array        $transforms
      *
-     * @return array|null
      * @throws ImagerException
      */
-    public function transform($image, $transforms)
+    public function transform(Asset|string $image, array $transforms): ?array
     {
         $transformedImages = [];
 
@@ -73,30 +57,26 @@ class ImgixTransformer extends Component implements TransformerInterface
     /**
      * Transform one image
      *
-     * @param Asset|string $image
-     * @param array        $transform
      *
-     * @return ImgixTransformedImageModel
      *
      * @throws ImagerException
      */
-    private function getTransformedImage($image, $transform): ImgixTransformedImageModel
+    private function getTransformedImage(Asset|string $image, array $transform): ImgixTransformedImageModel
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $profile = $config->getSetting('imgixProfile', $transform);
         $imgixConfigArr = $config->getSetting('imgixConfig', $transform);
 
         if (!isset($imgixConfigArr[$profile])) {
-            $msg = 'Imgix profile “'.$profile.'” does not exist.';
+            $msg = 'Imgix profile “' . $profile . '” does not exist.';
             Craft::error($msg, __METHOD__);
             throw new ImagerException($msg);
         }
 
         $imgixConfig = new ImgixSettings($imgixConfigArr[$profile]);
         
-        if (($imgixConfig->sourceIsWebProxy === true) && ($imgixConfig->signKey === '')) {
+        if (($imgixConfig->sourceIsWebProxy) && ($imgixConfig->signKey === '')) {
             $msg = Craft::t('imager-x', 'Your Imgix source is a web proxy according to config setting “sourceIsWebProxy”, but no sign key/security token has been given in imgix config setting “signKey”. You`ll find this in your Imgix source details page.');
             Craft::error($msg, __METHOD__);
             throw new ImagerException($msg);
@@ -104,9 +84,9 @@ class ImgixTransformer extends Component implements TransformerInterface
 
         try {
             $builder = ImgixHelpers::getBuilder($imgixConfig);
-        } catch (\InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (\InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         $params = $this->createParams($transform, $image, $imgixConfig);
@@ -119,15 +99,10 @@ class ImgixTransformer extends Component implements TransformerInterface
     /**
      * Create Imgix transform params
      *
-     * @param array         $transform
-     * @param Asset|string  $image
-     * @param ImgixSettings $imgixConfig
      *
-     * @return array
      */
-    private function createParams($transform, $image, $imgixConfig): array
+    private function createParams(array $transform, Asset|string $image, ImgixSettings $imgixConfig): array
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $r = [];
@@ -135,7 +110,8 @@ class ImgixTransformer extends Component implements TransformerInterface
         if (isset($transform['imgixParams'])) {
             $transform['transformerParams'] = array_merge($transform['transformerParams'] ?? [], $transform['imgixParams']);
             unset($transform['imgixParams']);
-            // Deprecate use of imgixParams in 4.0, remove in 5.0
+            
+            \Craft::$app->deprecator->log(__METHOD__, 'The `imgixParams` transform parameter has been deprecated, use `transformerParams` instead.');
         }
         
         // Merge in default values
@@ -151,7 +127,7 @@ class ImgixTransformer extends Component implements TransformerInterface
             }
         }
 
-        // Set quality 
+        // Set quality
         if (
             !isset($transform['q'])
             && !$this->transformHasAutoCompressionEnabled($transform)
@@ -176,8 +152,8 @@ class ImgixTransformer extends Component implements TransformerInterface
 
         // unset quality
         unset(
-            $transform['jpegQuality'], 
-            $transform['pngCompressionLevel'], 
+            $transform['jpegQuality'],
+            $transform['pngCompressionLevel'],
             $transform['webpQuality']
         );
 
@@ -185,7 +161,6 @@ class ImgixTransformer extends Component implements TransformerInterface
         if (!isset($transform['fit'])) {
             if (isset($transform['mode'])) {
                 $mode = $transform['mode'];
-
                 switch ($mode) {
                     case 'fit':
                         $r['fit'] = 'clip';
@@ -194,7 +169,8 @@ class ImgixTransformer extends Component implements TransformerInterface
                         $r['fit'] = 'scale';
                         break;
                     case 'croponly':
-                        // todo : Not really supported, need to figure out if there's a workaround 
+                        // todo : Not really supported, need to figure out if there's a workaround
+                        $r['fit'] = 'clip';
                         break;
                     case 'letterbox':
                         $r['fit'] = 'fill';
@@ -206,12 +182,10 @@ class ImgixTransformer extends Component implements TransformerInterface
                         $r['fit'] = 'crop';
                         break;
                 }
+            } elseif (isset($r['w'], $r['h'])) {
+                $r['fit'] = 'crop';
             } else {
-                if (isset($r['w'], $r['h'])) {
-                    $r['fit'] = 'crop';
-                } else {
-                    $r['fit'] = 'clip';
-                }
+                $r['fit'] = 'clip';
             }
         } else {
             $r['fit'] = $transform['fit'];
@@ -220,7 +194,7 @@ class ImgixTransformer extends Component implements TransformerInterface
         // If fit is crop, and crop isn't specified, use position as focal point.
         if ($r['fit'] === 'crop' && !isset($transform['crop'])) {
             $position = $config->getSetting('position', $transform);
-            list($left, $top) = explode(' ', $position);
+            [$left, $top] = explode(' ', $position);
             $r['crop'] = 'focalpoint';
             $r['fp-x'] = ((float)$left) / 100;
             $r['fp-y'] = ((float)$top) / 100;
@@ -228,14 +202,13 @@ class ImgixTransformer extends Component implements TransformerInterface
             if (isset($transform['cropZoom'])) {
                 $r['fp-z'] = $transform['cropZoom'];
             }
-
         }
         
         // unset everything that has to do with mode and crop
         unset(
-            $transform['mode'], 
-            $transform['fit'], 
-            $transform['cropZoom'], 
+            $transform['mode'],
+            $transform['fit'],
+            $transform['cropZoom'],
             $transform['position'],
             $transform['letterbox']
         );
@@ -250,7 +223,7 @@ class ImgixTransformer extends Component implements TransformerInterface
             unset($transform['transformerParams']);
         }
 
-        // Assume that the reset of the values left in the transform object is Imgix specific 
+        // Assume that the reset of the values left in the transform object is Imgix specific
         foreach ($transform as $key => $val) {
             $r[$key] = $val;
         }
@@ -283,7 +256,7 @@ class ImgixTransformer extends Component implements TransformerInterface
             $r['customEncoderOptions']
         );
 
-        // Remove any empty values in return array, since these will result in 
+        // Remove any empty values in return array, since these will result in
         // an empty query string value that will give us trouble with Facebook (!).
         foreach ($r as $key => $val) {
             if ($val === '') {
@@ -297,21 +270,17 @@ class ImgixTransformer extends Component implements TransformerInterface
     /**
      * Check if transform has auto compression enabled
      *
-     * @param array $transform
      *
-     * @return bool
      */
     private function transformHasAutoCompressionEnabled(array $transform): bool
     {
-        return isset($transform['auto']) && strpos($transform['auto'], 'compress') !== false;
+        return isset($transform['auto']) && str_contains($transform['auto'], 'compress');
     }
 
     /**
      * Gets letterbox params string
      *
      * @param $letterboxDef
-     *
-     * @return string
      */
     private function getLetterboxColor($letterboxDef): string
     {
@@ -323,20 +292,20 @@ class ImgixTransformer extends Component implements TransformerInterface
         if (\strlen($color) === 3) {
             $opacity = dechex($opacity * 15);
 
-            return $opacity.$color;
+            return $opacity . $color;
         }
 
         if (\strlen($color) === 6) {
             $opacity = dechex($opacity * 255);
-            $val = $opacity.$color;
+            $val = $opacity . $color;
             if (\strlen($val) === 7) {
-                $val = '0'.$val;
+                $val = '0' . $val;
             }
 
             return $val;
         }
 
-        if (\strlen($color) === 4 || \strlen($color) === 8) { // assume color already is 4 or 8 digit rgba. 
+        if (\strlen($color) === 4 || \strlen($color) === 8) { // assume color already is 4 or 8 digit rgba.
             return $color;
         }
 
@@ -346,24 +315,18 @@ class ImgixTransformer extends Component implements TransformerInterface
     /**
      * Gets the quality setting based on the extension.
      *
-     * @param string $ext
-     * @param array|null   $transform
+     * @param array|null $transform
      *
-     * @return string
      */
-    private function getQualityFromExtension($ext, $transform = null): string
+    private function getQualityFromExtension(string $ext, array $transform = null): string
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
-        switch ($ext) {
-            case 'png':
-                $pngCompression = $config->getSetting('pngCompressionLevel', $transform);
-
-                return max(100 - ($pngCompression * 10), 1);
-
-            case 'webp':
-                return $config->getSetting('webpQuality', $transform);
+        if ($ext == 'png') {
+            $pngCompression = $config->getSetting('pngCompressionLevel', $transform);
+            return max(100 - ($pngCompression * 10), 1);
+        } elseif ($ext == 'webp') {
+            return $config->getSetting('webpQuality', $transform);
         }
 
         return $config->getSetting('jpegQuality', $transform);

@@ -5,79 +5,75 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\models;
 
-use craft\helpers\ConfigHelper;
-use craft\helpers\FileHelper;
 use craft\base\Model;
-use Yii;
+use craft\elements\Asset;
 
 class Settings extends Model
 {
-    public $transformer = 'craft';
-    public $imagerSystemPath = '@webroot/imager/';
-    public $imagerUrl = '/imager/';
-    
-    public $cacheEnabled = true;
-    public $cacheRemoteFiles = true;
-    public $cacheDuration = 1209600;
-    public $cacheDurationRemoteFiles = 1209600;
-    public $cacheDurationExternalStorage = 1209600;
-    public $cacheDurationNonOptimized = 300;
-    
-    public $jpegQuality = 80;
-    public $pngCompressionLevel = 2;
-    public $webpQuality = 80;
-    public $avifQuality = 80;
-    public $jxlQuality = 80;
-    
-    public $webpImagickOptions = [];
-    public $interlace = false;
-    public $allowUpscale = true;
-    public $resizeFilter = 'lanczos';
-    public $smartResizeEnabled = false;
-    public $removeMetadata = false;
-    public $preserveColorProfiles = false;
-    public $safeFileFormats = ['jpg', 'jpeg', 'gif', 'png'];
-    public $bgColor = '';
-    public $position = '50% 50%';
-    public $letterbox = ['color' => '#000', 'opacity' => 0];
-    public $useFilenamePattern = true;
-    public $filenamePattern = '{basename}_{transformString|hash}.{extension}';
-    public $shortHashLength = 10;
-    public $hashFilename = 'postfix'; // deprecated
-    public $hashPath = false;
-    public $addVolumeToPath = true;
-    public $hashRemoteUrl = false;
-    public $useRemoteUrlQueryString = false;
-    public $instanceReuseEnabled = false;
-    public $noop = false;
-    public $suppressExceptions = false;
-    public $convertToRGB = false;
-    public $skipExecutableExistCheck = false;
-    public $removeTransformsOnAssetFileops = false;
-    public $curlOptions = [];
-    public $runJobsImmediatelyOnAjaxRequests = true;
-    public $fillTransforms = false;
-    public $fillAttribute = 'width';
-    public $fillInterval = '200';
-    public $fallbackImage = null;
-    public $mockImage = null;
-    public $useRawExternalUrl = true;
-    public $clearKey = '';
+    public string $transformer = 'craft';
+    public string $imagerSystemPath = '@webroot/imager/';
+    public string $imagerUrl = '/imager/';
+    public bool $cacheEnabled = true;
+    public bool $cacheRemoteFiles = true;
+    public string|int|bool $cacheDuration = 1_209_600;
+    public string|int|bool $cacheDurationRemoteFiles = 1_209_600;
+    public string|int|bool $cacheDurationExternalStorage = 1_209_600;
+    public string|int|bool $cacheDurationNonOptimized = 300;
+    public int $jpegQuality = 80;
+    public int $pngCompressionLevel = 2;
+    public int $webpQuality = 80;
+    public int $avifQuality = 80;
+    public int $jxlQuality = 80;
+    public array $webpImagickOptions = [];
+    public string|bool $interlace = false;
+    public bool $allowUpscale = true;
+    public string $resizeFilter = 'lanczos';
+    public bool $smartResizeEnabled = false;
+    public bool $removeMetadata = false;
+    public bool $preserveColorProfiles = false;
+    public array $safeFileFormats = ['jpg', 'jpeg', 'gif', 'png'];
+    public string $bgColor = '';
+    public string $position = '50% 50%';
+    public array $letterbox = ['color' => '#000', 'opacity' => 0];
+    public bool $useFilenamePattern = true;
+    public string $filenamePattern = '{basename}_{transformString|hash}.{extension}';
+    public int $shortHashLength = 10;
+    public string|bool $hashFilename = 'postfix'; // deprecated?
+    public bool $hashPath = false;
+    public bool $addVolumeToPath = true;
+    public string|bool $hashRemoteUrl = false;
+    public bool $useRemoteUrlQueryString = false;
+    public bool $instanceReuseEnabled = false;
+    public bool $noop = false;
+    public bool $suppressExceptions = false;
 
-    public $useForNativeTransforms = false;
-    public $useForCpThumbs = false;
-    public $hideClearCachesForUserGroups = [];
+    public bool $convertToRGB = false;
+    public bool $skipExecutableExistCheck = false;
+    public bool $removeTransformsOnAssetFileops = false;
+    public array $curlOptions = [];
+    public bool $runJobsImmediatelyOnAjaxRequests = true;
+    public bool $fillTransforms = false;
+    public string $fillAttribute = 'width';
+    public int|string $fillInterval = 200;
+    public int|string|Asset|null $fallbackImage = null;
+    public int|string|Asset|null $mockImage = null;
+    public bool $useRawExternalUrl = true;
+    public string $clearKey = '';
+    public bool $useForNativeTransforms = false;
+    public bool $useForCpThumbs = false;
+    public array $hideClearCachesForUserGroups = [];
 
-    public $imgixProfile = 'default';
-    public $imgixApiKey = '';
-    public $imgixEnableAutoPurging = true;
-    public $imgixEnablePurgeElementAction = true;
-    public $imgixConfig = [
+    public string $imgixProfile = 'default';
+    public string $imgixApiKey = '';
+    public bool $imgixEnableAutoPurging = true;
+    public bool $imgixEnablePurgeElementAction = true;
+
+    public array $imgixConfig = [
         'default' => [
             'domain' => '',
             'useHttps' => true,
@@ -88,12 +84,13 @@ class Settings extends Model
             'defaultParams' => [],
             'apiKey' => '',
             'excludeFromPurge' => false,
-        ]
+        ],
     ];
 
-    public $optimizeType = 'job';
-    public $optimizers = [];
-    public $optimizerConfig = [
+    public string $optimizeType = 'job';
+    public array $optimizers = [];
+
+    public array $optimizerConfig = [
         'jpegoptim' => [
             'extensions' => ['jpg'],
             'path' => '/usr/bin/jpegoptim',
@@ -134,24 +131,25 @@ class Settings extends Model
             'apiSecret' => '',
             'additionalParams' => [
                 'lossy' => true,
-            ]
+            ],
         ],
         'imageoptim' => [
             'extensions' => ['png', 'jpg', 'gif'],
             'apiUsername' => '',
-            'quality' => 'medium'
+            'quality' => 'medium',
         ],
     ];
 
-    public $storages = [];
-    public $storageConfig = [
+    public array $storages = [];
+
+    public array $storageConfig = [
         'aws' => [
             'accessKey' => '',
             'secretAccessKey' => '',
             'region' => '',
             'bucket' => '',
             'folder' => '',
-            'requestHeaders' => array(),
+            'requestHeaders' => [],
             'storageType' => 'standard',
             'public' => 'true',
             'cloudfrontInvalidateEnabled' => false,
@@ -164,18 +162,10 @@ class Settings extends Model
         ],
     ];
 
-    public $customEncoders = [];
-    public $transformerConfig = null;
+    public array $customEncoders = [];
+    public ?array $transformerConfig = null;
     
-    /* deprecated */
-    public $useCwebp = false;
-    public $cwebpPath = '/usr/bin/cwebp';
-    public $cwebpOptions = '';
-    public $avifEncoderPath = '';
-    public $avifEncoderOptions = [];
-    public $avifConvertString = '{src} {dest}';
-    
-    
+
     /**
      * Settings constructor.
      *
@@ -186,15 +176,15 @@ class Settings extends Model
         parent::__construct($config);
 
         if (!empty($config)) {
-            Yii::configure($this, $config);
+            \Yii::configure($this, $config);
         }
 
         $this->init();
     }
 
-    public function init()
+    public function init(): void
     {
-        // Set default based on devMode. Overridable through config.  
+        // Set default based on devMode. Overridable through config.
         $this->suppressExceptions = !\Craft::$app->getConfig()->getGeneral()->devMode;
     }
 }

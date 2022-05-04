@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\gql\types\generators;
@@ -23,7 +23,7 @@ class ImagerGenerator implements GeneratorInterface
     /**
      * @inheritdoc
      */
-    public static function generateTypes($context = null): array
+    public static function generateTypes(mixed $context = null): array
     {
         $fields = ImagerTransformedImageInterface::getFieldDefinitions();
         $args = ImagerTransformQueryArguments::getArguments();
@@ -32,25 +32,16 @@ class ImagerGenerator implements GeneratorInterface
         $type = GqlEntityRegistry::getEntity($typeName)
             ?: GqlEntityRegistry::createEntity($typeName, new ImagerType([
                 'name' => $typeName,
-                'args' => function () use ($args) {
-                    return $args;
-                },
-                'fields' => function () use ($fields) {
-                    return $fields;
-                },
+                'args' => fn() => $args,
+                'fields' => fn() => $fields,
                 'description' => 'This entity has all the Imager X transform image interface fields.',
             ]));
 
-        TypeLoader::registerType($typeName, function () use ($type) {
-            return $type;
-        });
+        TypeLoader::registerType($typeName, static fn() => $type);
 
         return [$type];
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function getName($context = null): string
     {
         return 'imagerx';

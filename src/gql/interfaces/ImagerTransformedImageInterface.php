@@ -5,19 +5,19 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\gql\interfaces;
 
-use spacecatninja\imagerx\gql\types\generators\ImagerGenerator;
-
 use craft\gql\base\InterfaceType as BaseInterfaceType;
-use craft\gql\TypeLoader;
-use craft\gql\GqlEntityRegistry;
 
+use craft\gql\GqlEntityRegistry;
+use craft\gql\TypeLoader;
 use GraphQL\Type\Definition\InterfaceType;
+
 use GraphQL\Type\Definition\Type;
+use spacecatninja\imagerx\gql\types\generators\ImagerGenerator;
 
 class ImagerTransformedImageInterface extends BaseInterfaceType
 {
@@ -29,9 +29,6 @@ class ImagerTransformedImageInterface extends BaseInterfaceType
         return ImagerGenerator::class;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function getType($fields = null): Type
     {
         if ($type = GqlEntityRegistry::getEntity(self::class)) {
@@ -42,15 +39,11 @@ class ImagerTransformedImageInterface extends BaseInterfaceType
             'name' => static::getName(),
             'fields' => self::class . '::getFieldDefinitions',
             'description' => 'This is the interface implemented by Imager X.',
-            'resolveType' => function (array $value) {
-                return GqlEntityRegistry::getEntity(ImagerGenerator::getName());
-            },
+            'resolveType' => fn(array $value) => GqlEntityRegistry::getEntity(ImagerGenerator::getName()),
         ]));
 
         foreach (ImagerGenerator::generateTypes() as $typeName => $generatedType) {
-            TypeLoader::registerType($typeName, function () use ($generatedType) {
-                return $generatedType;
-            });
+            TypeLoader::registerType($typeName, fn() => $generatedType);
         }
 
         return $type;

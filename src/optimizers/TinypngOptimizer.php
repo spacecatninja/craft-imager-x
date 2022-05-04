@@ -5,25 +5,27 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\optimizers;
 
 use Craft;
-
 use Tinify\Exception;
+use function Tinify\fromFile;
+use function Tinify\setKey;
+
+use function Tinify\validate;
 
 class TinypngOptimizer implements ImagerOptimizeInterface
 {
-
-    public static function optimize(string $file, array $settings)
+    public static function optimize(string $file, ?array $settings): void
     {
         try {
-            \Tinify\setKey($settings['apiKey']);
-            \Tinify\validate();
-            \Tinify\fromFile($file)->toFile($file);
-        } catch (Exception $e) {
+            setKey($settings['apiKey']);
+            validate();
+            fromFile($file)->toFile($file);
+        } catch (Exception) {
             Craft::error('Could not validate connection to TinyPNG, image was not optimized.', __METHOD__);
         }
     }

@@ -5,19 +5,17 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\effects;
 
-use spacecatninja\imagerx\services\ImagerService;
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
-use Imagine\Imagick\Imagick;
+use spacecatninja\imagerx\services\ImagerService;
 
 class ContrastEffect implements ImagerEffectsInterface
 {
-
     /**
      * @param GdImage|ImagickImage        $imageInstance
      * @param array|string|int|float|null $params
@@ -30,7 +28,7 @@ class ContrastEffect implements ImagerEffectsInterface
             
             if (\is_int($params)) {
                 $numLoops = abs($params);
-                for ($i = 0; $i < $numLoops; $i++) {
+                for ($i = 0; $i < $numLoops; ++$i) {
                     if ($params > 0) {
                         $imagickInstance->contrastImage(true);
                     } else {

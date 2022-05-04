@@ -5,27 +5,21 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\optimizers;
 
 use Craft;
 
-
 class KrakenOptimizer implements ImagerOptimizeInterface
 {
-
-    /**
-     * @param string $file
-     * @param array $settings
-     */
-    public static function optimize(string $file, array $settings)
+    public static function optimize(string $file, ?array $settings): void
     {
         $kraken = new \Kraken($settings['apiKey'], $settings['apiSecret']);
         $params = [
             'file' => $file,
-            'wait' => true
+            'wait' => true,
         ];
 
         if (isset($settings['additionalParams']) && \is_array($settings['additionalParams'])) {

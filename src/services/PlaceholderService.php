@@ -5,18 +5,20 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\services;
 
-use spacecatninja\imagerx\lib\Potracio;
-use spacecatninja\imagerx\models\LocalSourceImageModel;
 use craft\base\Component;
-
-use spacecatninja\imagerx\exceptions\ImagerException;
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\Box;
+use Imagine\Image\Palette\RGB;
+use Imagine\Imagick\Imagine;
+
+use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\lib\Potracio;
+use spacecatninja\imagerx\models\LocalSourceImageModel;
 
 /**
  * PlaceholderService Service
@@ -29,7 +31,7 @@ use Imagine\Image\Box;
  */
 class PlaceholderService extends Component
 {
-    private $defaults = [
+    private array $defaults = [
         'type' => 'svg',
         'width' => 1,
         'height' => 1,
@@ -42,32 +44,27 @@ class PlaceholderService extends Component
 
     /**
      * Main public placeholder method.
-     * 
+     *
      * @param array|null $config
-     * @return string
+     *
      * @throws ImagerException
      */
-    public function placeholder($config = null): string
+    public function placeholder(array $config = null): string
     {
         $config = array_merge($this->defaults, $config ?? []);
 
-        switch ($config['type']) {
-            case 'svg':
-                return $this->placeholderSVG($config);
-            case 'gif':
-                return $this->placeholderGIF($config);
-            case 'silhouette':
-                return $this->placeholderSilhuette($config);
-        }
-
-        return '';
+        return match ($config['type']) {
+            'svg' => $this->placeholderSVG($config),
+            'gif' => $this->placeholderGIF($config),
+            'silhouette' => $this->placeholderSilhuette($config),
+            default => '',
+        };
     }
 
     /**
      * Returns a SVG placeholder
-     * 
+     *
      * @param $config
-     * @return string
      */
     private function placeholderSVG($config): string
     {
@@ -75,14 +72,13 @@ class PlaceholderService extends Component
         $height = $config['height'];
         $color = $config['color'] ?? 'transparent';
 
-        return 'data:image/svg+xml;charset=utf-8,' . rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' width='$width' height='$height' style='background:$color'/>");
+        return 'data:image/svg+xml;charset=utf-8,' . rawurlencode(sprintf('<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%s\' height=\'%s\' style=\'background:%s\'/>', $width, $height, $color));
     }
 
     /**
      * Returns a GIF placeholder.
-     * 
+     *
      * @param $config
-     * @return string
      */
     private function placeholderGIF($config): string
     {
@@ -100,13 +96,9 @@ class PlaceholderService extends Component
             return '';
         }
         
-        $palette = new \Imagine\Image\Palette\RGB();
+        $palette = new RGB();
         
-        if ($color==='transparent') {
-            $col = $palette->color('#000000', 0);
-        } else {
-            $col = $palette->color($color);
-        }
+        $col = $color === 'transparent' ? $palette->color('#000000', 0) : $palette->color($color);
         
         $image = $imagineInstance->create(new Box($width, $height), $col);
         $data = $image->get('gif');
@@ -117,9 +109,8 @@ class PlaceholderService extends Component
 
     /**
      * Returns a silhouette placeholder.
-     * 
+     *
      * @param $config
-     * @return string
      * @throws ImagerException
      */
     private function placeholderSilhuette($config): string
@@ -137,24 +128,27 @@ class PlaceholderService extends Component
         try {
             $sourceModel = new LocalSourceImageModel($source);
             $sourceModel->getLocalCopy();
-        } catch (ImagerException $e) {
+        } catch (ImagerException $imagerException) {
             return '';
         }
         
-        $tracer = new Potracio();
-        $tracer->loadImageFromFile($sourceModel->getFilePath());
-        $tracer->process();
-        $data = $tracer->getSVG($size, $silhouetteType, $color, $fgColor);
+        try {
+            $tracer = new Potracio();
+            $tracer->loadImageFromFile($sourceModel->getFilePath());
+            $tracer->process();
+            $data = $tracer->getSVG($size, $silhouetteType, $color, $fgColor);
+        } catch (\Throwable $throwable) {
+            \Craft::error($throwable->getMessage(), __METHOD__);
+            return '';
+        }
         
         return 'data:image/svg+xml;charset=utf-8,' . rawurlencode($data);
     }
     
     /**
      * Creates the Imagine instance depending on the chosen image driver.
-     *
-     * @return \Imagine\Gd\Imagine|\Imagine\Imagick\Imagine|null
      */
-    private function createImagineInstance()
+    private function createImagineInstance(): Imagine|\Imagine\Gd\Imagine|null
     {
         $imageDriver = ImagerService::$imageDriver;
         
@@ -164,9 +158,9 @@ class PlaceholderService extends Component
             }
 
             if ($imageDriver === 'imagick') {
-                return new \Imagine\Imagick\Imagine();
+                return new Imagine();
             }
-        } catch (RuntimeException $e) {
+        } catch (RuntimeException) {
             // just ignore for now
         }
 

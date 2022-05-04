@@ -5,19 +5,18 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\effects;
 
-use spacecatninja\imagerx\services\ImagerService;
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
 use Imagine\Imagick\Imagick;
+use spacecatninja\imagerx\services\ImagerService;
 
 class LevelsEffect implements ImagerEffectsInterface
 {
-
     /**
      * @param GdImage|ImagickImage             $imageInstance
      * @param array|string|int|float|bool|null $params
@@ -31,14 +30,12 @@ class LevelsEffect implements ImagerEffectsInterface
             if (\is_array($params)) {
                 if (\is_array($params[0])) {
                     foreach ($params as $val) {
-                        if (\count($val) >= 3) {
+                        if ((is_countable($val) ? \count($val) : 0) >= 3) {
                             self::applyLevels($imagickInstance, $val);
                         }
                     }
-                } else {
-                    if (\count($params) >= 3) {
-                        self::applyLevels($imagickInstance, $params);
-                    }
+                } elseif (\count($params) >= 3) {
+                    self::applyLevels($imagickInstance, $params);
                 }
             }
         }
@@ -48,13 +45,14 @@ class LevelsEffect implements ImagerEffectsInterface
      * @param Imagick $imagickInstance
      * @param $value
      */
-    private static function applyLevels($imagickInstance, $value) {
+    private static function applyLevels($imagickInstance, $value)
+    {
         $quantum = $imagickInstance->getQuantum();
-        $blackLevel = ($value[0]/255)*$quantum;
-        $whiteLevel = ($value[2]/255)*$quantum;
+        $blackLevel = ($value[0] / 255) * $quantum;
+        $whiteLevel = ($value[2] / 255) * $quantum;
         $channel = \Imagick::CHANNEL_ALL;
         
-        if (\count($value)>3) {
+        if ((is_countable($value) ? \count($value) : 0) > 3) {
             switch ($value[3]) {
                 case 'red':
                     $channel = \Imagick::CHANNEL_RED;

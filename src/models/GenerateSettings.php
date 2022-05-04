@@ -5,20 +5,22 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\models;
 
-use craft\helpers\FileHelper;
 use craft\base\Model;
-use Yii;
 
 class GenerateSettings extends Model
 {
-    public $generateOnlyForLiveElements = false;
-    public $generateForDrafts = false;
-    public $volumes = [];
-    public $elements = [];
-    public $fields = [];
+    public bool $generateOnlyForLiveElements = false;
+
+    public bool $generateForDrafts = false;
+
+    public array $volumes = [];
+
+    public array $elements = [];
+
+    public array $fields = [];
 }

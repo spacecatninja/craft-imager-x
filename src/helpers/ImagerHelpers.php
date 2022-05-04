@@ -5,43 +5,36 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\helpers;
 
-use craft\helpers\ArrayHelper;
-use spacecatninja\imagerx\models\LocalTargetImageModel;
 use Craft;
-use craft\base\Volume;
 use craft\db\Query;
 use craft\elements\Asset;
+use craft\helpers\ArrayHelper;
 use craft\helpers\FileHelper;
-use craft\models\AssetTransform;
-
+use craft\models\ImageTransform;
+use craft\models\Volume;
 use Imagine\Exception\InvalidArgumentException;
+
 use Imagine\Image\Box;
 use Imagine\Image\BoxInterface;
 use Imagine\Image\ImageInterface;
 use Imagine\Image\Point;
 use Imagine\Imagick\Image as ImagickImage;
-
-use spacecatninja\imagerx\models\ConfigModel;
-use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\exceptions\ImagerException;
+
+use spacecatninja\imagerx\models\LocalTargetImageModel;
+use spacecatninja\imagerx\services\ImagerService;
 
 use yii\base\InvalidConfigException;
 
 class ImagerHelpers
 {
-    /**
-     * @param LocalTargetImageModel $targetModel
-     * @param array $transform
-     * @return bool
-     */
-    public static function shouldCreateTransform($targetModel, $transform): bool
+    public static function shouldCreateTransform(LocalTargetImageModel $targetModel, array $transform): bool
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         return !$config->getSetting('cacheEnabled', $transform) ||
@@ -52,57 +45,49 @@ class ImagerHelpers
     /**
      * Creates the destination crop size box
      *
-     * @param \Imagine\Image\Box|\Imagine\Image\BoxInterface|object $originalSize
-     * @param array $transform
-     * @param bool $allowUpscale
-     * @param bool $usePadding
      *
-     * @return Box
-     * @throws \Imagine\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public static function getCropSize($originalSize, $transform, $allowUpscale, $usePadding = true): Box
+    public static function getCropSize(BoxInterface $originalSize, array $transform, bool $allowUpscale, bool $usePadding = true): Box
     {
         $width = $originalSize->getWidth();
         $height = $originalSize->getHeight();
         $padding = $transform['pad'] ?? [0, 0, 0, 0];
-        
+
         if ($usePadding) {
             $padWidth = $padding[1] + $padding[3];
             $padHeight = $padding[0] + $padding[2];
         } else {
             $padWidth = 0;
-            $padHeight = 0; 
+            $padHeight = 0;
         }
-        
+
         $aspect = $width / $height;
 
         if (isset($transform['width'], $transform['height'])) {
             $width = (int)$transform['width'];
             $height = (int)$transform['height'];
-        } else {
-            if (isset($transform['width'])) {
-                $width = (int)$transform['width'];
-                $height = (int)floor((int)$transform['width'] / $aspect);
-            } else {
-                if (isset($transform['height'])) {
-                    $width = (int)floor((int)$transform['height'] * $aspect);
-                    $height = (int)$transform['height'];
-                }
-            }
+        } elseif (isset($transform['width'])) {
+            $width = (int)$transform['width'];
+            $height = (int)floor((int)$transform['width'] / $aspect);
+        } elseif (isset($transform['height'])) {
+            $width = (int)floor((int)$transform['height'] * $aspect);
+            $height = (int)$transform['height'];
         }
-        
-        // check if we want to upscale. If not, adjust the transform here 
+
+        // check if we want to upscale. If not, adjust the transform here
         if (!$allowUpscale) {
-            list($width, $height) = self::enforceMaxSize($width, $height, $originalSize, true);
+            [$width, $height] = self::enforceMaxSize($width, $height, $originalSize, true);
         }
-        
+
         $width -= $padWidth;
         $height -= $padHeight;
-        
+
         // ensure that size is larger than 0
         if ($width <= 0) {
             $width = 1;
         }
+
         if ($height <= 0) {
             $height = 1;
         }
@@ -113,15 +98,9 @@ class ImagerHelpers
     /**
      * Creates the resize size box
      *
-     * @param \Imagine\Image\Box|\Imagine\Image\BoxInterface|object $originalSize
-     * @param array $transform
-     * @param bool $allowUpscale
-     * @param bool $usePadding
-     *
-     * @return Box
      * @throws ImagerException
      */
-    public static function getResizeSize($originalSize, $transform, $allowUpscale, $usePadding = true): Box
+    public static function getResizeSize(BoxInterface $originalSize, array $transform, bool $allowUpscale, bool $usePadding = true): Box
     {
         $width = $originalSize->getWidth();
         $height = $originalSize->getHeight();
@@ -133,19 +112,16 @@ class ImagerHelpers
             $padHeight = $padding[0] + $padding[2];
         } else {
             $padWidth = 0;
-            $padHeight = 0; 
+            $padHeight = 0;
         }
         
         $mode = $transform['mode'] ?? 'crop';
 
         if ($mode === 'crop' || $mode === 'fit' || $mode === 'letterbox') {
-
             if (isset($transform['width'], $transform['height'])) {
                 $transformAspect = (int)$transform['width'] / (int)$transform['height'];
-
                 if ($mode === 'crop') {
                     $cropZoomFactor = self::getCropZoomFactor($transform);
-
                     if ($transformAspect < $aspect) { // use height as guide
                         $height = (int)$transform['height'] * $cropZoomFactor;
                         $width = ceil($originalSize->getWidth() * ($height / $originalSize->getHeight()));
@@ -153,40 +129,36 @@ class ImagerHelpers
                         $width = (int)$transform['width'] * $cropZoomFactor;
                         $height = ceil($originalSize->getHeight() * ($width / $originalSize->getWidth()));
                     }
-                } else {
-                    if ($transformAspect === $aspect) { // exactly the same, use original just to make sure no rounding errors happen
-                        $height = (int)$transform['height'];
-                        $width = (int)$transform['width'];
-                    } else if ($transformAspect > $aspect) { // use height as guide
-                        $height = (int)$transform['height'];
-                        $width = ceil($originalSize->getWidth() * ($height / $originalSize->getHeight()));
-                    } else { // use width
-                        $width = (int)$transform['width'];
-                        $height = ceil($originalSize->getHeight() * ($width / $originalSize->getWidth()));
-                    }
-                }
-            } else {
-                if (isset($transform['width'])) {
-                    $width = (int)$transform['width'];
-                    $height = ceil($width / $aspect);
-                } else if (isset($transform['height'])) {
+                } elseif ($transformAspect === $aspect) {
+                    // exactly the same, use original just to make sure no rounding errors happen
                     $height = (int)$transform['height'];
-                    $width = ceil($height * $aspect);
+                    $width = (int)$transform['width'];
+                } elseif ($transformAspect > $aspect) {
+                    // use height as guide
+                    $height = (int)$transform['height'];
+                    $width = ceil($originalSize->getWidth() * ($height / $originalSize->getHeight()));
+                } else { // use width
+                    $width = (int)$transform['width'];
+                    $height = ceil($originalSize->getHeight() * ($width / $originalSize->getWidth()));
                 }
-            }
-        } else {
-            if ($mode === 'croponly') {
-                $width = $originalSize->getWidth();
-                $height = $originalSize->getHeight();
-            } else if ($mode === 'stretch') {
+            } elseif (isset($transform['width'])) {
                 $width = (int)$transform['width'];
+                $height = ceil($width / $aspect);
+            } elseif (isset($transform['height'])) {
                 $height = (int)$transform['height'];
+                $width = ceil($height * $aspect);
             }
+        } elseif ($mode === 'croponly') {
+            $width = $originalSize->getWidth();
+            $height = $originalSize->getHeight();
+        } elseif ($mode === 'stretch') {
+            $width = (int)$transform['width'];
+            $height = (int)$transform['height'];
         }
 
-        // check if we want to upscale. If not, adjust the transform here 
+        // check if we want to upscale. If not, adjust the transform here
         if (!$allowUpscale) {
-            list($width, $height) = self::enforceMaxSize((int)$width, (int)$height, $originalSize, false, self::getCropZoomFactor($transform));
+            [$width, $height] = self::enforceMaxSize((int)$width, (int)$height, $originalSize, false, self::getCropZoomFactor($transform));
         }
         
         $width -= $padWidth;
@@ -194,9 +166,9 @@ class ImagerHelpers
 
         try {
             $box = new Box((int)$width, (int)$height);
-        } catch (InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         return $box;
@@ -204,16 +176,8 @@ class ImagerHelpers
 
     /**
      * Enforces a max size if allowUpscale is false
-     *
-     * @param int $width
-     * @param int $height
-     * @param BoxInterface $originalSize
-     * @param bool $maintainAspect
-     * @param float $zoomFactor
-     *
-     * @return array
      */
-    public static function enforceMaxSize($width, $height, $originalSize, $maintainAspect, $zoomFactor = 1.0): array
+    public static function enforceMaxSize(int $width, int $height, BoxInterface $originalSize, bool $maintainAspect, float $zoomFactor = 1.0): array
     {
         $adjustedWidth = $width;
         $adjustedHeight = $height;
@@ -239,12 +203,8 @@ class ImagerHelpers
 
     /**
      * Get the crop zoom factor
-     *
-     * @param array $transform
-     *
-     * @return float
      */
-    public static function getCropZoomFactor($transform): float
+    public static function getCropZoomFactor(array $transform): float
     {
         if (isset($transform['cropZoom'])) {
             return (float)$transform['cropZoom'];
@@ -256,17 +216,12 @@ class ImagerHelpers
     /**
      * Gets crop point
      *
-     * @param \Imagine\Image\Box $resizeSize
-     * @param \Imagine\Image\Box $cropSize
-     * @param string $position
-     *
-     * @return \Imagine\Image\Point
      * @throws ImagerException
      */
-    public static function getCropPoint($resizeSize, $cropSize, $position): Point
+    public static function getCropPoint(Box $resizeSize, Box $cropSize, string $position): Point
     {
         // Get the offsets, left and top, now as an int, representing the % offset
-        list($leftOffset, $topOffset) = explode(' ', $position);
+        [$leftOffset, $topOffset] = explode(' ', $position);
 
         // Get position that crop should center around
         $leftPos = floor($resizeSize->getWidth() * ($leftOffset / 100)) - floor($cropSize->getWidth() / 2);
@@ -278,9 +233,9 @@ class ImagerHelpers
                 min(max($leftPos, 0), $resizeSize->getWidth() - $cropSize->getWidth()),
                 min(max($topPos, 0), $resizeSize->getHeight() - $cropSize->getHeight())
             );
-        } catch (InvalidArgumentException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
         return $point;
@@ -289,34 +244,30 @@ class ImagerHelpers
     /**
      * Returns the transform path for a given asset.
      *
-     * @param Asset $asset
-     *
-     * @return string
      * @throws ImagerException
      */
-    public static function getTransformPathForAsset($asset): string
+    public static function getTransformPathForAsset(Asset $asset): string
     {
         /** @var Volume $volume */
         try {
             $volume = $asset->getVolume();
-        } catch (InvalidConfigException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+        } catch (InvalidConfigException $invalidConfigException) {
+            Craft::error($invalidConfigException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
         }
 
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $hashPath = $config->hashPath;
         $addVolumeToPath = $config->addVolumeToPath;
 
         if ($hashPath) {
-            return FileHelper::normalizePath('/' . md5('/' . ($addVolumeToPath ? mb_strtolower($volume->handle) . '/' : '') . $asset->folderPath . '/') . '/' . $asset->id . '/');
+            return FileHelper::normalizePath('/' . md5('/' . ($addVolumeToPath ? mb_strtolower($volume->handle) . '/' : '') . $asset->folderPath . '/') . '/' . $asset->getId() . '/');
         }
 
-        $path = FileHelper::normalizePath('/' . ($addVolumeToPath ? mb_strtolower($volume->handle) . '/' : '') . $asset->folderPath . '/' . $asset->id . '/');
+        $path = FileHelper::normalizePath('/' . ($addVolumeToPath ? mb_strtolower($volume->handle) . '/' : '') . $asset->folderPath . '/' . $asset->getId() . '/');
         
-        if (strpos($path, '//') === 0) {
+        if (str_starts_with($path, '//')) {
             $path = substr($path, 1);
         }
         
@@ -325,14 +276,9 @@ class ImagerHelpers
 
     /**
      * Returns the transform path for a given local path.
-     *
-     * @param $path
-     *
-     * @return string
      */
-    public static function getTransformPathForPath($path): string
+    public static function getTransformPathForPath(string $path): string
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $hashPath = $config->hashPath;
@@ -348,13 +294,10 @@ class ImagerHelpers
     /**
      * Returns the transform path for a given url.
      *
-     * @param $url
      *
-     * @return string
      */
-    public static function getTransformPathForUrl($url): string
+    public static function getTransformPathForUrl(string $url): string
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         $urlParts = parse_url($url);
@@ -369,7 +312,7 @@ class ImagerHelpers
         }
 
         if ($hashRemoteUrl) {
-            if (\is_string($hashRemoteUrl) && $hashRemoteUrl === 'host') {
+            if ($hashRemoteUrl === 'host') {
                 $transformPath = '/' . substr(md5($urlParts['host']), 0, $shortHashLength) . $transformPath;
             } else {
                 $transformPath = '/' . md5($urlParts['host'] . $pathParts['dirname']);
@@ -384,11 +327,9 @@ class ImagerHelpers
     /**
      * Creates additional file string that is appended to filename
      *
-     * @param array $transform
-     *
-     * @return string
+     * @throws \JsonException
      */
-    public static function createTransformFilestring($transform): string
+    public static function createTransformFilestring(array $transform): string
     {
         $r = '';
 
@@ -413,42 +354,37 @@ class ImagerHelpers
                 }
 
                 $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . $effectString;
-            } else {
-                if ($k === 'watermark') {
-                    $watermarkString = '';
-
-                    foreach ($v as $eff => $param) {
-                        if ($eff === 'image') {
-                            if ($param instanceof Asset) {
-                                $watermarkString .= '-i-' . $param->id;
-                            } else {
-                                $watermarkString .= '-i-' . $param;
-                            }
-                        } else if ($eff === 'position') {
-                            $watermarkString .= '-pos';
-
-                            foreach ($param as $posKey => $posVal) {
-                                $watermarkString .= '-' . $posKey . '-' . $posVal;
-                            }
+            } elseif ($k === 'watermark') {
+                $watermarkString = '';
+                foreach ($v as $eff => $param) {
+                    if ($eff === 'image') {
+                        if ($param instanceof Asset) {
+                            $watermarkString .= '-i-' . $param->getId();
                         } else {
-                            $watermarkString .= '-' . $eff . '-' . (\is_array($param) ? implode('-', $param) : $param);
+                            $watermarkString .= '-i-' . $param;
                         }
+                    } elseif ($eff === 'position') {
+                        $watermarkString .= '-pos';
+                        foreach ($param as $posKey => $posVal) {
+                            $watermarkString .= '-' . $posKey . '-' . $posVal;
+                        }
+                    } else {
+                        $watermarkString .= '-' . $eff . '-' . (\is_array($param) ? implode('-', $param) : $param);
                     }
-
-                    $watermarkString = substr($watermarkString, 1);
-
-                    $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . '_' . mb_substr(md5($watermarkString), 0, 10);
-                } elseif ($k === 'webpImagickOptions') {
-                    $optString = '';
-
-                    foreach ($v as $optK => $optV) {
-                        $optString .= ($optK . '-' . $optV . '-');
-                    }
-
-                    $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . '_' . mb_substr($optString, 0, strlen($optString) - 1);
-                } else {
-                    $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . (\is_array($v) ? implode('-', $v) : $v);
                 }
+
+                $watermarkString = substr($watermarkString, 1);
+                $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . '_' . mb_substr(md5($watermarkString), 0, 10);
+            } elseif ($k === 'webpImagickOptions') {
+                $optString = '';
+
+                foreach ($v as $optK => $optV) {
+                    $optString .= ($optK . '-' . $optV . '-');
+                }
+
+                $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . '_' . mb_substr($optString, 0, -1);
+            } else {
+                $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . (\is_array($v) ? implode('-', $v) : $v);
             }
         }
 
@@ -458,10 +394,11 @@ class ImagerHelpers
     /**
      * Converts a native asset transform object into an Imager transform.
      *
-     * @param AssetTransform $assetTransform
+     * @param ImageTransform $assetTransform
+     *
      * @return array
      */
-    public static function normalizeAssetTransformToObject($assetTransform): array
+    public static function normalizeAssetTransformToObject(ImageTransform $assetTransform): array
     {
         $transformArray = $assetTransform->toArray();
         $validParams = ['width', 'height', 'format', 'mode', 'position', 'interlace', 'quality'];
@@ -479,12 +416,10 @@ class ImagerHelpers
 
     /**
      * Returns something that can be used as a fallback image for the transform method.
-     *
-     * @param string|Asset|int|null $configValue
-     * @return Asset|string|null
      */
-    public static function getTransformableFromConfigSetting($configValue)
+    public static function getTransformableFromConfigSetting(Asset|int|string|null $configValue): Asset|string|null
     {
+        $criteria = [];
         if (is_string($configValue) || $configValue instanceof Asset) {
             return $configValue;
         }
@@ -501,40 +436,34 @@ class ImagerHelpers
         return null;
     }
 
-    /**
-     * @param ImagickImage|ImageInterface $imageInstance
-     * @param array $transform
-     */
-    public static function processMetaData(&$imageInstance, $transform)
+    public static function processMetaData(ImagickImage|ImageInterface &$imageInstance, array $transform): void
     {
         if ($imageInstance instanceof ImagickImage) {
             $config = ImagerService::getConfig();
             $imagick = $imageInstance->getImagick();
             $supportsImageProfiles = method_exists($imagick, 'getimageprofiles');
             $iccProfiles = null;
-
-            if ($config->preserveColorProfiles && $supportsImageProfiles) {
-                $iccProfiles = $imagick->getImageProfiles('icc', true);
-            }
-
-            $imagick->stripImage();
-
-            if (!empty($iccProfiles)) {
-                $imagick->profileImage('icc', $iccProfiles['icc'] ?? '');
+            
+            try {
+                if ($config->preserveColorProfiles && $supportsImageProfiles) {
+                    $iccProfiles = $imagick->getImageProfiles('icc', true);
+                }
+    
+                $imagick->stripImage();
+    
+                if (!empty($iccProfiles)) {
+                    $imagick->profileImage('icc', $iccProfiles['icc'] ?? '');
+                }
+            } catch (\Throwable $throwable) {
+                Craft::error('An error occured when trying to process image meta data: ' + $throwable->getMessage());
             }
         }
     }
 
     /**
      * Moves a named key in an associative array to a given position
-     *
-     * @param string $key
-     * @param int $pos
-     * @param array $arr
-     *
-     * @return array
      */
-    public static function moveArrayKeyToPos($key, $pos, $arr): array
+    public static function moveArrayKeyToPos(string $key, int $pos, array $arr): array
     {
         if (!isset($arr[$key])) {
             return $arr;
@@ -569,24 +498,18 @@ class ImagerHelpers
 
     /**
      * Fixes slashes in path
-     *
-     * @param string $str
-     * @param bool|false $removeInitial
-     * @param bool|false $removeTrailing
-     *
-     * @return mixed|string
      */
-    public static function fixSlashes($str, $removeInitial = false, $removeTrailing = false)
+    public static function fixSlashes(string $str, bool $removeInitial, bool $removeTrailing): array|string
     {
         $r = str_replace('//', '/', $str);
 
-        if (\strlen($r) > 0) {
+        if ($r !== '') {
             if ($removeInitial && ($r[0] === '/')) {
                 $r = substr($r, 1);
             }
 
             if ($removeTrailing && ($r[\strlen($r) - 1] === '/')) {
-                $r = substr($r, 0, \strlen($r) - 1);
+                $r = substr($r, 0, -1);
             }
         }
 
@@ -596,23 +519,25 @@ class ImagerHelpers
     /**
      * Strip trailing slash
      *
-     * @param $str
+     * @param string $str
      *
      * @return string
      */
-    public static function stripTrailingSlash($str): string
+    public static function stripTrailingSlash(string $str): string
     {
         return rtrim($str, '/');
     }
 
     /**
      * @param array $obj
+     *
      * @return string
+     * @throws \JsonException
      */
-    public static function encodeTransformObject($obj): string
+    public static function encodeTransformObject(array $obj): string
     {
         ksort($obj);
-        $json = json_encode($obj);
+        $json = json_encode($obj, JSON_THROW_ON_ERROR);
         return mb_strtolower(str_replace(['{', '}', '/', '"', ':', ','], ['-', '', '', '', '-', '_'], $json));
     }
 }

@@ -5,19 +5,18 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\effects;
 
-use spacecatninja\imagerx\services\ImagerService;
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
 use Imagine\Imagick\Imagick;
+use spacecatninja\imagerx\services\ImagerService;
 
 class ColorBlendEffect implements ImagerEffectsInterface
 {
-
     /**
      * @param GdImage|ImagickImage        $imageInstance
      * @param array|string|int|float|null $params
@@ -30,7 +29,6 @@ class ColorBlendEffect implements ImagerEffectsInterface
             
             if (\is_array($params)) {
                 if (\count($params) > 1) {
-
                     self::colorBlend($imagickInstance, $params[0], $params[1]);
                 } else {
                     self::colorBlend($imagickInstance, $params[0]);
@@ -51,7 +49,7 @@ class ColorBlendEffect implements ImagerEffectsInterface
      * @param int|float $alpha
      * @param int $composite_flag
      */
-    private static function colorBlend($imagickInstance, $color, $alpha = 1, $composite_flag = \Imagick::COMPOSITE_COLORIZE)
+    private static function colorBlend($imagickInstance, $color, float|int $alpha = 1, $composite_flag = \Imagick::COMPOSITE_COLORIZE)
     {
         $draw = new \ImagickDraw();
         $draw->setFillColor($color);

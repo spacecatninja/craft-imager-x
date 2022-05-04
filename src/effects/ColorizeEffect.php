@@ -1,23 +1,23 @@
 <?php
 
 namespace spacecatninja\imagerx\effects;
+
 /**
  * Imager X plugin for Craft CMS
  *
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
-use spacecatninja\imagerx\services\ImagerService;
 use Imagine\Gd\Image as GdImage;
 use Imagine\Image\Palette\Color\RGB;
 use Imagine\Imagick\Image as ImagickImage;
+use spacecatninja\imagerx\services\ImagerService;
 
 class ColorizeEffect implements ImagerEffectsInterface
 {
-
     /**
      * @param GdImage|ImagickImage        $imageInstance
      * @param array|string|int|float|null $params
@@ -37,7 +37,7 @@ class ColorizeEffect implements ImagerEffectsInterface
             $imagickInstance = $imageInstance->getImagick();
             /** @var RGB $color */
             $color = $imageInstance->palette()->color($params);
-            $imagickInstance->colorizeImage((string)$color, new \ImagickPixel(sprintf('rgba(%d, %d, %d, 1)', $color->getRed(), $color->getGreen(), $color->getBlue())));        
+            $imagickInstance->colorizeImage((string)$color, new \ImagickPixel(sprintf('rgba(%d, %d, %d, 1)', $color->getRed(), $color->getGreen(), $color->getBlue())));
         }
     }
 }

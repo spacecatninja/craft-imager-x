@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\gql\queries;
@@ -23,14 +23,14 @@ class ImagerQuery extends Query
     /**
      * @inheritdoc
      */
-    public static function getQueries($checkToken = true): array
+    public static function getQueries(bool $checkToken = true): array
     {
         return [
             'imagerTransform' => [
                 'type' => Type::listOf(ImagerTransformedImageInterface::getType()),
                 'args' => ImagerTransformQueryArguments::getArguments(),
                 'resolve' => ImagerResolver::class . '::resolve',
-                'description' => 'This query is used to query for Imager X transforms.'
+                'description' => 'This query is used to query for Imager X transforms.',
             ],
         ];
     }

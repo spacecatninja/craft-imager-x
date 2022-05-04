@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\services;
@@ -13,7 +13,6 @@ namespace spacecatninja\imagerx\services;
 use Craft;
 use craft\base\Component;
 
-use spacecatninja\imagerx\models\ConfigModel;
 use spacecatninja\imagerx\jobs\OptimizeJob;
 use spacecatninja\imagerx\models\TransformedImageInterface;
 use spacecatninja\imagerx\optimizers\ImagerOptimizeInterface;
@@ -30,13 +29,11 @@ class OptimizerService extends Component
     /**
      * Post optimizations
      *
-     * @param TransformedImageInterface $transformedImage
      *
      * @return bool Return if the image is the final version or not. If a task was set up, it's not.
      */
-    public function optimize($transformedImage): bool
+    public function optimize(TransformedImageInterface $transformedImage): bool
     {
-        /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
         // If there are no enabled optimizers, exit now
@@ -77,10 +74,7 @@ class OptimizerService extends Component
     /**
      * Checks if extension is in array of extensions
      *
-     * @param string $extension
-     * @param array $validExtensions
      *
-     * @return bool
      */
     private function shouldOptimizeByExtension(string $extension, array $validExtensions): bool
     {
@@ -89,12 +83,8 @@ class OptimizerService extends Component
 
     /**
      * Creates optimize queue job
-     *
-     * @param string $handle
-     * @param string $filePath
-     * @param array $settings
      */
-    private function createOptimizeJob(string $handle, string $filePath, array $settings)
+    private function createOptimizeJob(string $handle, string $filePath, array $settings): void
     {
         $queue = Craft::$app->getQueue();
 
@@ -107,5 +97,4 @@ class OptimizerService extends Component
 
         Craft::info('Created optimize job for ' . $handle . ' (job id is ' . $jobId . ')', __METHOD__);
     }
-    
 }

@@ -5,19 +5,17 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\console\controllers;
 
 use Craft;
 use craft\base\Field;
-use craft\base\FieldInterface;
-use craft\base\Volume;
-use craft\base\VolumeInterface;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
+use craft\models\Volume;
 
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\GenerateService;
@@ -25,55 +23,60 @@ use spacecatninja\imagerx\services\ImagerService;
 
 use yii\console\Controller;
 use yii\console\ExitCode;
+use yii\helpers\BaseConsole;
 use yii\helpers\Console;
 
+/**
+ *
+ * @property-read array $allFields
+ * @property-read array $assetsByField
+ * @property-read array $assetsByVolume
+ */
 class GenerateController extends Controller
 {
     /**
      * @var string Handle of volume to generate transforms for
      */
-    public $volume;
+    public string $volume = '';
 
     /**
-     * @var int Folder ID to generate transforms for
+     * @var int|null Folder ID to generate transforms for
      */
-    public $folderId;
+    public ?int $folderId = null;
 
     /**
      * @var bool Enable or disable recursive handling of folders
      */
-    public $recursive;
+    public bool $recursive = false;
 
     /**
      * @var string Field to generate transforms for
      */
-    public $field;
+    public string $field = '';
 
     /**
      * @var string Which transforms to generate
      */
-    public $transforms;
+    public string $transforms = '';
 
     /**
-     * @var array|VolumeInterface[] 
+     * @var array
      */
-    private $volumes = [];
+    private array $volumes = [];
     
     /**
-     * @var array|FieldInterface[] 
+     * @var array
      */
-    private $fields = [];
+    private array $fields = [];
     
     // Public Methods
     // =========================================================================
-
     /**
-     * @param string $actionsID
-     * @return array|string[]
+     * @param string $actionID
      */
-    public function options($actionsID): array
+    public function options($actionID): array
     {
-        $options = parent::options($actionsID);
+        $options = parent::options($actionID);
         
         return array_merge($options, [
             'volume',
@@ -84,9 +87,6 @@ class GenerateController extends Controller
         ]);
     }
 
-    /**
-     * @return array
-     */
     public function optionAliases(): array
     {
         return [
@@ -100,13 +100,11 @@ class GenerateController extends Controller
 
     /**
      * Generates image transforms by volume/folder or fields.
-     *
-     * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex(): int
     {
-        if (!ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
-            $this->error('Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it\'s so worth it!).');
+        if (!ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
+            $this->error("Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it's so worth it!).");
             return ExitCode::UNAVAILABLE;
         }
 
@@ -117,7 +115,7 @@ class GenerateController extends Controller
         $fieldSpecified = !empty($this->field);
         
         if ($volumeSpecified && $fieldSpecified) {
-            $this->error('Both volume and field is specified. That doesn\'t make sense, it\'s either or.');
+            $this->error("Both volume and field is specified. That doesn't make sense, it's either or.");
             return ExitCode::NOINPUT;
         }
 
@@ -128,13 +126,11 @@ class GenerateController extends Controller
 
         if ($volumeSpecified) {
             $this->volumes = Craft::$app->getVolumes()->getAllVolumes();
-            $volumeHandles = \array_map(static function ($volume) {
-                /** @var Volume $volume */
-                return $volume->handle;
-            }, $this->volumes);
+            $volumeHandles = \array_map(static fn($volume) => /** @var Volume $volume */
+$volume->handle, $this->volumes);
             
             if (!in_array($this->volume, $volumeHandles, true)) {
-                $this->error("No volumes with handle {$this->volume} exists");
+                $this->error(sprintf('No volumes with handle %s exists', $this->volume));
                 return ExitCode::NOINPUT;
             }
         }
@@ -142,18 +138,16 @@ class GenerateController extends Controller
         if ($fieldSpecified) {
             $this->fields = $this->getAllFields();
 
-            $fieldHandles = \array_map(static function ($field) {
-                /** @var Field $field */
-                return $field['handle'];
-            }, $this->fields);
+            $fieldHandles = \array_map(static fn($field) => /** @var Field $field */
+$field['handle'], $this->fields);
             
             if (!in_array($this->field, $fieldHandles, true)) {
-                $this->error("No field with handle {$this->field} exists");
+                $this->error(sprintf('No field with handle %s exists', $this->field));
                 return ExitCode::NOINPUT;
             }
         }
         
-        $transforms = $this->transforms!=='' ? explode(',', $this->transforms) : [];
+        $transforms = $this->transforms !== '' ? explode(',', $this->transforms) : [];
         
         // Get transforms from config if none were passed in
         if ($volumeSpecified && empty($transforms)) {
@@ -162,7 +156,7 @@ class GenerateController extends Controller
             if ($volumesTransforms && $volumesTransforms[$this->volume] && !empty($volumesTransforms[$this->volume])) {
                 $transforms = $volumesTransforms[$this->volume];
             }
-        }        
+        }
         
         if ($fieldSpecified && empty($transforms)) {
             $fieldTransforms = ImagerService::$generateConfig->fields ?? null;
@@ -170,16 +164,16 @@ class GenerateController extends Controller
             if ($fieldTransforms && $fieldTransforms[$this->field] && !empty($fieldTransforms[$this->field])) {
                 $transforms = $fieldTransforms[$this->field];
             }
-        }        
+        }
         
         $assets = [];
         
         if ($volumeSpecified) {
             $assets = $this->getAssetsByVolume();
-        } else if ($fieldSpecified) {
+        } elseif ($fieldSpecified) {
             $assets = $this->getAssetsByField();
         }
-        
+
         $assets = $this->pruneTransformableAssets($assets);
         
         if (empty($assets)) {
@@ -187,15 +181,15 @@ class GenerateController extends Controller
             return ExitCode::OK;
         }
         
-        $numTransforms = count($transforms);
+        $numTransforms = is_countable($transforms) ? count($transforms) : 0;
         $total = count($assets);
         $current = 0;
-        $this->success("> Generating {$numTransforms} named transforms for {$total} images.");
-        Console::startProgress(0, $total*$numTransforms);
+        $this->success(sprintf('> Generating %d named transforms for %d images.', $numTransforms, $total));
+        Console::startProgress(0, $total * $numTransforms);
         
         foreach ($assets as $asset) {
-            $current++;
-            Console::updateProgress($current*$numTransforms, $total*$numTransforms);
+            ++$current;
+            Console::updateProgress($current * $numTransforms, $total * $numTransforms);
             ImagerX::$plugin->generate->generateTransformsForAsset($asset, $transforms);
         }
         
@@ -204,31 +198,21 @@ class GenerateController extends Controller
         return ExitCode::OK;
     }
     
-    /**
-     * @param string $text
-     */
-    public function success($text = '')
+    public function success(string $text = ''): void
     {
-        $this->stdout("$text\n", Console::FG_GREEN);
+        $this->stdout($text . PHP_EOL, BaseConsole::FG_GREEN);
     }
 
-    /**
-     * @param string $text
-     */
-    public function error($text = '')
+    public function error(string $text = ''): void
     {
-        $this->stdout("$text\n", Console::FG_RED);
+        $this->stdout($text . PHP_EOL, BaseConsole::FG_RED);
     }
 
-    /**
-     * @return array|Asset[]
-     */
     private function getAssetsByVolume(): array
     {
         /** @var AssetQuery $query */
         $query = null;
         
-        /** @var VolumeInterface|null $targetVolume */
         $targetVolume = null;
         
         foreach ($this->volumes as $volume) {
@@ -239,7 +223,7 @@ class GenerateController extends Controller
         }
         
         if ($targetVolume) {
-            $this->success("> Volume `{$this->volume}`");
+            $this->success(sprintf('> Volume `%s`', $this->volume));
             $query = Asset::find()
                 ->volume($targetVolume)
                 ->kind('image')
@@ -248,26 +232,22 @@ class GenerateController extends Controller
             if (!empty($this->folderId)) {
                 $query->folderId($this->folderId);
             } else {
-                $folderId = Craft::$app->getVolumes()->ensureTopFolder($targetVolume);
-                $query->folderId($folderId);
+                $folder = Craft::$app->getVolumes()->ensureTopFolder($targetVolume);
+                $query->folderId($folder->id);
             }
             
             $this->success($this->recursive ? '> Recursive' : '> Not recursive');
-            $query->includeSubfolders((bool)$this->recursive);
+            $query->includeSubfolders($this->recursive);
         }
         
         return $query ? $query->all() : [];
     }
 
-    /**
-     * @return array
-     */
     private function getAssetsByField(): array
     {
         /** @var AssetQuery $query */
         $query = null;
         
-        /** @var FieldInterface|null $targetVolume */
         $targetFieldIds = [];
         
         foreach ($this->fields as $field) {
@@ -277,25 +257,23 @@ class GenerateController extends Controller
         }
         
         if (!empty($targetFieldIds)) {
-            if (count($targetFieldIds)>1) {
-                $this->success('> Processing ' . count($targetFieldIds) . " fields with handle `{$this->field}`");
+            if (count($targetFieldIds) > 1) {
+                $this->success('> Processing ' . count($targetFieldIds) . sprintf(' fields with handle `%s`', $this->field));
             } else {
-                $this->success("> Processing field with handle `{$this->field}`");
+                $this->success(sprintf('> Processing field with handle `%s`', $this->field));
             }
             
             $relatedAssets = (new Query())
                 ->select(['{{%elements}}.id as id', '{{%relations}}.targetId', 'fieldId', 'type'])
                 ->from(['{{%relations}}'])
                 ->where(['fieldId' => $targetFieldIds])
-                ->andWhere(['type' => craft\elements\Asset::class])
+                ->andWhere(['type' => Asset::class])
                 ->join('LEFT JOIN', '{{%elements}}', '{{%elements}}.id = {{%relations}}.targetId')
                 ->groupBy('{{%relations}}.targetId')
                 ->all();
 
             
-            $assetIds = \array_map(static function ($asset) {
-                return $asset['id'];
-            }, $relatedAssets);
+            $assetIds = \array_map(static fn($asset) => $asset['id'], $relatedAssets);
             
             $query = Asset::find()
                 ->id($assetIds)
@@ -306,10 +284,7 @@ class GenerateController extends Controller
         return $query ? $query->all() : [];
     }
 
-    /**
-     * @return array
-     */
-    private function getAllFields(): array 
+    private function getAllFields(): array
     {
         return (new Query())
             ->select(['fields.id', 'fields.handle'])
@@ -317,11 +292,7 @@ class GenerateController extends Controller
             ->all();
     }
 
-    /**
-     * @param array $assets
-     * @return array
-     */
-    private function pruneTransformableAssets($assets): array
+    private function pruneTransformableAssets(array $assets): array
     {
         $r = [];
         

@@ -5,24 +5,26 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\elementactions;
 
-
-use spacecatninja\imagerx\services\ImagerService;
 use Craft;
+use craft\base\ElementAction;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\elements\db\ElementQueryInterface;
-use craft\base\ElementAction;
-
 use spacecatninja\imagerx\ImagerX;
 
+use spacecatninja\imagerx\services\ImagerService;
+
+/**
+ *
+ * @property-read string $triggerLabel
+ */
 class GenerateTransformsAction extends ElementAction
 {
-
     /**
      * @inheritdoc
      */
@@ -32,11 +34,9 @@ class GenerateTransformsAction extends ElementAction
     }
 
     /**
-     * Generates transforms 
+     * Generates transforms
      *
-     * @param ElementQueryInterface $query
      *
-     * @return bool
      */
     public function performAction(ElementQueryInterface $query): bool
     {
@@ -70,8 +70,8 @@ class GenerateTransformsAction extends ElementAction
                     ImagerX::$plugin->generate->createTransformJob($asset, $transforms);
                 }
             }
-        } catch (\Throwable $e) {
-            $this->setMessage($e->getMessage());
+        } catch (\Throwable $throwable) {
+            $this->setMessage($throwable->getMessage());
             return false;
         }
 

@@ -5,16 +5,15 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\twigextensions;
 
-use Craft;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
-
 use spacecatninja\imagerx\ImagerX as Plugin;
+use Twig\Extension\AbstractExtension;
+
+use Twig\TwigFilter;
 
 /**
  * @author    André Elvan
@@ -34,25 +33,21 @@ class ImagerTwigExtension extends AbstractExtension
         return 'Imager';
     }
 
-    /**
-     * @return array
-     */
-    public function getFilters(): array 
+    public function getFilters(): array
     {
         return [
-            new TwigFilter('srcset', [$this, 'srcsetFilter']),
+            new TwigFilter('srcset', function(array $images, string $descriptor = 'w'): string {
+                return $this->srcsetFilter($images, $descriptor);
+            }),
         ];
     }
-    
+
     /**
      * Twig filter interface for srcset
      *
-     * @param array $images
-     * @param string $descriptor
      *
-     * @return string
      */
-    public function srcsetFilter($images, $descriptor='w'): string
+    public function srcsetFilter(array $images, string $descriptor = 'w'): string
     {
         return Plugin::$plugin->imagerx->srcset($images, $descriptor);
     }

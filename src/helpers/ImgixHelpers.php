@@ -5,61 +5,57 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\helpers;
 
 use Craft;
-
-use craft\base\LocalVolumeInterface;
-use craft\base\Volume;
 use craft\elements\Asset;
-use craft\helpers\FileHelper;
-use craft\volumes\Local;
 
+use craft\fs\Local;
+use craft\helpers\App;
+use craft\helpers\FileHelper;
+
+use Imgix\UrlBuilder;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\models\ImgixSettings;
-use Imgix\UrlBuilder;
 
 use yii\base\InvalidConfigException;
 
 class ImgixHelpers
 {
     /**
-     * @param Asset|string $image
-     * @param ImgixSettings $config
-     * @return string
      * @throws ImagerException
      */
-    public static function getImgixFilePath($image, $config): string
+    public static function getImgixFilePath(Asset|string $image, ImgixSettings $config): string
     {
         if (\is_string($image)) { // if $image is a string, just pass it to builder, we have to assume the user knows what he's doing (sry) :)
             return $image;
-        } 
+        }
         
-        if ($config->sourceIsWebProxy === true) {
-            return $image->url ?? '';
-        } 
+        if ($config->sourceIsWebProxy) {
+            return $image->getUrl() ?? '';
+        }
             
         try {
-            /** @var LocalVolumeInterface|Volume|Local $volume */
             $volume = $image->getVolume();
-        } catch (InvalidConfigException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            throw new ImagerException($e->getMessage(), $e->getCode(), $e);
+            $fs = $image->getVolume()->getFs();
+        } catch (InvalidConfigException $invalidConfigException) {
+            Craft::error($invalidConfigException->getMessage(), __METHOD__);
+            throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
         }
 
-        if (($config->useCloudSourcePath === true) && isset($volume->subfolder) && \get_class($volume) !== 'craft\volumes\Local') {
-            $path = implode('/', [\Craft::parseEnv($volume->subfolder), $image->getPath()]);
+        if (($config->useCloudSourcePath) && (property_exists($fs, 'subfolder') && $fs->subfolder !== null) && $fs::class !== Local::class) {
+            $path = implode('/', [App::parseEnv($fs->subfolder), $image->getPath()]);
         } else {
             $path = $image->getPath();
         }
         
-        if ($config->addPath) {
+        if (!empty($config->addPath)) {
             if (\is_string($config->addPath) && $config->addPath !== '') {
                 $path = implode('/', [$config->addPath, $path]);
-            } else if (is_array($config->addPath)) {
+            } elseif (is_array($config->addPath)) {
                 if (isset($config->addPath[$volume->handle])) {
                     $path = implode('/', [$config->addPath[$volume->handle], $path]);
                 }
@@ -74,16 +70,11 @@ class ImgixHelpers
         return $path;
     }
 
-    /**
-     * @param ImgixSettings $config
-     * @return UrlBuilder
-     */
-    public static function getBuilder($config): UrlBuilder
+    public static function getBuilder(ImgixSettings $config): UrlBuilder
     {
         return new UrlBuilder($config->domain,
             $config->useHttps,
             $config->signKey,
             false);
     }
-    
 }

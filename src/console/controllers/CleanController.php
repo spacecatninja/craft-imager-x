@@ -5,23 +5,14 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\console\controllers;
 
-use Craft;
-use craft\base\Field;
-use craft\base\FieldInterface;
-use craft\base\Volume;
-use craft\base\VolumeInterface;
-use craft\db\Query;
-use craft\elements\Asset;
-use craft\elements\db\AssetQuery;
-
-use craft\helpers\FileHelper;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\ImagerService;
+use spacecatninja\imagerx\helpers\FileHelper;
 
 use yii\console\Controller;
 use yii\console\ExitCode;
@@ -31,26 +22,24 @@ use yii\helpers\Console;
 class CleanController extends Controller
 {
     /**
-     * @var string|null Handle of volume to clean transforms for
+     * @var string Handle of volume to clean transforms for
      */
-    public $volume;
+    public string $volume = '';
     
     /**
      * @var string|null Overrides the default cache duration settings
      */
-    public $duration;
+    public ?string $duration = null;
     
     
     // Public Methods
     // =========================================================================
-
     /**
-     * @param string $actionsID
-     * @return array|string[]
+     * @param string $actionID
      */
-    public function options($actionsID): array
+    public function options($actionID): array
     {
-        $options = parent::options($actionsID);
+        $options = parent::options($actionID);
         
         return array_merge($options, [
             'volume',
@@ -59,9 +48,6 @@ class CleanController extends Controller
         ]);
     }
 
-    /**
-     * @return array
-     */
     public function optionAliases(): array
     {
         return [
@@ -71,14 +57,12 @@ class CleanController extends Controller
     }
 
     /**
-     * Generates image transforms by volume/folder or fields.
-     *
-     * @return mixed
+     * Cleans image transforms in the local system path.
      */
-    public function actionIndex()
+    public function actionIndex(): int
     {
-        if (!ImagerX::getInstance()->is(ImagerX::EDITION_PRO)) {
-            $this->error('Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it\'s so worth it!).');
+        if (!ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
+            $this->error("Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it's so worth it!).");
             return ExitCode::UNAVAILABLE;
         }
         
@@ -92,7 +76,7 @@ class CleanController extends Controller
                 return ExitCode::UNAVAILABLE;
             }
             
-            $systemPath = FileHelper::normalizePath($systemPath.DIRECTORY_SEPARATOR.$this->volume);
+            $systemPath = FileHelper::normalizePath($systemPath . DIRECTORY_SEPARATOR . $this->volume);
         }
         
         if (!$this->duration && $config->cacheDuration === false) {
@@ -109,18 +93,9 @@ class CleanController extends Controller
             return ExitCode::OK;
         }
         
-        $this->success("> Scanning $systemPath");
-        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($systemPath));
-        $files = []; 
+        $this->success(sprintf('> Scanning %s', $systemPath));
         
-        foreach ($rii as $file) {
-        
-            if ($file->isDir()){ 
-                continue;
-            }
-        
-            $files[] = $file->getPathname();
-        }
+        $files = FileHelper::filesInPath($systemPath);
         
         if (empty($files)) {
             $this->error("No transforms found.");
@@ -129,13 +104,11 @@ class CleanController extends Controller
         
         $numFiles = count($files);
         $expiredFiles = [];
-        $this->success("> Found {$numFiles} transformed images.");
+        $this->success(sprintf('> Found %d transformed images.', $numFiles));
 
         foreach ($files as $file) {
-            if (is_file($file)) {
-                if ($this->fileHasExpired($file)) {
-                    $expiredFiles[] = $file;
-                }
+            if (is_file($file) && $this->fileHasExpired($file)) {
+                $expiredFiles[] = $file;
             }
         }
         
@@ -146,8 +119,8 @@ class CleanController extends Controller
         
         $numExpiredFiles = count($expiredFiles);
         
-        if ($this->interactive !== false) {
-            $promptReply = Console::prompt("> Found $numExpiredFiles expired transforms. Do you want to delete them (y/N)?");
+        if ($this->interactive) {
+            $promptReply = Console::prompt(sprintf('> Found %d expired transforms. Do you want to delete them (y/N)?', $numExpiredFiles));
             
             if (strtolower($promptReply) !== 'y') {
                 $this->error("> Aborting.");
@@ -155,12 +128,12 @@ class CleanController extends Controller
             }
         }
         
-        $this->message("> Deleting $numExpiredFiles transforms.");
+        $this->message(sprintf('> Deleting %d transforms.', $numExpiredFiles));
         Console::startProgress(0, $numExpiredFiles);
         $current = 0;
 
         foreach ($expiredFiles as $expiredFile) {
-            $current++;
+            ++$current;
             Console::updateProgress($current, $numExpiredFiles);
             unlink($expiredFile);
         }
@@ -170,38 +143,23 @@ class CleanController extends Controller
         return ExitCode::OK;
     }
     
-    /**
-     * @param string $text
-     */
-    public function success($text = '')
+    public function success(string $text = ''): void
     {
-        $this->stdout("$text\n", BaseConsole::FG_GREEN);
+        $this->stdout($text . PHP_EOL, BaseConsole::FG_GREEN);
     }
 
-    /**
-     * @param string $text
-     */
-    public function message($text = '')
+    public function message(string $text = ''): void
     {
-        $this->stdout("$text\n", BaseConsole::FG_GREY);
+        $this->stdout($text . PHP_EOL, BaseConsole::FG_GREY);
     }
 
-    /**
-     * @param string $text
-     */
-    public function error($text = '')
+    public function error(string $text = ''): void
     {
-        $this->stdout("$text\n", BaseConsole::FG_RED);
+        $this->stdout($text . PHP_EOL, BaseConsole::FG_RED);
     }
 
-    /**
-     * @param string $file
-     *
-     * @return bool
-     */
     private function fileHasExpired(string $file): bool
     {
         return FileHelper::lastModifiedTime($file) + $this->duration < time();
     }
-    
 }

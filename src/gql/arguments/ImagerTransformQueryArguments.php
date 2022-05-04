@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\gql\arguments;
@@ -24,17 +24,17 @@ class ImagerTransformQueryArguments extends Arguments
             'id' => [
                 'name' => 'id',
                 'type' => Type::int(),
-                'description' => 'The asset id to transform.'
+                'description' => 'The asset id to transform.',
             ],
             'url' => [
                 'name' => 'url',
                 'type' => Type::string(),
-                'description' => 'The asset url to transform.'
+                'description' => 'The asset url to transform.',
             ],
             'transform' => [
                 'name' => 'transform',
                 'type' => Type::string(),
-                'description' => 'The handle of the named transform you want to generate.'
+                'description' => 'The handle of the named transform you want to generate.',
             ],
         ];
     }

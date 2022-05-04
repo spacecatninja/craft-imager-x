@@ -1,0 +1,21 @@
+.imager-utility__label {
+    font-weight: bold;
+    color: #606d7b;
+    margin-bottom: 10px;
+}
+
+.imager-utility__block {
+    margin-bottom: 20px;
+}
+
+.imager-utility__block .instructions {
+    margin-bottom: 10px;
+}
+
+.imager-utility__block fieldset{
+    margin-top: 0 !important;
+}
+
+.imager-utility tbody tr td {
+    text-align: left !important;
+}

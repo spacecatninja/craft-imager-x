@@ -5,7 +5,7 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\jobs;
@@ -15,14 +15,12 @@ use Craft;
 use craft\queue\BaseJob;
 use craft\queue\QueueInterface;
 
-use spacecatninja\imagerx\models\ConfigModel;
-use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\optimizers\ImagerOptimizeInterface;
+use spacecatninja\imagerx\services\ImagerService;
 
 use yii\queue\Queue;
-
 
 class OptimizeJob extends BaseJob
 {
@@ -32,17 +30,17 @@ class OptimizeJob extends BaseJob
     /**
      * @var string
      */
-    public $optimizer = '';
+    public string $optimizer = '';
     
     /**
      * @var array
      */
-    public $optimizerSettings = [];
+    public array $optimizerSettings = [];
     
     /**
      * @var string
      */
-    public $filePath = '';
+    public string $filePath = '';
 
 
     // Public Methods
@@ -52,7 +50,7 @@ class OptimizeJob extends BaseJob
      * @param QueueInterface|Queue $queue
      * @throws ImagerException
      */
-    public function execute($queue)
+    public function execute($queue): void
     {
         if (isset(ImagerService::$optimizers[$this->optimizer])) {
             /** @var ImagerOptimizeInterface $optimizerClass */
@@ -62,7 +60,6 @@ class OptimizeJob extends BaseJob
             // Clear stat cache to make sure old file size is not cached
             clearstatcache(true, $this->filePath);
             
-            /** @var ConfigModel $settings */
             $config = ImagerService::getConfig();
     
             if (empty($config->storages)) {
@@ -79,9 +76,9 @@ class OptimizeJob extends BaseJob
     /**
      * Returns a default description for [[getDescription()]], if [[description]] isn’t set.
      *
-     * @return string The default task description
+     * @return string|null The default task description
      */
-    protected function defaultDescription(): string
+    protected function defaultDescription(): ?string
     {
         return Craft::t('imager-x', 'Optimizing images');
     }

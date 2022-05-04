@@ -5,13 +5,11 @@
  * Ninja powered image transforms.
  *
  * @link      https://www.spacecat.ninja
- * @copyright Copyright (c) 2020 André Elvan
+ * @copyright Copyright (c) 2022 André Elvan
  */
 
 namespace spacecatninja\imagerx\gql\directives;
 
-use spacecatninja\imagerx\exceptions\ImagerException;
-use spacecatninja\imagerx\gql\arguments\ImagerSrcsetArguments;
 use Craft;
 use craft\gql\base\Directive;
 use craft\gql\GqlEntityRegistry;
@@ -19,10 +17,10 @@ use GraphQL\Language\DirectiveLocation;
 use GraphQL\Type\Definition\Directive as GqlDirective;
 use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQL\Type\Definition\Type;
+use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\gql\arguments\ImagerSrcsetArguments;
 
 use spacecatninja\imagerx\ImagerX;
-use spacecatninja\imagerx\gql\arguments\ImagerTransformArguments;
 use spacecatninja\imagerx\services\ImagerService;
 
 /**
@@ -51,16 +49,14 @@ class ImagerSrcset extends Directive
             return $type;
         }
 
-        $type = GqlEntityRegistry::createEntity(static::name(), new self([
+        return GqlEntityRegistry::createEntity(static::name(), new self([
             'name' => static::name(),
             'locations' => [
                 DirectiveLocation::FIELD,
             ],
             'args' => ImagerSrcsetArguments::getArguments(),
-            'description' => 'This directive is used to return a srcset from a named transform in Imager X.'
+            'description' => 'This directive is used to return a srcset from a named transform in Imager X.',
         ]));
-
-        return $type;
     }
 
     /**
@@ -74,7 +70,7 @@ class ImagerSrcset extends Directive
     /**
      * @inheritdoc
      */
-    public static function apply($source, $value, array $arguments, ResolveInfo $resolveInfo)
+    public static function apply(mixed $source, mixed $value, array $arguments, ResolveInfo $resolveInfo): mixed
     {
         if ($resolveInfo->fieldName !== 'url') {
             return $value;
@@ -90,8 +86,8 @@ class ImagerSrcset extends Directive
         
         try {
             $transformedImages = ImagerX::$plugin->imagerx->transformImage($source, $arguments['handle']);
-        } catch (ImagerException $e) {
-            Craft::error('An error occured when trying to generate srcset in GraphQL directive: ' . $e->getMessage(), __METHOD__);
+        } catch (ImagerException $imagerException) {
+            Craft::error('An error occured when trying to generate srcset in GraphQL directive: ' . $imagerException->getMessage(), __METHOD__);
             return null;
         }
         
