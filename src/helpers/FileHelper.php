@@ -24,6 +24,8 @@ class FileHelper extends \craft\helpers\FileHelper
 
     public static function filesInPath(string $path): array
     {
+        $path = realpath($path);
+        
         $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
         $files = [];
 

@@ -109,16 +109,32 @@ class UtilityController extends Controller
         $transformsCachePath = FileHelper::normalizePath(ImagerService::getConfig()->imagerSystemPath);
         $runtimeCachePath = FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/');
 
+        try {
+            $transformsCacheCount = count(FileHelper::filesInPath($transformsCachePath));
+            $transformsCacheSize = FormatHelper::formatBytes(FileHelper::pathSize($transformsCachePath), 'm', 1) . ' MB';
+        } catch (\Throwable) {
+            $transformsCacheCount = '-';
+            $transformsCacheSize = '-';
+        }
+        
         $cacheInfo[] = [
             'handle' => 'transforms',
-            'fileCount' => count(FileHelper::filesInPath($transformsCachePath)),
-            'size' => FormatHelper::formatBytes(FileHelper::pathSize($transformsCachePath), 'm', 1) . ' MB',
+            'fileCount' => $transformsCacheCount,
+            'size' => $transformsCacheSize,
         ];
+        
+        try {
+            $runtimeCacheCount = count(FileHelper::filesInPath($runtimeCachePath));
+            $runtimeCacheSize = FormatHelper::formatBytes(FileHelper::pathSize($runtimeCachePath), 'm', 1) . ' MB';
+        } catch (\Throwable) {
+            $runtimeCacheCount = '-';
+            $runtimeCacheSize = '-';
+        }
         
         $cacheInfo[] = [
             'handle' => 'runtime',
-            'fileCount' => count(FileHelper::filesInPath($runtimeCachePath)),
-            'size' => FormatHelper::formatBytes(FileHelper::pathSize($runtimeCachePath), 'm', 1) . ' MB',
+            'fileCount' => $runtimeCacheCount,
+            'size' => $runtimeCacheSize,
         ];
 
         return $this->asJson([
