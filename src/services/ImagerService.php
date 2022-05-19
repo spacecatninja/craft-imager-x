@@ -14,12 +14,12 @@ use Craft;
 
 use craft\base\Component;
 use craft\elements\Asset;
+use craft\helpers\ArrayHelper;
 use craft\helpers\FileHelper;
 use Imagine\Image\ImageInterface;
-
+use spacecatninja\imagerx\events\TransformImageEvent;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
-
 use spacecatninja\imagerx\helpers\TransformHelpers;
 use spacecatninja\imagerx\ImagerX as Plugin;
 use spacecatninja\imagerx\models\ConfigModel;
@@ -40,6 +40,18 @@ use yii\base\Exception;
  */
 class ImagerService extends Component
 {
+    // Events
+    // =========================================================================
+
+    /**
+     * @var string
+     */
+    public const EVENT_BEFORE_TRANSFORM_IMAGE = 'imagerxBeforeTransformImage';
+    public const EVENT_AFTER_TRANSFORM_IMAGE = 'imagerxAfterTransformImage';
+
+    // Static Properties
+    // =========================================================================
+
     /**
      * @var string
      */
@@ -210,6 +222,9 @@ class ImagerService extends Component
         }
     }
 
+
+    // Static Methods
+    // =========================================================================
 
     public static function getConfig(): ConfigModel
     {
@@ -387,52 +402,101 @@ class ImagerService extends Component
         // Normalize transform parameters
         $transforms = TransformHelpers::normalizeTransforms($transforms, $image);
 
-        // Create transformer
-        if (!isset(self::$transformers[self::$transformConfig->transformer])) {
-            $msg = 'Invalid transformer "' . self::$transformConfig->transformer . '".';
-
-            if (self::$transformConfig->transformer !== 'craft' && !Plugin::getInstance()?->is(Plugin::EDITION_PRO)) {
-                $msg .= ' Custom transformers are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
-            }
-
-            Craft::error($msg, __METHOD__);
-            throw new ImagerException($msg);
-        }
-
-        /** @var TransformerInterface $transformer */
-        $transformer = new self::$transformers[self::$transformConfig->transformer]();
+        // Allow plugins to block transform or provide their own transformed images
         $transformedImages = null;
 
-        // Do we have a debug image?
-        if (self::$transformConfig->mockImage !== null) {
-            $image = ImagerHelpers::getTransformableFromConfigSetting(self::$transformConfig->mockImage);
+        if ($this->hasEventHandlers(static::EVENT_BEFORE_TRANSFORM_IMAGE))
+        {
+            $event = new TransformImageEvent([
+                'image' => $image,
+                'transforms' => $transforms,
+                'transformedImages' => null,
+            ]);
+
+            $this->trigger(self::EVENT_BEFORE_TRANSFORM_IMAGE, $event);
+
+            // allow plugins to cancel the image transformation all together
+            if (!$event->isValid) {
+                return null;
+            }
+
+            // allow plugins to provide their own transformation results
+            if ($event->transformedImages !== null)
+            {
+                // Limited to Pro edition, otherwise plugins could use this to
+                // re-produce the custom transformers feature for Lite edition
+                if (!Plugin::getInstance()?->is(Plugin::EDITION_PRO))
+                {
+                    $msg = Craft::t('imager-x', 'Overriding transformed images is only available when using the Pro edition of Imager, you need to upgrade to use this feature.');
+
+                    Craft::error($msg, __METHOD__);
+                    throw new ImagerException($msg);
+                }
+
+                $transformedImages = $event->transformedImages;
+            }
         }
 
-        try {
-            $transformedImages = $transformer->transform($image, $transforms);
-        } catch (ImagerException $imagerException) {
-            // If a fallback image is defined, try to transform that instead.
-            if (self::$transformConfig->fallbackImage !== null) {
-                $fallbackImage = ImagerHelpers::getTransformableFromConfigSetting(self::$transformConfig->fallbackImage);
+        if ($transformedImages === null)
+        {
+            // Create transformer
+            if (!isset(self::$transformers[self::$transformConfig->transformer])) {
+                $msg = 'Invalid transformer "' . self::$transformConfig->transformer . '".';
 
-                if ($fallbackImage) {
-                    try {
-                        $transformedImages = $transformer->transform($fallbackImage, $transforms);
-                    } catch (ImagerException $imagerException) {
-                        if (self::$transformConfig->suppressExceptions) {
-                            return null;
-                        }
-
-                        throw $imagerException;
-                    }
-                }
-            } else {
-                if (self::$transformConfig->suppressExceptions) {
-                    return null;
+                if (self::$transformConfig->transformer !== 'craft' && !Plugin::getInstance()?->is(Plugin::EDITION_PRO)) {
+                    $msg .= ' Custom transformers are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
                 }
 
-                throw $imagerException;
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
             }
+
+            /** @var TransformerInterface $transformer */
+            $transformer = new self::$transformers[self::$transformConfig->transformer]();
+
+            // Do we have a debug image?
+            if (self::$transformConfig->mockImage !== null) {
+                $image = ImagerHelpers::getTransformableFromConfigSetting(self::$transformConfig->mockImage);
+            }
+
+            try
+            {
+                $transformedImages = $transformer->transform($image, $transforms);
+            } catch (ImagerException $imagerException) {
+                // If a fallback image is defined, try to transform that instead.
+                if (self::$transformConfig->fallbackImage !== null) {
+                    $fallbackImage = ImagerHelpers::getTransformableFromConfigSetting(self::$transformConfig->fallbackImage);
+
+                    if ($fallbackImage) {
+                        try {
+                            $transformedImages = $transformer->transform($fallbackImage, $transforms);
+                        } catch (ImagerException $imagerException) {
+                            if (self::$transformConfig->suppressExceptions) {
+                                return null;
+                            }
+
+                            throw $imagerException;
+                        }
+                    }
+                } else {
+                    if (self::$transformConfig->suppressExceptions) {
+                        return null;
+                    }
+
+                    throw $imagerException;
+                }
+            }
+        }
+
+        if ($this->hasEventHandlers(static::EVENT_AFTER_TRANSFORM_IMAGE))
+        {
+            $this->trigger(static::EVENT_AFTER_TRANSFORM_IMAGE,
+                new TransformImageEvent([
+                    'image' => $image,
+                    'transforms' => $transforms,
+                    'transformedImages' => $transformedImages,
+                ])
+            );
         }
 
         // Clean up after this transform session
@@ -443,7 +507,9 @@ class ImagerService extends Component
             return null;
         }
 
-        return $returnType === 'object' ? $transformedImages[0] : $transformedImages;
+        
+
+        return $returnType === 'object' ? ArrayHelper::firstValue($transformedImages) : $transformedImages;
     }
 
     /**
@@ -623,4 +689,5 @@ class ImagerService extends Component
             }
         }
     }
+
 }
