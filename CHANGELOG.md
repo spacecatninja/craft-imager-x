@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.0.1 - 2022-05-26
+
+### Fixed
+- Fixed issue with incorrect typing of `imagerUrl` (fixes #150)
+
 ## 4.0.0 - 2022-05-04
 
 ### Added
