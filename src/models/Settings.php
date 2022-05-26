@@ -17,7 +17,7 @@ class Settings extends Model
 {
     public string $transformer = 'craft';
     public string $imagerSystemPath = '@webroot/imager/';
-    public string $imagerUrl = '/imager/';
+    public string|array $imagerUrl = '/imager/';
     public bool $cacheEnabled = true;
     public bool $cacheRemoteFiles = true;
     public string|int|bool $cacheDuration = 1_209_600;
