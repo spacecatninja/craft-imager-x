@@ -27,6 +27,7 @@ class Settings extends Model
     public $cacheDurationRemoteFiles = 1209600;
     public $cacheDurationExternalStorage = 1209600;
     public $cacheDurationNonOptimized = 300;
+    public $registerCacheOptions = false;
     
     public $jpegQuality = 80;
     public $pngCompressionLevel = 2;
