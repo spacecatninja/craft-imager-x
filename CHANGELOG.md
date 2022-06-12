@@ -1,5 +1,17 @@
 # Imager X Changelog
 
+## 3.6.0 - 2022-06-12
+
+### Added
+- Added `registerCacheOptions` config setting
+
+### Changed
+- Changed register cache options behaviour, disabled by default, can be enabled using `registerCacheOptions` config setting.
+
+### Fixed
+- Fixed description for clean controller
+
+
 ## 3.5.8 - 2022-04-29
 
 ### Fixed
