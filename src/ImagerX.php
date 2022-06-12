@@ -319,20 +319,22 @@ class ImagerX extends Plugin
         }
 
         // Adds Imager paths to the list of things the Clear Caches tool can delete
-        Event::on(ClearCaches::class, ClearCaches::EVENT_REGISTER_CACHE_OPTIONS,
-            static function(RegisterCacheOptionsEvent $event) {
-                $event->options[] = [
-                    'key' => 'imager-transform-cache',
-                    'label' => Craft::t('imager-x', 'Imager image transform cache'),
-                    'action' => FileHelper::normalizePath(ImagerService::getConfig()->imagerSystemPath)
-                ];
-                $event->options[] = [
-                    'key' => 'imager-remote-images-cache',
-                    'label' => Craft::t('imager-x', 'Imager remote images cache'),
-                    'action' => FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath().'/imager/')
-                ];
-            }
-        );
+        if ($config->registerCacheOptions) {
+            Event::on(ClearCaches::class, ClearCaches::EVENT_REGISTER_CACHE_OPTIONS,
+                static function(RegisterCacheOptionsEvent $event) {
+                    $event->options[] = [
+                        'key' => 'imager-transform-cache',
+                        'label' => Craft::t('imager-x', 'Imager image transform cache'),
+                        'action' => FileHelper::normalizePath(ImagerService::getConfig()->imagerSystemPath)
+                    ];
+                    $event->options[] = [
+                        'key' => 'imager-remote-images-cache',
+                        'label' => Craft::t('imager-x', 'Imager remote images cache'),
+                        'action' => FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath().'/imager/')
+                    ];
+                }
+            );
+        }
     }
 
     /**
