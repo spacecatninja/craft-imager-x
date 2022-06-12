@@ -11,13 +11,6 @@
 namespace spacecatninja\imagerx\console\controllers;
 
 use Craft;
-use craft\base\Field;
-use craft\base\FieldInterface;
-use craft\base\Volume;
-use craft\base\VolumeInterface;
-use craft\db\Query;
-use craft\elements\Asset;
-use craft\elements\db\AssetQuery;
 
 use craft\helpers\FileHelper;
 use spacecatninja\imagerx\ImagerX;
@@ -71,7 +64,7 @@ class CleanController extends Controller
     }
 
     /**
-     * Generates image transforms by volume/folder or fields.
+     * Clean transforms from imager's transforms cache.
      *
      * @return mixed
      */
