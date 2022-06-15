@@ -19,6 +19,7 @@ use craft\db\Query;
 use craft\elements\Asset;
 use craft\elements\db\ElementQuery;
 
+use craft\models\FieldLayout;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\helpers\FieldHelpers;
@@ -203,7 +204,11 @@ class GenerateService extends Component
         }
 
         $fieldLayout = $element->getFieldLayout();
-
+        
+        if (!($fieldLayout instanceof FieldLayout)) {
+            return;
+        }
+        
         foreach ($fieldsConfig as $fieldHandle => $transforms) {
             $field = FieldHelpers::getFieldInFieldLayoutByHandle($element, $fieldLayout, $fieldHandle);
 
