@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.0.2 - 2022-06-15
+
+### Fixed
+- Fixed issue where saving elements without a field layout would throw an error if auto generate by fields were enabled (fixes #153)
+
 ## 4.0.1 - 2022-05-26
 
 ### Fixed
