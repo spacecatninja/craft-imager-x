@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 4.1.0 - 2022-06-16
+
+### Added
+- Added support for [file adapters](https://imager-x.spacecat.ninja/extending.html#file-adapters).
+
+### Changed
+- Changed identifier for `transformerParams` in transform string, we now use `TP`.
+
 ## 4.0.2 - 2022-06-15
 
 ### Fixed
