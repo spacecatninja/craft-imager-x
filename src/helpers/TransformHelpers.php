@@ -12,6 +12,7 @@ namespace spacecatninja\imagerx\helpers;
 
 use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
+use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
 use spacecatninja\imagerx\services\ImagerService;
 
 class TransformHelpers
@@ -20,11 +21,8 @@ class TransformHelpers
      * Resolves any callables in params
      *
      * TODO : Make recursive, it now only resolves callables at the top level
-     *
-     * @param string|Asset $image
-     * @param array|null   $transforms
      */
-    public static function resolveTransforms(Asset|string $image, ?array $transforms): array
+    public static function resolveTransforms(Asset|ImagerAdapterInterface|string $image, ?array $transforms): array
     {
         if (!$transforms) {
             return [];
@@ -107,7 +105,7 @@ class TransformHelpers
      *
      *
      */
-    public static function normalizeTransforms(array $transforms, Asset|string $image): array
+    public static function normalizeTransforms(array $transforms, Asset|ImagerAdapterInterface|string $image): array
     {
         $r = [];
 
@@ -123,7 +121,7 @@ class TransformHelpers
      *
      *
      */
-    public static function normalizeTransform(array $transform, Asset|string $image): array
+    public static function normalizeTransform(array $transform, Asset|ImagerAdapterInterface|string $image): array
     {
         if (isset($transform['mode'])) {
             $transform['mode'] = mb_strtolower($transform['mode']);

@@ -74,6 +74,7 @@ use spacecatninja\imagerx\effects\UnsharpMaskEffect;
 use spacecatninja\imagerx\elementactions\ClearTransformsElementAction;
 use spacecatninja\imagerx\elementactions\GenerateTransformsAction;
 use spacecatninja\imagerx\elementactions\ImgixPurgeElementAction;
+use spacecatninja\imagerx\events\RegisterAdaptersEvent;
 use spacecatninja\imagerx\events\RegisterEffectsEvent;
 use spacecatninja\imagerx\events\RegisterExternalStoragesEvent;
 use spacecatninja\imagerx\events\RegisterOptimizersEvent;
@@ -156,6 +157,11 @@ class ImagerX extends Plugin
      * @var string
      */
     public const EVENT_REGISTER_OPTIMIZERS = 'imagerxRegisterOptimizers';
+
+    /**
+     * @var string
+     */
+    public const EVENT_REGISTER_ADAPTERS = 'imagerxRegisterAdapters';
 
     // Static Properties
     // =========================================================================
@@ -279,6 +285,9 @@ class ImagerX extends Plugin
 
                 // Register external storage options
                 $this->registerExternalStorages();
+                
+                // Register adapters
+                $this->registerAdapters();
             }
         );
 
@@ -501,7 +510,7 @@ class ImagerX extends Plugin
 
                     /** @var Element $element */
                     $element = $event->element;
-
+                    
                     if ($element instanceof Asset && $element->getScenario() === Asset::SCENARIO_INDEX) {
                         return;
                     }
@@ -697,4 +706,24 @@ class ImagerX extends Plugin
             }
         }
     }
+    
+    /**
+     * Register adapters
+     */
+    private function registerAdapters(): void
+    {
+        $data = [];
+
+        $event = new RegisterAdaptersEvent([
+            'adapters' => $data,
+        ]);
+
+        $this->trigger(self::EVENT_REGISTER_ADAPTERS, $event);
+
+        foreach ($event->adapters as $handle => $class) {
+            ImagerService::registerAdapter($handle, $class);
+        }
+    }
+
+    
 }

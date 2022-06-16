@@ -80,6 +80,11 @@ class ImagerService extends Component
     /**
      * @var array
      */
+    public static array $adapters = [];
+
+    /**
+     * @var array
+     */
     public static array $namedTransforms = [];
 
     /**
@@ -115,6 +120,8 @@ class ImagerService extends Component
         'frames' => 'FR',
         'pad' => 'PAD',
         'customEncoderOptions' => 'CEOPTS',
+        'adapterParams' => 'AP',
+        'transformerParams' => 'TP',
     ];
 
     /**
@@ -299,6 +306,11 @@ class ImagerService extends Component
         self::$storage[mb_strtolower($handle)] = $class;
     }
 
+    public static function registerAdapter(string $handle, string $class): void
+    {
+        self::$adapters[mb_strtolower($handle)] = $class;
+    }
+
     public static function registerCachedRemoteFile(string $path): void
     {
         self::$remoteImageSessionCache[] = $path;
@@ -313,7 +325,7 @@ class ImagerService extends Component
     // Public Methods
     // =========================================================================
     /**
-     * @param Asset|string|null $image
+     * @param Asset|ImagerAdapterInterface|string|null $image
      * @param array|null        $transformDefaults
      * @param array|null        $configOverrides
      * @throws ImagerException

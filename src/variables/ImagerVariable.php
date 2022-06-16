@@ -13,6 +13,7 @@ namespace spacecatninja\imagerx\variables;
 use Craft;
 
 use craft\elements\Asset;
+use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\NamedTransformHelpers;
 use spacecatninja\imagerx\ImagerX as Plugin;
@@ -24,13 +25,10 @@ class ImagerVariable
 {
     /**
      * Transforms an image
-     *
-     * @param array|null   $transformDefaults
-     * @param array|null   $configOverrides
-     *
+     * 
      * @throws ImagerException
      */
-    public function transformImage(Asset|string $file, array|string $transforms, array $transformDefaults = null, array $configOverrides = null): array|TransformedImageInterface|null
+    public function transformImage(Asset|ImagerAdapterInterface|string $file, array|string $transforms, array $transformDefaults = null, array $configOverrides = null): array|TransformedImageInterface|null
     {
         return Plugin::$plugin->imagerx->transformImage($file, $transforms, $transformDefaults, $configOverrides);
     }
@@ -38,8 +36,6 @@ class ImagerVariable
     /**
      * Takes an array of models that supports getUrl() and getWidth(), and returns a srcset
      * and returns a srcset string
-     *
-     *
      */
     public function srcset(array $images, string $descriptor = 'w'): string
     {
@@ -48,8 +44,6 @@ class ImagerVariable
 
     /**
      * Returns a base64 encoded transparent pixel.
-     *
-     *
      */
     public function base64Pixel(int $width = 1, int $height = 1, string $color = 'transparent'): string
     {

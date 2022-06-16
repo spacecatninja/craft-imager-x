@@ -25,6 +25,7 @@ use Imagine\Image\LayersInterface;
 use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
 use Imagine\Imagick\Image as ImagickImage;
+use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
 use spacecatninja\imagerx\effects\ImagerEffectsInterface;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
@@ -69,26 +70,31 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Main transform method
      *
-     *
-     *
      * @throws ImagerException
      * @throws Exception
      */
-    public function transform(Asset|string $image, array $transforms): ?array
+    public function transform(Asset|ImagerAdapterInterface|string $image, array $transforms): ?array
     {
         $config = ImagerService::getConfig();
 
         $sourceModel = new LocalSourceImageModel($image);
-
+        
         $transformedImages = [];
 
         foreach ($transforms as $transform) {
+            if (isset(ImagerService::$adapters[$sourceModel->extension])) {
+                $transformSourceModel = new LocalSourceImageModel(new ImagerService::$adapters[$sourceModel->extension]($image, $transform['adapterParams'] ?? []));
+            } else {
+                $transformSourceModel = $sourceModel;
+            }
+            
             if ($config->getSetting('noop', $transform)) {
                 $msg = Craft::t('imager-x', 'Noop activated, returning “{path}”.', ['path' => $sourceModel->url]);
                 Craft::info($msg, __METHOD__);
-                $transformedImages[] = new NoopImageModel($sourceModel, $transform);
+                
+                $transformedImages[] = new NoopImageModel($transformSourceModel, $transform);
             } else {
-                $transformedImages[] = $this->getTransformedImage($sourceModel, $transform);
+                $transformedImages[] = $this->getTransformedImage($transformSourceModel, $transform);
             }
         }
 
@@ -119,8 +125,6 @@ class CraftTransformer extends Component implements TransformerInterface
     // =========================================================================
     /**
      * Gets one transformed image based on source image and transform
-     *
-     *
      *
      * @throws ImagerException
      * @throws Exception
@@ -162,7 +166,7 @@ class CraftTransformer extends Component implements TransformerInterface
             if (!realpath($targetModel->path)) {
                 try {
                     FileHelper::createDirectory($targetModel->path);
-                } catch (Exception $exception) {
+                } catch (Exception) {
                     // ignore for now, trying to create
                 }
 
@@ -289,7 +293,6 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Apply transforms to an image or layer.
      *
-     *
      * @throws ImagerException
      */
     private function transformLayer(ImagickImage|ImageInterface|GdImage &$layer, array $transform, string $sourceExtension): void
@@ -388,8 +391,6 @@ class CraftTransformer extends Component implements TransformerInterface
 
     /**
      * Returns the filter method for resize operations
-     *
-     *
      */
     private function getFilterMethod(array $transform): string
     {
@@ -399,7 +400,6 @@ class CraftTransformer extends Component implements TransformerInterface
     }
 
     /**
-     *
      * @throws Exception
      * @throws ImagerException
      */
@@ -449,7 +449,6 @@ class CraftTransformer extends Component implements TransformerInterface
 
     /**
      * Saves image as avif
-     *
      *
      * @throws Exception
      * @throws ImagerException
@@ -507,7 +506,6 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Saves image as JPEG XL
      *
-     *
      * @throws Exception
      * @throws ImagerException
      */
@@ -564,8 +562,6 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Save temporary file and return filename
      *
-     *
-     *
      * @throws ImagerException
      * @throws Exception
      */
@@ -603,8 +599,6 @@ class CraftTransformer extends Component implements TransformerInterface
 
     /**
      * Get the save options based on extension and transform
-     *
-     *
      */
     private function getSaveOptions(string $extension, array $transform): array
     {
@@ -623,7 +617,6 @@ class CraftTransformer extends Component implements TransformerInterface
 
     /**
      * Apply letterbox to image
-     *
      *
      * @throws ImagerException
      */
@@ -677,7 +670,6 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Apply padding to image
      *
-     *
      * @throws ImagerException
      */
     private function applyPadding(ImagickImage|ImageInterface|GdImage &$imageInstance, array $transform, string $sourceExtension): void
@@ -720,7 +712,6 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Apply background color to image when converting from transparent to non-transparent
      *
-     *
      * @throws ImagerException
      */
     private function applyBackgroundColor(ImagickImage|ImageInterface|GdImage &$imageInstance, string $bgColor): void
@@ -745,7 +736,6 @@ class CraftTransformer extends Component implements TransformerInterface
 
     /**
      * Apply watermark to image
-     *
      *
      * @throws ImagerException
      */
@@ -867,7 +857,6 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Applies trim to image.
      *
-     *
      * @throws ImagerException
      */
     private function trim(ImagickImage|GdImage $image, float $fuzz): void
@@ -886,8 +875,6 @@ class CraftTransformer extends Component implements TransformerInterface
 
     /**
      * Get vars for animated gif frames setup
-     *
-     *
      */
     private function getFramesVars(array|LayersInterface $layers, array $transform): array
     {
@@ -903,14 +890,13 @@ class CraftTransformer extends Component implements TransformerInterface
             }
 
             $framesArr = explode('-', $framesIntArr[0]);
-
+            $startFrame = $framesArr[0];
+            
             if (\count($framesArr) > 1) {
-                $startFrame = $framesArr[0];
                 if ($framesArr[1] !== '*') {
                     $endFrame = $framesArr[1];
                 }
             } else {
-                $startFrame = $framesArr[0];
                 $endFrame = $framesArr[0];
             }
 

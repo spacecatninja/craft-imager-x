@@ -222,6 +222,8 @@ class GenerateService extends Component
 
     /**
      * @param Element|ElementInterface $element
+     *
+     * @return bool
      */
     public function shouldGenerateByVolumes(ElementInterface|Element $element): bool
     {
@@ -230,6 +232,8 @@ class GenerateService extends Component
 
     /**
      * @param Element|ElementInterface $element
+     *
+     * @return bool
      */
     public function shouldGenerateByElements(ElementInterface|Element $element): bool
     {
@@ -251,6 +255,8 @@ class GenerateService extends Component
 
     /**
      * @param Element|ElementInterface $element
+     *
+     * @return bool
      */
     public function shouldGenerateByFields(ElementInterface|Element $element): bool
     {
@@ -260,6 +266,7 @@ class GenerateService extends Component
 
     /**
      * @param Asset|ElementInterface $asset
+     * @param array                  $transforms
      */
     public function createTransformJob(ElementInterface|Asset $asset, array $transforms): void
     {
@@ -276,6 +283,7 @@ class GenerateService extends Component
 
     /**
      * @param Asset|ElementInterface $asset
+     * @param array                  $transforms
      */
     public function generateTransformsForAsset(ElementInterface|Asset $asset, array $transforms): void
     {
@@ -298,9 +306,11 @@ class GenerateService extends Component
 
     /**
      * @param Asset|Element|ElementInterface $element
+     *
+     * @return bool
      */
     public static function shouldTransformElement(ElementInterface|Element|Asset $element): bool
     {
-        return $element instanceof Asset && $element->kind === 'image' && \in_array(strtolower($element->getExtension()), ImagerService::getConfig()->safeFileFormats, true);
+        return $element instanceof Asset && \in_array(strtolower($element->getExtension()), ImagerService::getConfig()->safeFileFormats, true);
     }
 }

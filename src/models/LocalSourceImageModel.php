@@ -21,6 +21,7 @@ use craft\helpers\FileHelper;
 use craft\helpers\StringHelper;
 use craft\models\Volume;
 
+use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\services\ImagerService;
@@ -100,6 +101,8 @@ class LocalSourceImageModel
             }
         } elseif ($image instanceof LocalTransformedImageModel) {
             $this->getPathsForLocalImagerFile($image->url);
+        } elseif ($image instanceof ImagerAdapterInterface) {
+            $this->getPathsForAdapter($image);
         } elseif ($image instanceof Asset) {
             $this->asset = $image;
             try {
@@ -285,16 +288,29 @@ class LocalSourceImageModel
 
     /**
      * Get paths for a local file that's not in the imager path
-     *
-     * @param $image
      */
-    private function getPathsForLocalFile($image): void
+    private function getPathsForLocalFile(string $image): void
     {
         $this->transformPath = ImagerHelpers::getTransformPathForPath($image);
         $pathParts = pathinfo($image);
 
         $this->path = FileHelper::normalizePath(Yii::getAlias('@webroot') . '/' . $pathParts['dirname']);
         $this->url = $image;
+        $this->filename = $pathParts['basename'];
+        $this->basename = $pathParts['filename'];
+        $this->extension = $pathParts['extension'] ?? '';
+    }
+
+    /**
+     * Get paths for file from adapter
+     */
+    private function getPathsForAdapter(ImagerAdapterInterface $adapter): void
+    {
+        $this->transformPath = $adapter->getTransformPath();
+        $pathParts = pathinfo($adapter->getPath());
+
+        $this->path = $pathParts['dirname'];
+        $this->url = '';
         $this->filename = $pathParts['basename'];
         $this->basename = $pathParts['filename'];
         $this->extension = $pathParts['extension'] ?? '';
