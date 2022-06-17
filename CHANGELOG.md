@@ -1,5 +1,23 @@
 # Imager X Changelog
 
+## 4.1.0 - 2022-06-16
+
+### Added
+- Added support for [file adapters](https://imager-x.spacecat.ninja/extending.html#file-adapters).
+
+### Changed
+- Changed identifier for `transformerParams` in transform string, we now use `TP`.
+
+## 4.0.2 - 2022-06-15
+
+### Fixed
+- Fixed issue where saving elements without a field layout would throw an error if auto generate by fields were enabled (fixes #153)
+
+## 4.0.1 - 2022-05-26
+
+### Fixed
+- Fixed issue with incorrect typing of `imagerUrl` (fixes #150)
+
 ## 4.0.0 - 2022-05-04
 
 ### Added
