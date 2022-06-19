@@ -12,6 +12,7 @@ namespace spacecatninja\imagerx\events;
 
 use yii\base\Event;
 use craft\elements\Asset;
+use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
 use spacecatninja\imagerx\models\TransformedImageInterface;
 
 class TransformImageEvent extends Event
@@ -20,9 +21,9 @@ class TransformImageEvent extends Event
     // =========================================================================
 
     /**
-     * @var string|Asset Image being transformed
+     * @var string|ImagerAdapterInterface|Asset Image being transformed
      */
-    public string|Asset $image;
+    public string|ImagerAdapterInterface|Asset $image;
 
     /**
      * @var array Transform params given to Imager-X (normalized)

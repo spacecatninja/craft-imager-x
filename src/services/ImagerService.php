@@ -17,6 +17,7 @@ use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
 use craft\helpers\FileHelper;
 use Imagine\Image\ImageInterface;
+use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
 use spacecatninja\imagerx\events\TransformImageEvent;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
@@ -518,9 +519,7 @@ class ImagerService extends Component
         if ($transformedImages === null) {
             return null;
         }
-
         
-
         return $returnType === 'object' ? ArrayHelper::firstValue($transformedImages) : $transformedImages;
     }
 
