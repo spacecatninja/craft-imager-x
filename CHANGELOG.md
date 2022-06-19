@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 4.1.1 - 2022-06-19
+
+### Added
+- Added `EVENT_BEFORE_TRANSFORM_IMAGE` and `EVENT_AFTER_TRANSFORM_IMAGE` events (thanks, @yoannisj).
+
+### Fixed
+- Fixed an issue where the use of % in transform params would break transformed image file names.
+
 ## 4.1.0 - 2022-06-16
 
 ### Added
