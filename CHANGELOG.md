@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.1.2 - 2022-07-13
+
+### Fixed
+- Fixed an issue where file formats unsupported by `getimagesize()` would return zero width/height, even if the values could be calculated (fixed #157)
+
 ## 4.1.1 - 2022-06-19
 
 ### Added
