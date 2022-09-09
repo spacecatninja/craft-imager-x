@@ -1,5 +1,15 @@
 # Imager X Changelog
 
+## 4.1.3 - 2022-09-09
+
+### Added
+- Added support for aliases and environment variables in optimizers (adresses #165)
+
+### Fixed
+- Fixed an issue that would prevent Imager from getting the correct width and height for a transform if the source image was an AVIF (fixes #164).
+- Fixed issue where `craft.imagerx.transformer()` returned a bool instead of a string (fixes #167)
+
+
 ## 4.1.2 - 2022-07-13
 
 ### Fixed
