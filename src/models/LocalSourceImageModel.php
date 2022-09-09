@@ -55,7 +55,7 @@ class LocalSourceImageModel
 
     public string $extension = '';
 
-    private ?Asset $asset = null;
+    public ?Asset $asset = null;
 
     /**
      * LocalSourceImageModel constructor.

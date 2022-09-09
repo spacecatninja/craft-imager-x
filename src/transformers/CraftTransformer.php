@@ -64,7 +64,7 @@ class CraftTransformer extends Component implements TransformerInterface
     {
         parent::__construct($config);
 
-        $this->imagineInstance = $this->createImagineInstance();
+        $this->imagineInstance = ImagerHelpers::createImagineInstance();
     }
 
     /**
@@ -367,26 +367,6 @@ class CraftTransformer extends Component implements TransformerInterface
         if (isset($transform['pad'])) {
             $this->applyPadding($layer, $transform, $sourceExtension);
         }
-    }
-
-    /**
-     * Creates the Imagine instance depending on the chosen image driver.
-     */
-    private function createImagineInstance(): \Imagine\Imagick\Imagine|Imagine|null
-    {
-        try {
-            if (ImagerService::$imageDriver === 'gd') {
-                return new Imagine();
-            }
-
-            if (ImagerService::$imageDriver === 'imagick') {
-                return new \Imagine\Imagick\Imagine();
-            }
-        } catch (\Throwable) {
-            // just ignore for now
-        }
-
-        return null;
     }
 
     /**

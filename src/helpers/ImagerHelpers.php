@@ -19,6 +19,7 @@ use craft\models\ImageTransform;
 use craft\models\Volume;
 use Imagine\Exception\InvalidArgumentException;
 
+use Imagine\Gd\Imagine;
 use Imagine\Image\Box;
 use Imagine\Image\BoxInterface;
 use Imagine\Image\ImageInterface;
@@ -26,6 +27,7 @@ use Imagine\Image\Point;
 use Imagine\Imagick\Image as ImagickImage;
 use spacecatninja\imagerx\exceptions\ImagerException;
 
+use spacecatninja\imagerx\models\LocalSourceImageModel;
 use spacecatninja\imagerx\models\LocalTargetImageModel;
 use spacecatninja\imagerx\services\ImagerService;
 
@@ -33,6 +35,27 @@ use yii\base\InvalidConfigException;
 
 class ImagerHelpers
 {
+
+    /**
+     * Creates the Imagine instance depending on the chosen image driver.
+     */
+    public static function createImagineInstance(): \Imagine\Imagick\Imagine|Imagine|null
+    {
+        try {
+            if (ImagerService::$imageDriver === 'gd') {
+                return new Imagine();
+            }
+
+            if (ImagerService::$imageDriver === 'imagick') {
+                return new \Imagine\Imagick\Imagine();
+            }
+        } catch (\Throwable) {
+            // just ignore for now
+        }
+
+        return null;
+    }
+
     public static function shouldCreateTransform(LocalTargetImageModel $targetModel, array $transform): bool
     {
         $config = ImagerService::getConfig();
@@ -44,7 +67,6 @@ class ImagerHelpers
 
     /**
      * Creates the destination crop size box
-     *
      *
      * @throws InvalidArgumentException
      */
@@ -114,7 +136,7 @@ class ImagerHelpers
             $padWidth = 0;
             $padHeight = 0;
         }
-        
+
         $mode = $transform['mode'] ?? 'crop';
 
         if ($mode === 'crop' || $mode === 'fit' || $mode === 'letterbox') {
@@ -160,7 +182,7 @@ class ImagerHelpers
         if (!$allowUpscale) {
             [$width, $height] = self::enforceMaxSize((int)$width, (int)$height, $originalSize, false, self::getCropZoomFactor($transform));
         }
-        
+
         $width -= $padWidth;
         $height -= $padHeight;
 
@@ -173,6 +195,46 @@ class ImagerHelpers
 
         return $box;
     }
+
+    /**
+     * @param LocalSourceImageModel $source
+     *
+     * @return array
+     */
+    public static function getSourceImageSize(LocalSourceImageModel $source): array
+    {
+        // Try getimagesize first
+        $sourceImageInfo = @getimagesize($source->getFilePath());
+
+        if ($sourceImageInfo[0] !== 0 && $sourceImageInfo[1] !== 0) {
+            return array_slice($sourceImageInfo, 0, 2);
+        }
+
+        // Check if we can get it from the source asset, if it is one
+        if ($source->asset !== null) {
+            return [$source->asset->width, $source->asset->height];
+        }
+
+        // We need to open it (oh no). Let's cache the result.
+        $cache = Craft::$app->getCache();
+        $key = 'imagerx-sourceimage-size-'.md5($source->getFilePath());
+
+        $cachedSizeData = $cache->getOrSet($key, static function() use ($source) {
+            $imagineInstance = self::createImagineInstance();
+
+            if ($imagineInstance) {
+                $imageInstance = $imagineInstance->open($source->getFilePath());
+                $size = $imageInstance->getSize();
+
+                return [$size->getWidth(), $size->getHeight()];
+            }
+
+            return null;
+        });
+
+        return $cachedSizeData ?? [0, 0];
+    }
+
 
     /**
      * Enforces a max size if allowUpscale is false
@@ -262,15 +324,15 @@ class ImagerHelpers
         $addVolumeToPath = $config->addVolumeToPath;
 
         if ($hashPath) {
-            return FileHelper::normalizePath('/' . md5('/' . ($addVolumeToPath ? mb_strtolower($volume->handle) . '/' : '') . $asset->folderPath . '/') . '/' . $asset->getId() . '/');
+            return FileHelper::normalizePath('/'.md5('/'.($addVolumeToPath ? mb_strtolower($volume->handle).'/' : '').$asset->folderPath.'/').'/'.$asset->getId().'/');
         }
 
-        $path = FileHelper::normalizePath('/' . ($addVolumeToPath ? mb_strtolower($volume->handle) . '/' : '') . $asset->folderPath . '/' . $asset->getId() . '/');
-        
+        $path = FileHelper::normalizePath('/'.($addVolumeToPath ? mb_strtolower($volume->handle).'/' : '').$asset->folderPath.'/'.$asset->getId().'/');
+
         if (str_starts_with($path, '//')) {
             $path = substr($path, 1);
         }
-        
+
         return $path;
     }
 
@@ -285,7 +347,7 @@ class ImagerHelpers
         $pathParts = pathinfo($path);
 
         if ($hashPath) {
-            return FileHelper::normalizePath('/' . md5($pathParts['dirname']));
+            return FileHelper::normalizePath('/'.md5($pathParts['dirname']));
         }
 
         return FileHelper::normalizePath($pathParts['dirname']);
@@ -308,17 +370,17 @@ class ImagerHelpers
         $transformPath = $pathParts['dirname'];
 
         if ($hashPath) {
-            $transformPath = '/' . md5($pathParts['dirname']);
+            $transformPath = '/'.md5($pathParts['dirname']);
         }
 
         if ($hashRemoteUrl) {
             if ($hashRemoteUrl === 'host') {
-                $transformPath = '/' . substr(md5($urlParts['host']), 0, $shortHashLength) . $transformPath;
+                $transformPath = '/'.substr(md5($urlParts['host']), 0, $shortHashLength).$transformPath;
             } else {
-                $transformPath = '/' . md5($urlParts['host'] . $pathParts['dirname']);
+                $transformPath = '/'.md5($urlParts['host'].$pathParts['dirname']);
             }
         } else {
-            $transformPath = '/' . str_replace('.', '_', $urlParts['host']) . $transformPath;
+            $transformPath = '/'.str_replace('.', '_', $urlParts['host']).$transformPath;
         }
 
         return FileHelper::normalizePath($transformPath);
@@ -338,53 +400,53 @@ class ImagerHelpers
                 $effectString = '';
                 foreach ($v as $eff => $param) {
                     if (ArrayHelper::isAssociative($param)) {
-                        $effectString .= '_' . $eff . self::encodeTransformObject($param);
+                        $effectString .= '_'.$eff.self::encodeTransformObject($param);
                     } elseif (\is_array($param)) {
                         if (\is_array($param[0])) {
-                            $effectString .= '_' . $eff;
+                            $effectString .= '_'.$eff;
                             foreach ($param as $paramArr) {
-                                $effectString .= '-' . implode('-', $paramArr);
+                                $effectString .= '-'.implode('-', $paramArr);
                             }
                         } else {
-                            $effectString .= '_' . $eff . '-' . implode('-', $param);
+                            $effectString .= '_'.$eff.'-'.implode('-', $param);
                         }
                     } else {
-                        $effectString .= '_' . $eff . '-' . $param;
+                        $effectString .= '_'.$eff.'-'.$param;
                     }
                 }
 
-                $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . $effectString;
+                $r .= '_'.(ImagerService::$transformKeyTranslate[$k] ?? $k).$effectString;
             } elseif ($k === 'watermark') {
                 $watermarkString = '';
                 foreach ($v as $eff => $param) {
                     if ($eff === 'image') {
                         if ($param instanceof Asset) {
-                            $watermarkString .= '-i-' . $param->getId();
+                            $watermarkString .= '-i-'.$param->getId();
                         } else {
-                            $watermarkString .= '-i-' . $param;
+                            $watermarkString .= '-i-'.$param;
                         }
                     } elseif ($eff === 'position') {
                         $watermarkString .= '-pos';
                         foreach ($param as $posKey => $posVal) {
-                            $watermarkString .= '-' . $posKey . '-' . $posVal;
+                            $watermarkString .= '-'.$posKey.'-'.$posVal;
                         }
                     } else {
-                        $watermarkString .= '-' . $eff . '-' . (\is_array($param) ? implode('-', $param) : $param);
+                        $watermarkString .= '-'.$eff.'-'.(\is_array($param) ? implode('-', $param) : $param);
                     }
                 }
 
                 $watermarkString = substr($watermarkString, 1);
-                $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . '_' . mb_substr(md5($watermarkString), 0, 10);
+                $r .= '_'.(ImagerService::$transformKeyTranslate[$k] ?? $k).'_'.mb_substr(md5($watermarkString), 0, 10);
             } elseif ($k === 'webpImagickOptions') {
                 $optString = '';
 
                 foreach ($v as $optK => $optV) {
-                    $optString .= ($optK . '-' . $optV . '-');
+                    $optString .= ($optK.'-'.$optV.'-');
                 }
 
-                $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . '_' . mb_substr($optString, 0, -1);
+                $r .= '_'.(ImagerService::$transformKeyTranslate[$k] ?? $k).'_'.mb_substr($optString, 0, -1);
             } else {
-                $r .= '_' . (ImagerService::$transformKeyTranslate[$k] ?? $k) . (\is_array($v) ? implode('-', $v) : $v);
+                $r .= '_'.(ImagerService::$transformKeyTranslate[$k] ?? $k).(\is_array($v) ? implode('-', $v) : $v);
             }
         }
 
@@ -443,14 +505,14 @@ class ImagerHelpers
             $imagick = $imageInstance->getImagick();
             $supportsImageProfiles = method_exists($imagick, 'getimageprofiles');
             $iccProfiles = null;
-            
+
             try {
                 if ($config->preserveColorProfiles && $supportsImageProfiles) {
                     $iccProfiles = $imagick->getImageProfiles('icc', true);
                 }
-    
+
                 $imagick->stripImage();
-    
+
                 if (!empty($iccProfiles)) {
                     $imagick->profileImage('icc', $iccProfiles['icc'] ?? '');
                 }
@@ -538,6 +600,7 @@ class ImagerHelpers
     {
         ksort($obj);
         $json = json_encode($obj, JSON_THROW_ON_ERROR);
+
         return mb_strtolower(str_replace(['{', '}', '/', '"', ':', ','], ['-', '', '', '', '-', '_'], $json));
     }
 }

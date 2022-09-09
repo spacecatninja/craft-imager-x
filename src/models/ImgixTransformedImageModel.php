@@ -12,6 +12,7 @@ namespace spacecatninja\imagerx\models;
 
 use craft\elements\Asset;
 use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\helpers\ImgixHelpers;
 
 class ImgixTransformedImageModel extends BaseTransformedImageModel implements TransformedImageInterface
@@ -116,7 +117,8 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
     /**
      * @param $source
      *
-     * @throws ImagerException
+     * @return array
+     * @throws \spacecatninja\imagerx\exceptions\ImagerException
      */
     protected function getSourceImageDimensions($source): array
     {
@@ -128,9 +130,9 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
             $sourceModel = new LocalSourceImageModel($source);
             $sourceModel->getLocalCopy();
 
-            $sourceImageInfo = @getimagesize($sourceModel->getFilePath());
+            $sourceImageSize = ImagerHelpers::getSourceImageSize($sourceModel);
 
-            return [$sourceImageInfo[0], $sourceImageInfo[1]];
+            return [$sourceImageSize[0], $sourceImageSize[1]];
         }
 
         return [0, 0];
