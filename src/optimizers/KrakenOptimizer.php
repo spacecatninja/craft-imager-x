@@ -22,7 +22,7 @@ class KrakenOptimizer implements ImagerOptimizeInterface
      */
     public static function optimize(string $file, array $settings)
     {
-        $kraken = new \Kraken($settings['apiKey'], $settings['apiSecret']);
+        $kraken = new \Kraken(Craft::parseEnv($settings['apiKey']), Craft::parseEnv($settings['apiSecret']));
         $params = [
             'file' => $file,
             'wait' => true

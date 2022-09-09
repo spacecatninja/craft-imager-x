@@ -20,7 +20,7 @@ class TinypngOptimizer implements ImagerOptimizeInterface
     public static function optimize(string $file, array $settings)
     {
         try {
-            \Tinify\setKey($settings['apiKey']);
+            \Tinify\setKey(Craft::parseEnv($settings['apiKey']));
             \Tinify\validate();
             \Tinify\fromFile($file)->toFile($file);
         } catch (Exception $e) {

@@ -26,7 +26,7 @@ class MozjpegOptimizer implements ImagerOptimizeInterface
         $config = ImagerService::getConfig();
         
         if ($config->skipExecutableExistCheck || file_exists($settings['path'])) {
-            $cmd = $settings['path'];
+            $cmd = Craft::parseEnv($settings['path']);
             $cmd .= ' ';
             $cmd .= $settings['optionString'];
             $cmd .= ' -outfile ';
