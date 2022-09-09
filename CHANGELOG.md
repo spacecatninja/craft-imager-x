@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 3.6.3 - 2022-09-09
+
+### Added
+- Added support for aliases and environment variables in optimizers (adresses #165)
+
+### Fixed
+- Fixed an issue that would prevent Imager from getting the correct width and height for a transform if the source image was an AVIF (fixes #164)
+
 ## 3.6.2 - 2022-07-13
 
 ### Fixed
