@@ -289,7 +289,7 @@ class ImagerVariable
     /**
      * Returns transformer handle
      */
-    public function transformer(): bool
+    public function transformer(): string
     {
         return Plugin::$plugin->getSettings()->transformer;
     }
