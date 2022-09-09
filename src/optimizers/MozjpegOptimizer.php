@@ -12,6 +12,7 @@ namespace spacecatninja\imagerx\optimizers;
 
 use Craft;
 
+use craft\helpers\App;
 use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\traits\RunShellCommandTrait;
 
@@ -23,8 +24,8 @@ class MozjpegOptimizer implements ImagerOptimizeInterface
     {
         $config = ImagerService::getConfig();
         
-        if ($config->skipExecutableExistCheck || file_exists($settings['path'])) {
-            $cmd = $settings['path'];
+        if ($config->skipExecutableExistCheck || file_exists(App::parseEnv($settings['path']))) {
+            $cmd = App::parseEnv($settings['path']);
             $cmd .= ' ';
             $cmd .= $settings['optionString'];
             $cmd .= ' -outfile ';

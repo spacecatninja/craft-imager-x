@@ -11,6 +11,7 @@
 namespace spacecatninja\imagerx\optimizers;
 
 use Craft;
+use craft\helpers\App;
 use Tinify\Exception;
 use function Tinify\fromFile;
 use function Tinify\setKey;
@@ -22,7 +23,7 @@ class TinypngOptimizer implements ImagerOptimizeInterface
     public static function optimize(string $file, ?array $settings): void
     {
         try {
-            setKey($settings['apiKey']);
+            setKey(App::parseEnv($settings['apiKey']));
             validate();
             fromFile($file)->toFile($file);
         } catch (Exception) {

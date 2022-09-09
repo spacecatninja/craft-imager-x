@@ -11,12 +11,13 @@
 namespace spacecatninja\imagerx\optimizers;
 
 use Craft;
+use craft\helpers\App;
 
 class KrakenOptimizer implements ImagerOptimizeInterface
 {
     public static function optimize(string $file, ?array $settings): void
     {
-        $kraken = new \Kraken($settings['apiKey'], $settings['apiSecret']);
+        $kraken = new \Kraken(App::parseEnv($settings['apiKey']), App::parseEnv($settings['apiSecret']));
         $params = [
             'file' => $file,
             'wait' => true,
