@@ -12,6 +12,7 @@ namespace spacecatninja\imagerx\models;
 
 use craft\elements\Asset;
 use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\helpers\ImgixHelpers;
 
 class ImgixTransformedImageModel extends BaseTransformedImageModel implements TransformedImageInterface
@@ -67,7 +68,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
             $this->height = (int)$params['h'];
             
             if (($source !== null) && ($params['fit'] === 'min' || $params['fit'] === 'max')) {
-                list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
+                [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
 
                 $paramsW = (int)$params['w'];
                 $paramsH = (int)$params['h'];
@@ -84,11 +85,11 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                     }
                 }
             } elseif ($source !== null && $params['fit'] === 'clip') {
-                list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
+                [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
 
                 $paramsW = (int)$params['w'];
                 $paramsH = (int)$params['h'];
-
+                
                 if ($sourceWidth !== 0 && $sourceHeight !== 0) {
                     if ($sourceWidth / $sourceHeight > $paramsW / $paramsH) {
                         $useW = min($paramsW, $sourceWidth);
@@ -104,7 +105,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
         } else {
             if (isset($params['w']) || isset($params['h'])) {
                 if ($source !== null && $params !== null) {
-                    list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
+                    [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
 
                     if ((int)$sourceWidth === 0 || (int)$sourceHeight === 0) {
                         if (isset($params['w'])) {
@@ -114,7 +115,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                             $this->height = (int)$params['h'];
                         }
                     } else {
-                        list($w, $h) = $this->calculateTargetSize($params, $sourceWidth, $sourceHeight);
+                        [$w, $h] = $this->calculateTargetSize($params, $sourceWidth, $sourceHeight);
 
                         $this->width = $w;
                         $this->height = $h;
@@ -122,7 +123,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                 }
             } else {
                 // Neither is set, image is not resized. Just get dimensions and return.
-                list($sourceWidth, $sourceHeight) = $this->getSourceImageDimensions($source);
+                [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
                 
                 $this->width = $sourceWidth;
                 $this->height = $sourceHeight;
@@ -146,9 +147,9 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
             $sourceModel = new LocalSourceImageModel($source);
             $sourceModel->getLocalCopy();
 
-            $sourceImageInfo = @getimagesize($sourceModel->getFilePath());
+            $sourceImageSize = ImagerHelpers::getSourceImageSize($sourceModel);
 
-            return [$sourceImageInfo[0], $sourceImageInfo[1]];
+            return [$sourceImageSize[0], $sourceImageSize[1]];
         }
 
         return [0, 0];

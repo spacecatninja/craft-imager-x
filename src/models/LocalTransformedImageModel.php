@@ -62,10 +62,10 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
             /** @var ConfigModel $settings */
             $config = ImagerService::getConfig();
 
-            $sourceImageInfo = @getimagesize($sourceModel->getFilePath());
-
+            $sourceImageSize = ImagerHelpers::getSourceImageSize($sourceModel);
+            
             try {
-                $sourceSize = new Box($sourceImageInfo[0], $sourceImageInfo[1]);
+                $sourceSize = new Box($sourceImageSize[0], $sourceImageSize[1]);
                 $targetCrop = ImagerHelpers::getCropSize($sourceSize, $transform, $config->getSetting('allowUpscale', $transform));
                 $this->width = $targetCrop->getWidth();
                 $this->height = $targetCrop->getHeight();

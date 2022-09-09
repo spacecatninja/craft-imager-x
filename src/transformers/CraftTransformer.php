@@ -64,7 +64,7 @@ class CraftTransformer extends Component implements TransformerInterface
     {
         parent::__construct($config);
 
-        $this->imagineInstance = $this->createImagineInstance();
+        $this->imagineInstance = ImagerHelpers::createImagineInstance();
     }
 
     /**
@@ -388,27 +388,6 @@ class CraftTransformer extends Component implements TransformerInterface
         }
     }
 
-    /**
-     * Creates the Imagine instance depending on the chosen image driver.
-     *
-     * @return \Imagine\Gd\Imagine|\Imagine\Imagick\Imagine|null
-     */
-    private function createImagineInstance()
-    {
-        try {
-            if (ImagerService::$imageDriver === 'gd') {
-                return new \Imagine\Gd\Imagine();
-            }
-
-            if (ImagerService::$imageDriver === 'imagick') {
-                return new \Imagine\Imagick\Imagine();
-            }
-        } catch (\Throwable $e) {
-            // just ignore for now
-        }
-
-        return null;
-    }
 
     /**
      * Returns the filter method for resize operations

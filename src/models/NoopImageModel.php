@@ -74,15 +74,13 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
             // just ignore
         }
 
-        $imageInfo = @getimagesize($sourceModel->getFilePath());
-
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
 
-        $sourceImageInfo = @getimagesize($sourceModel->getFilePath());
+        $sourceImageSize = ImagerHelpers::getSourceImageSize($sourceModel);
 
         try {
-            $sourceSize = new Box($sourceImageInfo[0], $sourceImageInfo[1]);
+            $sourceSize = new Box($sourceImageSize[0], $sourceImageSize[1]);
             $targetCrop = ImagerHelpers::getCropSize($sourceSize, $transform, $config->getSetting('allowUpscale', $transform));
             $this->width = $targetCrop->getWidth();
             $this->height = $targetCrop->getHeight();
@@ -90,47 +88,7 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
             throw new ImagerException($e->getMessage(), $e->getCode(), $e);
         }
     }
-
-    /**
-     * @return string
-     */
-    public function getPath(): string
-    {
-        return $this->path;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFilename(): string
-    {
-        return $this->filename;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUrl(): string
-    {
-        return $this->url;
-    }
-
-    /**
-     * @return string
-     */
-    public function getExtension(): string
-    {
-        return $this->extension;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMimeType(): string
-    {
-        return $this->mimeType;
-    }
-
+    
     /**
      * @return int
      */
@@ -146,15 +104,7 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
     {
         return $this->height;
     }
-
-    /**
-     * @return bool
-     */
-    public function getIsNew(): bool
-    {
-        return $this->isNew;
-    }
-
+    
     /**
      * @param string $unit
      * @param int $precision
