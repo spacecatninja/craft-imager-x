@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.6.3.1 - 2022-09-11
+
+### Fixed
+- Fixed missing env parsing in conditional for optimizers (fixes #165)
+
 ## 3.6.3 - 2022-09-09
 
 ### Added
