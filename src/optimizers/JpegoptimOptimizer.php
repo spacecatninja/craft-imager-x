@@ -25,7 +25,7 @@ class JpegoptimOptimizer implements ImagerOptimizeInterface
         /** @var ConfigModel $settings */
         $config = ImagerService::getConfig();
         
-        if ($config->skipExecutableExistCheck || file_exists($settings['path'])) {
+        if ($config->skipExecutableExistCheck || file_exists(Craft::parseEnv($settings['path']))) {
             $cmd = Craft::parseEnv($settings['path']);
             $cmd .= ' ';
             $cmd .= $settings['optionString'];
