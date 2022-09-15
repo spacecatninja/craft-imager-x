@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.6.4 - 2022-09-15
+
+### Fixed
+- Fixed an issue where focal point cropping would be off if `allowUpscale` was `false` (fixes #168)
+
 ## 3.6.3.1 - 2022-09-11
 
 ### Fixed
