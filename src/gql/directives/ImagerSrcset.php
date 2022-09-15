@@ -91,6 +91,10 @@ class ImagerSrcset extends Directive
             return null;
         }
         
+        if ($transformedImages === null) {
+            return null;
+        } 
+        
         return ImagerX::$plugin->imagerx->srcset($transformedImages);
     }
 }
