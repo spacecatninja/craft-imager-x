@@ -1,5 +1,11 @@
 # Imager X Changelog
 
+## 4.1.4 - 2022-09-15
+
+### Fixed
+- Fixed an issue where suppressing exceptions would cause an exception in GraphQL if an exception was suppressed (fixes #170)
+- Fixed an issue where focal point cropping would be off if `allowUpscale` was `false` (fixes #168)
+
 ## 4.1.3 - 2022-09-09
 
 ### Added
@@ -8,7 +14,6 @@
 ### Fixed
 - Fixed an issue that would prevent Imager from getting the correct width and height for a transform if the source image was an AVIF (fixes #164).
 - Fixed issue where `craft.imagerx.transformer()` returned a bool instead of a string (fixes #167)
-
 
 ## 4.1.2 - 2022-07-13
 
