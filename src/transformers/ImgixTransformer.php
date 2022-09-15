@@ -230,10 +230,19 @@ class ImgixTransformer extends Component implements TransformerInterface
 
         // If allowUpscale is disabled, use max-w/-h instead of w/h
         if (isset($r['fit']) && !$config->getSetting('allowUpscale', $transform)) {
-            if ($r['fit'] === 'crop') {
-                $r['fit'] = 'min';
+            if ($r['fit'] === 'crop' && $image instanceof Asset && ($r['w'] > $image->getWidth() || $r['h'] > $image->getHeight())) {
+                $sourceRatio = $image->getHeight() / $image->getWidth();
+                $transformRatio = (int)$r['h'] / (int)$r['w'];
+                
+                if ($sourceRatio > $transformRatio) {
+                    $r['w'] = $image->getWidth();
+                    $r['h'] = $image->getWidth() * $transformRatio;
+                } else {
+                    $r['h'] = $image->getHeight();
+                    $r['w'] = $image->getHeight() / $transformRatio;
+                }
             }
-
+            
             if ($r['fit'] === 'clip') {
                 $r['fit'] = 'max';
             }
