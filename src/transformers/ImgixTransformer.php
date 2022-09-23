@@ -190,6 +190,10 @@ class ImgixTransformer extends Component implements TransformerInterface
         } else {
             $r['fit'] = $transform['fit'];
         }
+        
+        if (!isset($r['w'], $r['h']) && $r['fit'] === 'crop') {
+            $r['fit'] = 'clip';
+        }
 
         // If fit is crop, and crop isn't specified, use position as focal point.
         if ($r['fit'] === 'crop' && !isset($transform['crop'])) {
