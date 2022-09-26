@@ -39,7 +39,7 @@ class ImgixService extends Component
     /**
      * @var bool If purging is enabled or not
      */
-    protected static bool $canPurge = false;
+    protected static ?bool $canPurge = null;
 
     /**
      * Purging is possible if there's an `imgixConfig` map, and all sources/profiles have an API key set
@@ -47,12 +47,12 @@ class ImgixService extends Component
      */
     public static function getCanPurge(): bool
     {
-        if (!isset(self::$canPurge)) {
+        if (self::$canPurge === null) {
             $config = ImagerService::getConfig();
 
             // No Imgix config, no purging
             $imgixConfigArr = $config->getSetting('imgixConfig');
-            if (!$imgixConfigArr || !\is_array($imgixConfigArr) || empty($imgixConfigArr)) {
+            if (!\is_array($imgixConfigArr) || empty($imgixConfigArr)) {
                 self::$canPurge = false;
                 return false;
             }
