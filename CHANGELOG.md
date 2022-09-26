@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.1.6 - 2022-09-26
+
+### Fixed
+- Fixed an issue that prevented Imgix purging from working (fixes #174)
+
 ## 4.1.5 - 2022-09-23
 
 ### Fixed
