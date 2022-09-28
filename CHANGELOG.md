@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.6.5 - 2022-09-28
+
+### Fixed
+- Fixed an issue where a combination of allowUpscale = false, mode = crop and only one dimension (width or height) given, would throw a PHP error if using Imgix as transformer (fixes #175).
+
 ## 3.6.4 - 2022-09-15
 
 ### Fixed
