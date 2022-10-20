@@ -1,5 +1,11 @@
 # Imager X Changelog
 
+## 4.1.7 - 2022-10-20
+
+### Changed  
+- Changed type checking images parameter on srcset helpers to be more lenient (fixes #177).
+- Changed type checking for ratio to be more flexible.
+
 ## 4.1.6 - 2022-09-26
 
 ### Fixed
