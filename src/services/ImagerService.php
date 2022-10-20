@@ -525,10 +525,8 @@ class ImagerService extends Component
 
     /**
      * Creates srcset string
-     *
-     *
      */
-    public function srcset(mixed $images, string $descriptor = 'w'): string
+    public function srcset(?array $images, string $descriptor = 'w'): string
     {
         $r = '';
         $generated = [];

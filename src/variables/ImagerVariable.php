@@ -37,7 +37,7 @@ class ImagerVariable
      * Takes an array of models that supports getUrl() and getWidth(), and returns a srcset
      * and returns a srcset string
      */
-    public function srcset(array $images, string $descriptor = 'w'): string
+    public function srcset(?array $images, string $descriptor = 'w'): string
     {
         return Plugin::$plugin->imagerx->srcset($images, $descriptor);
     }
