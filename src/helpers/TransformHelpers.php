@@ -143,7 +143,7 @@ class TransformHelpers
         }
 
         // if ratio is set, and width or height is missing, calculate missing size
-        if (isset($transform['ratio']) && (\is_float($transform['ratio']) || \is_int($transform['ratio']))) {
+        if (isset($transform['ratio']) && (\is_numeric($transform['ratio']))) {
             if (isset($transform['width']) && !isset($transform['height'])) {
                 $transform['height'] = round($transform['width'] / $transform['ratio']);
                 unset($transform['ratio']);
