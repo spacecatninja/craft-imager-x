@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.1.8 - 2022-11-21
+
+### Fixed  
+- Fixed an error that could occur when trying to get image size (fixes #187, thanks @eduardoalonsoalbella).
+
 ## 4.1.7 - 2022-10-20
 
 ### Changed  
