@@ -1,5 +1,11 @@
 # Imager X Changelog
 
+## 4.1.9.1 - 2023-01-17
+
+### Fixed  
+- Fixed an issue where the parsed frames parameter was not type safe.
+- Fixed an issue where exceptions were not handled correctly.
+
 ## 4.1.9 - 2023-01-17
 
 ### Fixed  
