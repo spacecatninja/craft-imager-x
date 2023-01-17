@@ -219,7 +219,7 @@ class ImagerHelpers
         $cache = Craft::$app->getCache();
         $key = 'imagerx-sourceimage-size-'.md5($source->getFilePath());
 
-        $cachedSizeData = $cache->getOrSet($key, static function() use ($source) {
+        $cachedSizeData = $cache?->getOrSet($key, static function() use ($source) {
             $imagineInstance = self::createImagineInstance();
 
             if ($imagineInstance) {
@@ -517,7 +517,7 @@ class ImagerHelpers
                     $imagick->profileImage('icc', $iccProfiles['icc'] ?? '');
                 }
             } catch (\Throwable $throwable) {
-                Craft::error('An error occured when trying to process image meta data: ' + $throwable->getMessage());
+                Craft::error('An error occured when trying to process image meta data: ' . $throwable->getMessage());
             }
         }
     }
