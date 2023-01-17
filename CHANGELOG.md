@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.1.9 - 2023-01-17
+
+### Fixed  
+- Fixed an issue with incorrect string concatenation in error message.
+
 ## 4.1.8 - 2022-11-21
 
 ### Fixed  
