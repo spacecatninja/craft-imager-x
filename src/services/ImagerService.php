@@ -472,10 +472,9 @@ class ImagerService extends Component
                 $image = ImagerHelpers::getTransformableFromConfigSetting(self::$transformConfig->mockImage);
             }
 
-            try
-            {
+            try {
                 $transformedImages = $transformer->transform($image, $transforms);
-            } catch (ImagerException $imagerException) {
+            } catch (\Throwable $throwable) {
                 // If a fallback image is defined, try to transform that instead.
                 if (self::$transformConfig->fallbackImage !== null) {
                     $fallbackImage = ImagerHelpers::getTransformableFromConfigSetting(self::$transformConfig->fallbackImage);
@@ -483,12 +482,12 @@ class ImagerService extends Component
                     if ($fallbackImage) {
                         try {
                             $transformedImages = $transformer->transform($fallbackImage, $transforms);
-                        } catch (ImagerException $imagerException) {
+                        } catch (\Throwable $throwable) {
                             if (self::$transformConfig->suppressExceptions) {
                                 return null;
                             }
 
-                            throw $imagerException;
+                            throw new ImagerException($throwable->getMessage());
                         }
                     }
                 } else {
@@ -496,7 +495,7 @@ class ImagerService extends Component
                         return null;
                     }
 
-                    throw $imagerException;
+                    throw new ImagerException($throwable->getMessage());
                 }
             }
         }
