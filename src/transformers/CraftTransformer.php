@@ -866,22 +866,22 @@ class CraftTransformer extends Component implements TransformerInterface
             $framesIntArr = explode('@', $transform['frames']);
 
             if (\count($framesIntArr) > 1) {
-                $interval = $framesIntArr[1];
+                $interval = (int)$framesIntArr[1];
             }
 
             $framesArr = explode('-', $framesIntArr[0]);
-            $startFrame = $framesArr[0];
+            $startFrame = (int)$framesArr[0];
             
             if (\count($framesArr) > 1) {
                 if ($framesArr[1] !== '*') {
-                    $endFrame = $framesArr[1];
+                    $endFrame = (int)$framesArr[1];
                 }
             } else {
-                $endFrame = $framesArr[0];
+                $endFrame = (int)$framesArr[0];
             }
 
             if ($endFrame > \count($layers) - 1) {
-                $endFrame = \count($layers) - 1;
+                $endFrame = (int)\count($layers) - 1;
             }
         }
 
