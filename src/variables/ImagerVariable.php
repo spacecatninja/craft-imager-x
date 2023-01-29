@@ -28,13 +28,13 @@ class ImagerVariable
      * 
      * @throws ImagerException
      */
-    public function transformImage(Asset|ImagerAdapterInterface|string $file, array|string $transforms, array $transformDefaults = null, array $configOverrides = null): array|TransformedImageInterface|null
+    public function transformImage(Asset|ImagerAdapterInterface|string|null $image, array|string $transforms, array $transformDefaults = null, array $configOverrides = null): array|TransformedImageInterface|null
     {
-        return Plugin::$plugin->imagerx->transformImage($file, $transforms, $transformDefaults, $configOverrides);
+        return Plugin::$plugin->imagerx->transformImage($image, $transforms, $transformDefaults, $configOverrides);
     }
 
     /**
-     * Takes an array of models that supports getUrl() and getWidth(), and returns a srcset
+     * Takes an array of models that supports getUrl() and getWidth(), 
      * and returns a srcset string
      */
     public function srcset(?array $images, string $descriptor = 'w'): string
