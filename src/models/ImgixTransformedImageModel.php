@@ -74,7 +74,7 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                 $paramsW = (int)$params['w'];
                 $paramsH = (int)$params['h'];
 
-                if ($sourceWidth !== 0 && $sourceHeight !== 0) {
+                if ($sourceWidth !== 0 && $sourceHeight !== 0 && $sourceWidth !== NULL && $sourceHeight !== NULL) {
                     if ($sourceWidth / $sourceHeight > $paramsW / $paramsH) {
                         $useW = min($paramsW, $sourceWidth);
                         $this->width = $useW;
