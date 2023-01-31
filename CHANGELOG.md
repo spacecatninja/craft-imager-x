@@ -1,5 +1,14 @@
 # Imager X Changelog
 
+## 4.1.10 - 2023-01-31
+
+### Fixed  
+- Fixed several issues related to long filenames (fixes #196 and #194).
+- Fixed an issue where images with `null` dimensions caused Imgix transformer to throw an exception (thanks, @robmcfadden).
+
+### Changed  
+- Changed type declaration for transformImage template variable to allow for `null` (fixes #195).
+
 ## 4.1.9.1 - 2023-01-17
 
 ### Fixed  
