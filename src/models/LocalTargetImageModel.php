@@ -10,7 +10,7 @@
 
 namespace spacecatninja\imagerx\models;
 
-use craft\helpers\FileHelper;
+use spacecatninja\imagerx\helpers\FileHelper;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\services\ImagerService;
@@ -78,7 +78,7 @@ class LocalTargetImageModel
         $hashFilename = $config->getSetting('hashFilename', $transform);
         $shortHashLength = $config->getSetting('shortHashLength', $transform);
 
-        $basename = $source->basename;
+        $basename = FileHelper::truncateBasename($source->basename);
         $extension = $source->extension;
 
         if (isset($transform['format'])) {
@@ -133,4 +133,5 @@ class LocalTargetImageModel
 
         return rtrim($patternFilename, '.');
     }
+
 }

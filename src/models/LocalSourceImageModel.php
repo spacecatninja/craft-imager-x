@@ -17,10 +17,9 @@ use craft\errors\FsException;
 use craft\fs\Local;
 use craft\helpers\Assets;
 use craft\helpers\Assets as AssetsHelper;
-use craft\helpers\FileHelper;
 use craft\helpers\StringHelper;
-use craft\models\Volume;
 
+use spacecatninja\imagerx\helpers\FileHelper;
 use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
@@ -87,7 +86,7 @@ class LocalSourceImageModel
             } else {
                 if (str_starts_with($image, '//')) {
                     // Protocol relative url, add https
-                    $image = 'https:' . $image;
+                    $image = 'https:'.$image;
                 }
 
                 if (str_starts_with($image, 'http') || str_starts_with($image, 'https')) {
@@ -125,12 +124,12 @@ class LocalSourceImageModel
 
     public function getFilePath(): string
     {
-        return FileHelper::normalizePath($this->path . '/' . $this->filename);
+        return FileHelper::normalizePath($this->path.'/'.$this->filename);
     }
 
     public function getTemporaryFilePath(): string
     {
-        return FileHelper::normalizePath($this->path . '/~' . $this->filename);
+        return FileHelper::normalizePath($this->path.'/~'.$this->filename);
     }
 
     /**
@@ -201,6 +200,7 @@ class LocalSourceImageModel
         }
 
         $size = filesize($file);
+
         return $size !== false && $size >= 1024;
     }
 
@@ -217,7 +217,7 @@ class LocalSourceImageModel
             $fs = $image->getVolume()->getFs();
 
             $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
-            $this->path = FileHelper::normalizePath($fs->getRootPath() . '/' . $image->folderPath);
+            $this->path = FileHelper::normalizePath($fs->getRootPath().'/'.$image->folderPath);
             $this->url = $image->getUrl();
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
@@ -239,7 +239,7 @@ class LocalSourceImageModel
         $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
 
         try {
-            $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath() . '/imager/';
+            $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath().'/imager/';
         } catch (Exception $exception) {
             Craft::error($exception->getMessage(), __METHOD__);
             throw new ImagerException($exception->getMessage(), $exception->getCode(), $exception);
@@ -247,7 +247,7 @@ class LocalSourceImageModel
 
         try {
             $this->url = AssetsHelper::generateUrl($image->getVolume()->getFs(), $image);
-            $this->path = FileHelper::normalizePath($runtimeImagerPath . $this->transformPath . '/');
+            $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
             $this->extension = $image->getExtension();
@@ -274,12 +274,12 @@ class LocalSourceImageModel
     {
         $config = ImagerService::getConfig();
 
-        $imageString = '/' . str_replace($config->getSetting('imagerUrl'), '', $image);
+        $imageString = '/'.str_replace($config->getSetting('imagerUrl'), '', $image);
 
         $pathParts = pathinfo($imageString);
 
         $this->transformPath = $pathParts['dirname'];
-        $this->path = FileHelper::normalizePath($config->getSetting('imagerSystemPath') . '/' . $pathParts['dirname']);
+        $this->path = FileHelper::normalizePath($config->getSetting('imagerSystemPath').'/'.$pathParts['dirname']);
         $this->url = $image;
         $this->filename = $pathParts['basename'];
         $this->basename = $pathParts['filename'];
@@ -294,7 +294,7 @@ class LocalSourceImageModel
         $this->transformPath = ImagerHelpers::getTransformPathForPath($image);
         $pathParts = pathinfo($image);
 
-        $this->path = FileHelper::normalizePath(Yii::getAlias('@webroot') . '/' . $pathParts['dirname']);
+        $this->path = FileHelper::normalizePath(Yii::getAlias('@webroot').'/'.$pathParts['dirname']);
         $this->url = $image;
         $this->filename = $pathParts['basename'];
         $this->basename = $pathParts['filename'];
@@ -328,7 +328,7 @@ class LocalSourceImageModel
         $config = ImagerService::getConfig();
 
         try {
-            $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath() . '/imager/';
+            $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath().'/imager/';
         } catch (Exception $exception) {
             Craft::error($exception->getMessage(), __METHOD__);
             throw new ImagerException($exception->getMessage(), $exception->getCode(), $exception);
@@ -336,16 +336,15 @@ class LocalSourceImageModel
 
         $convertedImageStr = StringHelper::toAscii(urldecode($image));
         $this->transformPath = ImagerHelpers::getTransformPathForUrl($convertedImageStr);
-
         $urlParts = parse_url($convertedImageStr);
         $pathParts = pathinfo($urlParts['path']);
         $queryString = $config->getSetting('useRemoteUrlQueryString') ? ($urlParts['query'] ?? '') : '';
 
-        $this->path = FileHelper::normalizePath($runtimeImagerPath . $this->transformPath . '/');
+        $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
         $this->url = $image;
-        $this->basename = str_replace(' ', '-', $pathParts['filename']) . ($queryString !== '' ? '_' . md5($queryString) : '');
+        $this->basename = FileHelper::truncateBasename(str_replace(' ', '-', $pathParts['filename']).($queryString !== '' ? '_'.md5($queryString) : ''));
         $this->extension = $pathParts['extension'] ?? '';
-        $this->filename = FileHelper::sanitizeFilename($this->basename . ($this->extension !== '' ? '.' . $this->extension : ''));
+        $this->filename = FileHelper::sanitizeFilename($this->basename.($this->extension !== '' ? '.'.$this->extension : ''));
 
         try {
             FileHelper::createDirectory($this->path);
@@ -369,7 +368,7 @@ class LocalSourceImageModel
         if (!$config->useRawExternalUrl) {
             $imageUrlArr = explode('?', $this->url);
 
-            $imageUrlArr[0] = preg_replace_callback('#://([^/]+)/([^?]+)#', fn($match) => '://' . $match[1] . '/' . implode('/', array_map('rawurlencode', explode('/', $match[2]))), urldecode($imageUrlArr[0]));
+            $imageUrlArr[0] = preg_replace_callback('#://([^/]+)/([^?]+)#', fn($match) => '://'.$match[1].'/'.implode('/', array_map('rawurlencode', explode('/', $match[2]))), urldecode($imageUrlArr[0]));
 
             $imageUrl = implode('?', $imageUrlArr);
         }

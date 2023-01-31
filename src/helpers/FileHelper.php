@@ -21,11 +21,12 @@ use RecursiveIteratorIterator;
  */
 class FileHelper extends \craft\helpers\FileHelper
 {
+    public const BASENAME_MAX_LENGTH = 200;
 
     public static function filesInPath(string $path): array
     {
         $path = realpath($path);
-        
+
         $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
         $files = [];
 
@@ -44,7 +45,7 @@ class FileHelper extends \craft\helpers\FileHelper
     {
         $bytesTotal = 0;
         $path = realpath($path);
-        
+
         if ($path !== false && $path !== '' && file_exists($path)) {
             foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS)) as $object) {
                 try {
@@ -56,5 +57,17 @@ class FileHelper extends \craft\helpers\FileHelper
         }
 
         return $bytesTotal;
+    }
+
+    public static function truncateBasename(string $basename): string
+    {
+        if (strlen($basename) <= self::BASENAME_MAX_LENGTH) {
+            return $basename;
+        }
+
+        $keep = substr($basename, 0, self::BASENAME_MAX_LENGTH - 11);
+        $hash = md5($basename);
+
+        return $keep.'_'.substr($hash, 0, 10);
     }
 }
