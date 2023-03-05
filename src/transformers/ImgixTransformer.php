@@ -240,10 +240,10 @@ class ImgixTransformer extends Component implements TransformerInterface
                 
                 if ($sourceRatio > $transformRatio) {
                     $r['w'] = $image->getWidth();
-                    $r['h'] = $image->getWidth() * $transformRatio;
+                    $r['h'] = ceil($image->getWidth() * $transformRatio);
                 } else {
                     $r['h'] = $image->getHeight();
-                    $r['w'] = $image->getHeight() / $transformRatio;
+                    $r['w'] = ceil($image->getHeight() / $transformRatio);
                 }
             }
             
