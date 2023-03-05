@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 4.1.11 - 2023-03-05
+
+### Added  
+- Added support for {timestamp} in `filenamePattern` (adresses #200).
+
+### Fixed  
+- Fixed a minor rounding issue that could occur when using Imgix and `allowUpscale` was `false` (fixes #201).
+
 ## 4.1.10 - 2023-01-31
 
 ### Fixed  
