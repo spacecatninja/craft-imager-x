@@ -16,6 +16,7 @@ use Imagine\Image\Box;
 use Imagine\Image\Palette\RGB;
 use Imagine\Imagick\Imagine;
 
+use kornrunner\Blurhash\Blurhash;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\lib\Potracio;
 use spacecatninja\imagerx\models\LocalSourceImageModel;
@@ -57,6 +58,7 @@ class PlaceholderService extends Component
             'svg' => $this->placeholderSVG($config),
             'gif' => $this->placeholderGIF($config),
             'silhouette' => $this->placeholderSilhuette($config),
+            'blurhash' => $this->placeholderBlurhash($config),
             default => '',
         };
     }
@@ -72,7 +74,7 @@ class PlaceholderService extends Component
         $height = $config['height'];
         $color = $config['color'] ?? 'transparent';
 
-        return 'data:image/svg+xml;charset=utf-8,' . rawurlencode(sprintf('<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%s\' height=\'%s\' style=\'background:%s\'/>', $width, $height, $color));
+        return 'data:image/svg+xml;charset=utf-8,'.rawurlencode(sprintf('<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'%s\' height=\'%s\' style=\'background:%s\'/>', $width, $height, $color));
     }
 
     /**
@@ -91,26 +93,26 @@ class PlaceholderService extends Component
         }
 
         $imagineInstance = $this->createImagineInstance();
-        
+
         if ($imagineInstance === null) {
             return '';
         }
-        
+
         $palette = new RGB();
-        
+
         $col = $color === 'transparent' ? $palette->color('#000000', 0) : $palette->color($color);
-        
+
         $image = $imagineInstance->create(new Box($width, $height), $col);
         $data = $image->get('gif');
-        
-        
-        return 'data:image/gif;base64,' . base64_encode($data);
+
+        return 'data:image/gif;base64,'.base64_encode($data);
     }
 
     /**
      * Returns a silhouette placeholder.
      *
      * @param $config
+     *
      * @throws ImagerException
      */
     private function placeholderSilhuette($config): string
@@ -120,18 +122,18 @@ class PlaceholderService extends Component
         $color = $config['color'] ?? '#fefefe';
         $fgColor = $config['fgColor'] ?? '#e0e0e0';
         $silhouetteType = $config['silhouetteType'];
-        
+
         if ($source === null) {
             throw new ImagerException('Placeholder of type "silhouette" needs a source image.');
         }
-        
+
         try {
             $sourceModel = new LocalSourceImageModel($source);
             $sourceModel->getLocalCopy();
         } catch (ImagerException $imagerException) {
             return '';
         }
-        
+
         try {
             $tracer = new Potracio();
             $tracer->loadImageFromFile($sourceModel->getFilePath());
@@ -139,19 +141,67 @@ class PlaceholderService extends Component
             $data = $tracer->getSVG($size, $silhouetteType, $color, $fgColor);
         } catch (\Throwable $throwable) {
             \Craft::error($throwable->getMessage(), __METHOD__);
+
             return '';
         }
-        
-        return 'data:image/svg+xml;charset=utf-8,' . rawurlencode($data);
+
+        return 'data:image/svg+xml;charset=utf-8,'.rawurlencode($data);
     }
-    
+
+    /**
+     * Returns a silhouette placeholder.
+     *
+     * @param $config
+     *
+     * @throws ImagerException
+     */
+    private function placeholderBlurhash($config): string
+    {
+        $hash = $config['hash'] ?? null;
+        $format = $config['format'] ?? 'png';
+        $width = $config['width'] ?? 4;
+        $height = $config['height'] ?? 3;
+
+        if ($hash === null) {
+            throw new ImagerException('Placeholder of type "blurhash" needs a hash string.');
+        }
+
+        $hash64 = base64_encode($hash);
+        $key = "imager-x-blurhash-placeholder-$hash64-$format-$width-$height";
+        $cache = \Craft::$app->getCache();
+        
+        $rawImageBytes = $cache->getOrSet($key, static function() use ($hash, $format, $width, $height) {
+            $data = Blurhash::decode($hash, $width, $height);
+
+            $image = imagecreatetruecolor($width, $height);
+
+            for ($i = 0; $i < $width; $i++) {
+                for ($j = 0; $j < $height; $j++) {
+                    imagesetpixel($image, $i, $j, imagecolorallocate($image, $data[$j][$i][0], $data[$j][$i][1], $data[$j][$i][2]));
+                }
+            }
+
+            ob_start();
+            
+            match ($format) {
+                'gif' => imagegif($image),
+                'jpg' => imagejpeg($image, null, 100),
+                default => imagepng($image),
+            };
+            
+            return ob_get_clean();
+        });
+        
+        return "data:image/$format;base64,".base64_encode($rawImageBytes);
+    }
+
     /**
      * Creates the Imagine instance depending on the chosen image driver.
      */
     private function createImagineInstance(): Imagine|\Imagine\Gd\Imagine|null
     {
         $imageDriver = ImagerService::$imageDriver;
-        
+
         try {
             if ($imageDriver === 'gd') {
                 return new \Imagine\Gd\Imagine();
