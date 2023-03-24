@@ -1,5 +1,11 @@
 # Imager X Changelog
 
+## 3.6.6 - 2023-03-24
+
+### Fixed
+- Fixed an issue where the Potracio lib did not work with uppercase file extensions (fixes #204)
+- Fixed an issue where asset width and height could be NULL (fixes #203)
+
 ## 3.6.5 - 2022-09-28
 
 ### Fixed
