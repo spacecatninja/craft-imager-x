@@ -1,5 +1,11 @@
 # Imager X Changelog
 
+## 4.1.12 - 2023-03-24
+
+### Added  
+- Added new blurhash placeholder type (fixes #178)
+- Added new `blurhashComponents` config setting.
+
 ## 4.1.11 - 2023-03-05
 
 ### Added  
