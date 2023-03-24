@@ -100,11 +100,13 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
 
     public function getBlurhash(): string
     {
+        $config = ImagerService::getConfig();
+        
         $blurhashFile = $this->getPath();
         $key = 'imager-x-local-blurhash-' . base64_encode($blurhashFile);
         $cache = \Craft::$app->getCache();
         
-        $blurhashData = $cache->getOrSet($key, static function() use ($blurhashFile) {
+        $blurhashData = $cache->getOrSet($key, static function() use ($blurhashFile, $config) {
             $image = imagecreatefromstring(file_get_contents($blurhashFile));
             $width = imagesx($image);
             $height = imagesy($image);
@@ -122,8 +124,8 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
                 $pixels[] = $row;
             }
             
-            $components_x = 4;
-            $components_y = 3;
+            $components_x = max(1, min((int)$config->blurhashComponents[0], 9));
+            $components_y = max(1, min((int)$config->blurhashComponents[1], 9));
             return Blurhash::encode($pixels, $components_x, $components_y);
         });
         

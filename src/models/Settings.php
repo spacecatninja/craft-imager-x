@@ -40,6 +40,7 @@ class Settings extends Model
     public string $bgColor = '';
     public string $position = '50% 50%';
     public array $letterbox = ['color' => '#000', 'opacity' => 0];
+    public array $blurhashComponents = [4, 3];
     public bool $useFilenamePattern = true;
     public string $filenamePattern = '{basename}_{transformString|hash}.{extension}';
     public int $shortHashLength = 10;
