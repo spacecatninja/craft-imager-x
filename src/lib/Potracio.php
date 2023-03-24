@@ -192,7 +192,7 @@ class Potracio
 
     public function loadImageFromFile($file)
     {
-        $ext = pathinfo($file, PATHINFO_EXTENSION);
+        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
         $image = null;
         
         switch ($ext) {
