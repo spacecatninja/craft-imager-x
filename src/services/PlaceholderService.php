@@ -161,6 +161,7 @@ class PlaceholderService extends Component
         $format = $config['format'] ?? 'png';
         $width = $config['width'] ?? 4;
         $height = $config['height'] ?? 3;
+        $base64 = $config['base64'] ?? false;
 
         if ($hash === null) {
             throw new ImagerException('Placeholder of type "blurhash" needs a hash string.');
@@ -192,7 +193,13 @@ class PlaceholderService extends Component
             return ob_get_clean();
         });
         
-        return "data:image/$format;base64,".base64_encode($rawImageBytes);
+        $base64String = base64_encode($rawImageBytes);
+        
+        if ($base64) {
+            return $base64String;
+        }
+        
+        return "data:image/$format;base64,$base64String";
     }
 
     /**
