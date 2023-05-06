@@ -61,11 +61,6 @@ class CleanController extends Controller
      */
     public function actionIndex(): int
     {
-        if (!ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
-            $this->error("Console commands are only available in Imager X Pro. You need to upgrade to use this awesome feature (it's so worth it!).");
-            return ExitCode::UNAVAILABLE;
-        }
-        
         $config = ImagerService::getConfig();
         $systemPath = $config->imagerSystemPath;
         $this->volume = trim($this->volume);
