@@ -1,5 +1,16 @@
 # Imager X Changelog
 
+## 4.1.13 - 2023-05-06
+
+### Added  
+- Added `imager-x/clear-caches` console commands (addresses #212).
+- Added a parameter to only get the base64 encoded image data string from the blurhash placeholder function (addresses #178 again ;))
+
+### Fixed
+- Fixed requirement to use the Imager X utility, PRO is no longer needed, the auto generate section is just hidden (adresses #212).
+- Fixed requirement to use the clean console command, PRO is no longer needed.
+- Fixed an issue where some image formats might not be possible source formats for custom encoders, we now opt for only png or jpg (addresses #209).
+
 ## 4.1.12 - 2023-03-24
 
 ### Added  
