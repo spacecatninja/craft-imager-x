@@ -172,6 +172,7 @@ class ImagerUtility extends Utility
                 'queueUrl' => UrlHelper::cpUrl('utilities/queue-manager'),
                 'caches' => $caches,
                 'debugInfo' => $debugInfo,
+                'isPro' => ImagerX::getInstance()?->is(ImagerX::EDITION_PRO),
             ]
         );
     }

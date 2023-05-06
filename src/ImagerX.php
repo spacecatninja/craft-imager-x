@@ -20,7 +20,6 @@ use craft\events\DefineAssetThumbUrlEvent;
 use craft\events\DefineAssetUrlEvent;
 use craft\events\DefineGqlTypeFieldsEvent;
 use craft\events\ElementEvent;
-use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterElementActionsEvent;
 use craft\events\RegisterGqlDirectivesEvent;
@@ -28,14 +27,12 @@ use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\ReplaceAssetEvent;
 use craft\gql\TypeManager;
-use craft\helpers\FileHelper;
 use craft\models\ImageTransform;
 use craft\services\Assets;
 use craft\services\Elements;
 use craft\services\Gql;
 use craft\services\Plugins;
 use craft\services\Utilities;
-use craft\utilities\ClearCaches;
 use craft\web\twig\variables\CraftVariable;
 use GraphQL\Type\Definition\Type;
 
@@ -232,13 +229,11 @@ class ImagerX extends Plugin
         );
 
         // Register utility
-        if (self::getInstance()?->is(self::EDITION_PRO)) {
-            Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITY_TYPES,
-                static function(RegisterComponentTypesEvent $event) {
-                    $event->types[] = ImagerUtility::class;
-                }
-            );
-        }
+        Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITY_TYPES,
+            static function(RegisterComponentTypesEvent $event) {
+                $event->types[] = ImagerUtility::class;
+            }
+        );
 
         // Event listener for clearing caches when an asset is replaced
         Event::on(Assets::class, Assets::EVENT_AFTER_REPLACE_ASSET,
