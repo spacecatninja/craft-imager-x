@@ -563,6 +563,11 @@ class CraftTransformer extends Component implements TransformerInterface
                 throw new ImagerException($msg);
             }
         }
+        
+        // Check if file format is one that can be commonly converted, else opt for png
+        if (!in_array($sourceExtension, ['jpg', 'jpeg', 'png'])) {
+            $sourceExtension  = 'png';
+        }
 
         $targetFilePath = $tempPath . md5(microtime()) . '.' . $sourceExtension;
 
