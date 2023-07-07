@@ -17,11 +17,13 @@ use Imagine\Image\Box;
 use kornrunner\Blurhash\Blurhash;
 
 use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\helpers\CacheHelpers;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 
 use spacecatninja\imagerx\services\ImagerService;
 
 use yii\base\InvalidConfigException;
+use yii\caching\TagDependency;
 
 class LocalTransformedImageModel extends BaseTransformedImageModel implements TransformedImageInterface
 {
@@ -105,6 +107,16 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
         $blurhashFile = $this->getPath();
         $key = 'imager-x-local-blurhash-' . base64_encode($blurhashFile);
         $cache = \Craft::$app->getCache();
+        $dep = null;
+        
+        if (!$cache) {
+            \Craft::error('Cache component not found when trying to create blurhash in transformed image model');
+            return '';
+        }
+        
+        if ($this->source && $this->source->asset) {
+            $dep = new TagDependency(['tags' => CacheHelpers::getElementCacheTags($this->source->asset)]);
+        }
         
         $blurhashData = $cache->getOrSet($key, static function() use ($blurhashFile, $config) {
             $image = imagecreatefromstring(file_get_contents($blurhashFile));
@@ -127,7 +139,7 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
             $components_x = max(1, min((int)$config->blurhashComponents[0], 9));
             $components_y = max(1, min((int)$config->blurhashComponents[1], 9));
             return Blurhash::encode($pixels, $components_x, $components_y);
-        });
+        }, null, $dep);
         
         if (!$blurhashData) {
             \Craft::error('An error occured when trying to create blurhash from local file. The file path was: ' . $blurhashFile);

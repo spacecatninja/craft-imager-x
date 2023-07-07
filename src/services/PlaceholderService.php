@@ -149,7 +149,7 @@ class PlaceholderService extends Component
     }
 
     /**
-     * Returns a silhouette placeholder.
+     * Returns a blurhash placeholder.
      *
      * @param $config
      *
@@ -170,6 +170,11 @@ class PlaceholderService extends Component
         $hash64 = base64_encode($hash);
         $key = "imager-x-blurhash-placeholder-$hash64-$format-$width-$height";
         $cache = \Craft::$app->getCache();
+        
+        if (!$cache) {
+            \Craft::error('Cache component not found when trying to create blurhash placeholder');
+            return '';
+        }
         
         $rawImageBytes = $cache->getOrSet($key, static function() use ($hash, $format, $width, $height) {
             $data = Blurhash::decode($hash, $width, $height);

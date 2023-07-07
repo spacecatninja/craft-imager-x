@@ -55,6 +55,7 @@ class ImagerColorService extends Component
         $dep = null;
         
         if (!$cache) {
+            \Craft::error('Cache component not found when trying to get dominant color');
             return null;
         }
         
@@ -104,6 +105,7 @@ class ImagerColorService extends Component
         $dep = null;
         
         if (!$cache) {
+            \Craft::error('Cache component not found when trying to get palette');
             return null;
         }
         
