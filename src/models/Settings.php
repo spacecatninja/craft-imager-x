@@ -20,7 +20,7 @@ class Settings extends Model
     public string|array $imagerUrl = '/imager/';
     public bool $cacheEnabled = true;
     public bool $cacheRemoteFiles = true;
-    public string|int|bool $cacheDuration = 1_209_600;
+    public string|int|bool $cacheDuration = false;
     public string|int|bool $cacheDurationRemoteFiles = 1_209_600;
     public string|int|bool $cacheDurationExternalStorage = 1_209_600;
     public string|int|bool $cacheDurationNonOptimized = 300;
