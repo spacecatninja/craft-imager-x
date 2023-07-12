@@ -122,12 +122,18 @@ class LocalTransformedImageModel extends BaseTransformedImageModel implements Tr
             $image = imagecreatefromstring(file_get_contents($blurhashFile));
             $width = imagesx($image);
             $height = imagesy($image);
+            $ratio = $height/$width;
+            $factor = 1;
+            
+            if ($width > 100) {
+                $factor = $width/100;
+            }
             
             $pixels = [];
-            for ($y = 0; $y < $height; ++$y) {
+            for ($y = 0; $y < $height; $y+=($factor*$ratio)) {
                 $row = [];
-                for ($x = 0; $x < $width; ++$x) {
-                    $index = imagecolorat($image, $x, $y);
+                for ($x = 0; $x < $width; $x+=$factor) {
+                    $index = imagecolorat($image, floor($x), floor($y));
                     $colors = imagecolorsforindex($image, $index);
 
                     $row[] = [$colors['red'], $colors['green'], $colors['blue']];
