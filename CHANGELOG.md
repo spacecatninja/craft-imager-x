@@ -1,5 +1,21 @@
 # Imager X Changelog
 
+## 4.2.0 - 2023-07-07
+
+### Added  
+- Added support for `generateFlags` in named transforms (addresses #220).
+- Added caching to `getDominantColor` and `getPalette` with support for element tag cache breaking (addresses #205).
+- Added element tag cache breaking for blurhash.
+
+### Changed
+- Changed output for generate console command, it will now show processed files, making it easier to detect problematic files that halt the generate process.
+- Changed default value for `cacheDuration` to `false` (addresses #214).
+- Changed extraction of pixel data for blurhash, a maximum of 100 (width) sample points will be used.
+
+### Fixed
+- Fixed an issue where queue jobs would be triggered when `runJobsImmediatelyOnAjaxRequests`  was `true` (default) even though `runQueueAutomatically` was set to false (fixes #224).
+- Fixed an issue that would cause memory leaks for generate commands.
+
 ## 4.1.13 - 2023-05-06
 
 ### Added  
