@@ -1,6 +1,9 @@
 # Imager X Changelog
 
-## 4.2.0 - 2023-07-07
+## 4.2.0.1 - 2023-07-15
+- Fixed an critical issue that was introduced in 4.2.0.
+
+## 4.2.0 - 2023-07-14
 
 ### Added  
 - Added support for `generateFlags` in named transforms (addresses #220).
