@@ -290,8 +290,16 @@ class GenerateService extends Component
         if (self::shouldTransformElement($asset)) {
             foreach ($transforms as $transformName) {
                 if (isset(ImagerService::$namedTransforms[$transformName])) {
+                    $namedTransform = ImagerService::$namedTransforms[$transformName];
+
                     try {
-                        ImagerX::$plugin->imager->transformImage($asset, $transformName, null, ['optimizeType' => 'runtime']);
+                        $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transformName, null, ['optimizeType' => 'runtime']);
+                        
+                        if ($transformedImages && isset($namedTransform['generateFlags']) && is_array($namedTransform['generateFlags'])) {
+                            $this->processGenerateFlags($transformedImages, $namedTransform['generateFlags']); 
+                        }
+                        
+                        unset($transformedImages);
                     } catch (ImagerException $imagerException) {
                         $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and transform “{transformName}”: {message}', ['assetId' => $asset->id, 'transformName' => $transformName, 'message' => $imagerException->getMessage()]);
                         Craft::error($msg, __METHOD__);
@@ -304,6 +312,30 @@ class GenerateService extends Component
         }
     }
 
+    public function processGenerateFlags($transformedImages, $flags): void
+    {
+        if (!is_array($transformedImages)) {
+            $transformedImages = [$transformedImages];
+        }
+        
+        /** @var \spacecatninja\imagerx\models\BaseTransformedImageModel $transformedImage */
+        foreach ($transformedImages as $transformedImage) {
+            foreach ($flags as $flag) {
+                switch ($flag) {
+                    case 'blurhash':
+                        $transformedImage->getBlurhash();
+                        break;
+                    case 'palette':
+                        ImagerX::getInstance()->color->getColorPalette($transformedImage);
+                        break;
+                    case 'dominantColor':
+                        ImagerX::getInstance()->color->getDominantColor($transformedImage);
+                        break;
+                }
+            }
+        }
+    }
+    
     /**
      * @param Asset|Element|ElementInterface $element
      *
