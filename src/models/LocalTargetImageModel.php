@@ -42,7 +42,7 @@ class LocalTargetImageModel
      * @param LocalSourceImageModel $source
      * @param array                 $transform
      *
-     * @throws ImagerException
+     * @throws ImagerException|\JsonException
      */
     public function __construct(LocalSourceImageModel $source, array $transform)
     {
