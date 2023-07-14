@@ -1,9 +1,16 @@
 # Imager X Changelog
 
-## 4.2.0.1 - 2023-07-15
-- Fixed an critical issue that was introduced in 4.2.0.
+## 4.2.1 - 2023-07-14
 
-## 4.2.0 - 2023-07-14
+### Fixed
+- Fixed an issue that would cause memory leaks for generate commands.
+
+## 4.2.0.1 - 2023-07-14
+
+### Fixed
+- Fixed a critical issue that was introduced in 4.2.0.
+
+## 4.2.0 - 2023-07-13
 
 ### Added  
 - Added support for `generateFlags` in named transforms (addresses #220).
