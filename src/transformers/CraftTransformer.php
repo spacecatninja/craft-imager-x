@@ -277,6 +277,10 @@ class CraftTransformer extends Component implements TransformerInterface
                 $this->imageInstance->save($targetModel->getFilePath(), $saveOptions);
             }
 
+            if (!$config->getSetting('instanceReuseEnabled', $transform)) {
+                $this->imageInstance->__destruct();
+            }
+            
             $targetModel->isNew = true;
         }
 
