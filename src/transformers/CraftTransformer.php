@@ -390,8 +390,8 @@ class CraftTransformer extends Component implements TransformerInterface
             $customEncoderOptions = $transform['customEncoderOptions'] ?? [];
 
             $opts = array_merge([
-                '{src}' => $tempFile,
-                '{dest}' => $path,
+                '{src}' => escapeshellarg($tempFile),
+                '{dest}' => escapeshellarg($path),
             ], $encoder['options'], $customEncoderOptions);
 
             $r = [];
@@ -406,7 +406,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
             $opts = $r;
 
-            $command = escapeshellcmd($encoder['path'].' '.strtr($encoder['paramsString'], $opts));
+            $command = escapeshellcmd($encoder['path'].' '.strtr($encoder['paramsString'], $opts)) . ' 2>&1';
             $r = shell_exec($command);
 
             if (!file_exists($path)) {
