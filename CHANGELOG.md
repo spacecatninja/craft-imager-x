@@ -1,5 +1,14 @@
 # Imager X Changelog
 
+## 3.6.7 - 2023-08-13
+
+### Fixed
+- Fixed an issue that would make custom encoders fail if there were spaces in paths or filenames (fixes #239)
+- Fixed an issue that would cause memory leaks for generate commands.
+
+### Changed
+- Changed output for generate console command, it will now show processed files, making it easier to detect problematic files that halt the generate process.
+
 ## 3.6.6 - 2023-03-24
 
 ### Fixed
