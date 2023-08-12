@@ -496,6 +496,7 @@ class ImagerService extends Component
         // Clean up after this transform session
         self::cleanSession();
         self::$transformConfig = null;
+        unset($transformer);
 
         if ($transformedImages === null) {
             return null;
