@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.2.2 - 2023-08-13
+
+### Fixed
+- Fixed an issue that would make custom encoders fail if there were spaces in paths or filenames (fixes #239)
+
 ## 4.2.1 - 2023-07-14
 
 ### Fixed
