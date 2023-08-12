@@ -190,17 +190,23 @@ class GenerateController extends Controller
         $numTransforms = count($transforms);
         $total = count($assets);
         $current = 0;
-        $this->success("> Generating {$numTransforms} named transforms for {$total} images.");
-        Console::startProgress(0, $total*$numTransforms);
+        $this->stdout(sprintf('> Generating %d named transform(s) for %d image(s).', $numTransforms, $total).PHP_EOL, Console::FG_YELLOW);
         
         foreach ($assets as $asset) {
             $current++;
-            Console::updateProgress($current*$numTransforms, $total*$numTransforms);
+            $filename = $asset->filename;
+            
+            /*
+            $pid = getmypid();
+            $mem = exec("top -pid $pid -l 1 | grep $pid | awk '{print $8}'");
+            */
+            
+            $this->stdout("    - [".($current * $numTransforms)."/".$total * $numTransforms."] ($asset->id) ".(strlen($filename) > 50 ? (substr($filename, 0, 47).'...') : $filename)." ... ");
             ImagerX::$plugin->generate->generateTransformsForAsset($asset, $transforms);
+            $this->stdout('done'.PHP_EOL, Console::FG_GREEN);
         }
         
-        Console::endProgress();
-        $this->success("> Done.");
+        $this->stdout("> Done.".PHP_EOL, Console::FG_YELLOW);
         return ExitCode::OK;
     }
     
