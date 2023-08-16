@@ -236,7 +236,7 @@ class ImagerHelpers
         // Try getimagesize first
         $sourceImageInfo = @getimagesize($source->getFilePath());
 
-        if ($sourceImageInfo[0] !== 0 && $sourceImageInfo[1] !== 0) {
+        if (\is_array($sourceImageInfo) && $sourceImageInfo[0] !== 0 && $sourceImageInfo[1] !== 0) {
             return array_slice($sourceImageInfo, 0, 2);
         }
 
