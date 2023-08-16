@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 3.6.8 - 2023-08-16
+
+### Fixed
+- Fixed an issue where `getimagesize` could return `false` for corrupt files.
+
 ## 3.6.7 - 2023-08-13
 
 ### Fixed
