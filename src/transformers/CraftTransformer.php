@@ -70,7 +70,7 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Main transform method
      *
-     * @throws ImagerException|Exception|\JsonException
+     * @throws ImagerException|Exception
      */
     public function transform(Asset|ImagerAdapterInterface|string $image, array $transforms): ?array
     {
@@ -97,25 +97,7 @@ class CraftTransformer extends Component implements TransformerInterface
             }
         }
 
-        $taskCreated = false;
-
-        // Loop over transformed images and do post optimizations and upload to external storage
-        foreach ($transformedImages as $transformedImage) {
-            /** @var TransformedImageInterface $transformedImage */
-            if ($transformedImage->getIsNew()) {
-                $isFinalVersion = ImagerX::$plugin->optimizer->optimize($transformedImage);
-                ImagerX::$plugin->storage->store($transformedImage->getPath(), $isFinalVersion);
-
-                if (!$isFinalVersion) {
-                    $taskCreated = true;
-                }
-            }
-        }
-
-        // If ajax request, trigger jobs immediately
-        if ($taskCreated && $config->runJobsImmediatelyOnAjaxRequests && !Craft::$app->getRequest()->isConsoleRequest && Craft::$app->getRequest()->getIsAjax() && Craft::$app->getConfig()->getGeneral()->runQueueAutomatically) {
-            QueueHelpers::triggerQueueNow();
-        }
+        ImagerX::getInstance()->imagerx->postProcessTransformedImages($transformedImages);
 
         return $transformedImages;
     }
@@ -125,7 +107,7 @@ class CraftTransformer extends Component implements TransformerInterface
     /**
      * Gets one transformed image based on source image and transform
      *
-     * @throws ImagerException|Exception|\JsonException
+     * @throws ImagerException|Exception
      */
     private function getTransformedImage(LocalSourceImageModel $sourceModel, array $transform): ?LocalTransformedImageModel
     {
