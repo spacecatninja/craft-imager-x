@@ -1,9 +1,15 @@
 # Imager X Changelog
 
+## 4.2.3 - 2023-09-22
+
+### Changed
+– Refactored all post processing of transformed files from CraftTransformer to ImagerService.
+- Changed filename pattern for transformerParams.
+
 ## 4.2.2 - 2023-08-13
 
 ### Fixed
-- Fixed an issue that would make custom encoders fail if there were spaces in paths or filenames (fixes #239)
+- Fixed an issue that would make custom encoders fail if there were spaces in paths or filenames (fixes #239).
 
 ## 4.2.1 - 2023-07-14
 
