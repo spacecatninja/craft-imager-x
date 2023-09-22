@@ -388,15 +388,13 @@ class ImagerHelpers
 
     /**
      * Creates additional file string that is appended to filename
-     *
-     * @throws \JsonException
      */
     public static function createTransformFilestring(array $transform): string
     {
         $r = '';
 
         foreach ($transform as $k => $v) {
-            if ($k === 'effects' || $k === 'preEffects') {
+            if ($k === 'effects' || $k === 'preEffects' || $k === 'transformerParams') {
                 $effectString = '';
                 foreach ($v as $eff => $param) {
                     if (ArrayHelper::isAssociative($param)) {
@@ -594,13 +592,16 @@ class ImagerHelpers
      * @param array $obj
      *
      * @return string
-     * @throws \JsonException
      */
     public static function encodeTransformObject(array $obj): string
     {
         ksort($obj);
-        $json = json_encode($obj, JSON_THROW_ON_ERROR);
-
-        return mb_strtolower(str_replace(['{', '}', '/', '"', ':', ','], ['-', '', '', '', '-', '_'], $json));
+        try {
+            $json = json_encode($obj, JSON_THROW_ON_ERROR);
+            return mb_strtolower(str_replace(['{', '}', '/', '"', ':', ','], ['-', '', '', '', '-', '_'], $json));
+        } catch (\Throwable) {
+            
+        }
+        return '--error--';
     }
 }
