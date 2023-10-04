@@ -213,11 +213,13 @@ class LocalSourceImageModel
     private function getPathsForLocalAsset(Asset $image): void
     {
         try {
+            $volume = $image->getVolume();
+            
             /** @var Local $fs */
             $fs = $image->getVolume()->getFs();
 
             $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
-            $this->path = FileHelper::normalizePath($fs->getRootPath().'/'.$image->folderPath);
+            $this->path = FileHelper::normalizePath($fs->getRootPath().'/'.$volume->getSubpath().'/'.$image->folderPath);
             $this->url = $image->getUrl();
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
