@@ -55,7 +55,7 @@ class ImagerResolver extends Resolver
         }
         
         if ($asset instanceof Asset && ($asset->kind !== 'image' || !\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true))) {
-            return null;
+            return $asset;
         }
         
         if ($asset !== null) {
