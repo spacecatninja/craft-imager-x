@@ -14,6 +14,7 @@ use ColorThief\ColorThief;
 use craft\base\Component;
 use craft\elements\Asset;
 use spacecatninja\imagerx\helpers\CacheHelpers;
+use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\models\LocalSourceImageModel;
 
 use yii\caching\TagDependency;
@@ -51,6 +52,11 @@ class ImagerColorService extends Component
     {
         $imageIdString = is_string($image) ? base64_encode($image) : ('asset-'.$image->id);
         $key = "imager-x-dominant-color-$imageIdString-$quality";
+        
+        if ($area !== null) {
+            $key .= '-' . ImagerHelpers::createTransformFilestring($area);
+        }
+        
         $cache = \Craft::$app->getCache();
         $dep = null;
         

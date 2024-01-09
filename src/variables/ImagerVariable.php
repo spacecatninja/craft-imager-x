@@ -67,9 +67,9 @@ class ImagerVariable
      *
      *
      */
-    public function getDominantColor(Asset|string $image, int $quality = 10, string $colorValue = 'hex'): string|array|bool|null
+    public function getDominantColor(Asset|string $image, int $quality = 10, string $colorValue = 'hex', ?array $area = null): string|array|bool|null
     {
-        return Plugin::$plugin->color->getDominantColor($image, $quality, $colorValue);
+        return Plugin::$plugin->color->getDominantColor($image, $quality, $colorValue, $area);
     }
 
     /**
