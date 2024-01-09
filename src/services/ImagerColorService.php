@@ -47,7 +47,7 @@ class ImagerColorService extends Component
      *
      *
      */
-    public function getDominantColor(Asset|string $image, int $quality = 10, string $colorValue = 'hex'): bool|array|string|null
+    public function getDominantColor(Asset|string $image, int $quality = 10, string $colorValue = 'hex', ?array $area = null): bool|array|string|null
     {
         $imageIdString = is_string($image) ? base64_encode($image) : ('asset-'.$image->id);
         $key = "imager-x-dominant-color-$imageIdString-$quality";
@@ -63,7 +63,7 @@ class ImagerColorService extends Component
             $dep = new TagDependency(['tags' => CacheHelpers::getElementCacheTags($image)]);
         } 
 
-        $dominantColor = $cache->getOrSet($key, static function() use ($image, $quality) {
+        $dominantColor = $cache->getOrSet($key, static function() use ($image, $quality, $area) {
             try {
                 $source = new LocalSourceImageModel($image);
                 $source->getLocalCopy();
@@ -72,7 +72,7 @@ class ImagerColorService extends Component
             }
 
             try {
-                $dominantColor = ColorThief::getColor($source->getFilePath(), $quality);
+                $dominantColor = ColorThief::getColor($source->getFilePath(), $quality, $area);
             } catch (\RuntimeException $runtimeException) {
                 \Craft::error('Couldn\'t get dominant color for "'.$source->getFilePath().'". Error was: '.$runtimeException->getMessage());
 
