@@ -103,10 +103,15 @@ class ImagerColorService extends Component
      *
      *
      */
-    public function getColorPalette(Asset|string $image, int $colorCount = 8, int $quality = 10, string $colorValue = 'hex'): ?array
+    public function getColorPalette(Asset|string $image, int $colorCount = 8, int $quality = 10, string $colorValue = 'hex', ?array $area = null): ?array
     {
         $imageIdString = is_string($image) ? base64_encode($image) : ('asset-'.$image->id);
         $key = "imager-x-palette-$imageIdString-$colorCount-$quality";
+        
+        if ($area !== null) {
+            $key .= '-' . ImagerHelpers::createTransformFilestring($area);
+        }
+        
         $cache = \Craft::$app->getCache();
         $dep = null;
         
@@ -119,7 +124,7 @@ class ImagerColorService extends Component
             $dep = new TagDependency(['tags' => CacheHelpers::getElementCacheTags($image)]);
         } 
         
-        $palette = $cache->getOrSet($key, static function() use ($image, $colorCount, $quality) {
+        $palette = $cache->getOrSet($key, static function() use ($image, $colorCount, $quality, $area) {
             try {
                 $source = new LocalSourceImageModel($image);
                 $source->getLocalCopy();
@@ -131,7 +136,7 @@ class ImagerColorService extends Component
                 // Hack for count error in ColorThief
                 // See: https://github.com/lokesh/color-thief/issues/19 and https://github.com/lokesh/color-thief/pull/84
                 $adjustedColorCount = $colorCount > 7 ? $colorCount + 1 : $colorCount;
-                $palette = ColorThief::getPalette($source->getFilePath(), $adjustedColorCount, $quality);
+                $palette = ColorThief::getPalette($source->getFilePath(), $adjustedColorCount, $quality, $area);
                 $palette = array_slice($palette, 0, $colorCount);
             } catch (\RuntimeException $runtimeException) {
                 \Craft::error('Couldn\'t get palette for "'.$source->getFilePath().'". Error was: '.$runtimeException->getMessage());

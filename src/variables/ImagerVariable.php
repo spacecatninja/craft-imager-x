@@ -77,9 +77,9 @@ class ImagerVariable
      *
      *
      */
-    public function getColorPalette(Asset|string $image, int $colorCount = 8, int $quality = 10, string $colorValue = 'hex'): ?array
+    public function getColorPalette(Asset|string $image, int $colorCount = 8, int $quality = 10, string $colorValue = 'hex', ?array $area = null): ?array
     {
-        return Plugin::$plugin->color->getColorPalette($image, $colorCount, $quality, $colorValue);
+        return Plugin::$plugin->color->getColorPalette($image, $colorCount, $quality, $colorValue, $area);
     }
 
     /**
