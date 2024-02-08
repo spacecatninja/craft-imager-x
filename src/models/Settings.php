@@ -49,22 +49,25 @@ class Settings extends Model
     public bool $addVolumeToPath = true;
     public string|bool $hashRemoteUrl = false;
     public bool $useRemoteUrlQueryString = false;
+    public bool $useRawExternalUrl = true;
     public bool $instanceReuseEnabled = false;
     public bool $noop = false;
     public bool $suppressExceptions = false;
-
     public bool $convertToRGB = false;
+    public string $clearKey = '';
     public bool $skipExecutableExistCheck = false;
     public bool $removeTransformsOnAssetFileops = false;
     public array $curlOptions = [];
     public bool $runJobsImmediatelyOnAjaxRequests = true;
-    public bool $fillTransforms = false;
+    
+    public bool|string $fillTransforms = false;
     public string $fillAttribute = 'width';
     public int|string $fillInterval = 200;
+    public int|string $autoFillCount = 3;
+    
     public int|string|Asset|null $fallbackImage = null;
     public int|string|Asset|null $mockImage = null;
-    public bool $useRawExternalUrl = true;
-    public string $clearKey = '';
+    
     public bool $useForNativeTransforms = false;
     public bool $useForCpThumbs = false;
     public array $hideClearCachesForUserGroups = [];
