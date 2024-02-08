@@ -106,7 +106,7 @@ class ImagerTransformedImageInterface extends BaseInterfaceType
             'isNew' => [
                 'name' => 'isNew',
                 'type' => Type::boolean(),
-                'description' => 'Size of transformed image.',
+                'description' => 'Indicates if the transformed image is newly created.',
             ],
         ]);
     }

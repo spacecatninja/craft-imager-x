@@ -1,9 +1,22 @@
 # Imager X Changelog
 
+## 4.3.0 - 2024-02-08
+
+### Added
+- Added support for new quick syntax for transforms.
+
+## 4.2.4 - 2024-01-10
+
+### Added
+- Added support for area to `getDominantColor` and `getPalette` (thanks @boboldehampsink).
+
+### Changed
+- Changed the behaviour of @imagerTransform GraphQL directive; if the transform generates an array of images (ie through a named transform), the first will be used, instead of `null` being returned (addresses #246).
+
 ## 4.2.3 - 2023-09-22
 
 ### Changed
-– Refactored all post processing of transformed files from CraftTransformer to ImagerService.
+- Refactored all post processing of transformed files from CraftTransformer to ImagerService.
 - Changed filename pattern for transformerParams.
 
 ## 4.2.2 - 2023-08-13

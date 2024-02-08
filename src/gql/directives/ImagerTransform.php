@@ -101,8 +101,7 @@ class ImagerTransform extends Directive
         } 
         
         if (is_array($transformedImage)) {
-            Craft::error('The imagerTransform directive can only be used with named transforms that define a single image. The `' . $arguments['handle'] . '` named transform defines ' . count($transformedImage) . ' transforms. Please use the imagerSrcset directive, or the imagerTransform query instead.', __METHOD__);
-            return null;
+            $transformedImage = $transformedImage[0];
         }
         
         if ($returnType === 'base64') {

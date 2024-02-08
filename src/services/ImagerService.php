@@ -354,7 +354,7 @@ class ImagerService extends Component
         if (!$image) {
             return null;
         }
-
+        
         // Let's handle named transforms here
         if (is_string($transforms)) {
             $processedTransforms = [];
@@ -389,6 +389,12 @@ class ImagerService extends Component
                 $configOverrides = array_merge($namedTransform['configOverrides'] ?? [], $configOverrides ?? []) ?? [];
             }
         }
+        
+        if (TransformHelpers::isQuickSyntax($transforms)) {
+            $transforms = TransformHelpers::parseQuickTransforms($transforms);
+            $configOverrides = array_merge(['fillTransforms' => 'auto'], $configOverrides ?? []); // override fillTransforms if not explicitely set
+            $configOverrides = array_merge(['fillAttribute' => 'width'], $configOverrides); // override fillAttribute if not explicitely set
+        }
 
         // Let's figure out what our return value should be.
         $returnType = 'array';
@@ -405,10 +411,10 @@ class ImagerService extends Component
         $transforms = TransformHelpers::resolveTransforms($image, $transforms);
 
         // Fill missing transforms if fillTransforms is enabled
-        if (self::$transformConfig->fillTransforms === true && \count($transforms) > 1) {
+        if (self::$transformConfig->fillTransforms !== false && \count($transforms) > 1) {
             $transforms = TransformHelpers::fillTransforms($transforms);
         }
-
+        
         // Merge in default transform parameters
         $transforms = TransformHelpers::mergeTransforms($transforms, $transformDefaults);
 
