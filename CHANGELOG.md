@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.3.0 - 2024-02-08
+
+### Added
+- Added support for new quick syntax for transforms.
+
 ## 4.2.4 - 2024-01-10
 
 ### Added
