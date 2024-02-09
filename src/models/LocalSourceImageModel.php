@@ -145,7 +145,7 @@ class LocalSourceImageModel
             if (!$this->isValidFile($this->getFilePath()) || (($config->cacheDurationRemoteFiles !== false) && ((FileHelper::lastModifiedTime($this->getFilePath()) + $config->cacheDurationRemoteFiles) < time()))) {
                 if ($this->asset && $this->type === 'volume') {
                     try {
-                        $fs = $this->asset->getVolume()->getFs();
+                        $fs = $this->asset->getVolume();
                     } catch (InvalidConfigException $invalidConfigException) {
                         Craft::error($invalidConfigException->getMessage(), __METHOD__);
                         throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
@@ -248,7 +248,7 @@ class LocalSourceImageModel
         }
 
         try {
-            $this->url = AssetsHelper::generateUrl($image->getVolume()->getFs(), $image);
+            $this->url = AssetsHelper::generateUrl($image->getVolume(), $image);
             $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
