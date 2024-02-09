@@ -40,7 +40,7 @@ class AwsStorage implements ImagerStorageInterface
                 'secret' => $settings['secretAccessKey'],
             ];
         }
-
+        
         try {
             $s3 = new S3Client($clientConfig);
         } catch (\InvalidArgumentException $invalidArgumentException) {
@@ -55,7 +55,7 @@ class AwsStorage implements ImagerStorageInterface
         // Always use forward slashes for S3
         $uri = str_replace('\\', '/', $uri);
 
-        // Dont start with forward slashes
+        // Don't start with forward slashes
         $uri = ltrim($uri, '/');
 
         $opts = $settings['requestHeaders'] ?? [];
