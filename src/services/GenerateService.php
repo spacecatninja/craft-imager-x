@@ -22,6 +22,7 @@ use craft\models\Volume;
 
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\FieldHelpers;
+use spacecatninja\imagerx\helpers\TransformHelpers;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\jobs\TransformJob;
 
@@ -288,12 +289,20 @@ class GenerateService extends Component
     public function generateTransformsForAsset(ElementInterface|Asset $asset, array $transforms): void
     {
         if (self::shouldTransformElement($asset)) {
-            foreach ($transforms as $transformName) {
-                if (isset(ImagerService::$namedTransforms[$transformName])) {
-                    $namedTransform = ImagerService::$namedTransforms[$transformName];
+            foreach ($transforms as $transform) {
+                if (TransformHelpers::isQuickSyntax($transform)) {
+                    try {
+                        $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform, null, ['optimizeType' => 'runtime']);
+                        unset($transformedImages);
+                    } catch (ImagerException $imagerException) {
+                        $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and quick transform “{transform}”: {message}', ['assetId' => $asset->id, 'transform' => print_r($transform, true), 'message' => $imagerException->getMessage()]);
+                        Craft::error($msg, __METHOD__);
+                    }
+                } elseif (isset(ImagerService::$namedTransforms[$transform])) {
+                    $namedTransform = ImagerService::$namedTransforms[$transform];
 
                     try {
-                        $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transformName, null, ['optimizeType' => 'runtime']);
+                        $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform, null, ['optimizeType' => 'runtime']);
                         
                         if ($transformedImages && isset($namedTransform['generateFlags']) && is_array($namedTransform['generateFlags'])) {
                             $this->processGenerateFlags($transformedImages, $namedTransform['generateFlags']); 
@@ -301,11 +310,11 @@ class GenerateService extends Component
                         
                         unset($transformedImages);
                     } catch (ImagerException $imagerException) {
-                        $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and transform “{transformName}”: {message}', ['assetId' => $asset->id, 'transformName' => $transformName, 'message' => $imagerException->getMessage()]);
+                        $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and transform “{transform}”: {message}', ['assetId' => $asset->id, 'transform' => print_r($transform, true), 'message' => $imagerException->getMessage()]);
                         Craft::error($msg, __METHOD__);
                     }
                 } else {
-                    $msg = Craft::t('imager-x', 'Named transform with handle “{transformName}” could not be found', ['transformName' => $transformName]);
+                    $msg = Craft::t('imager-x', 'Unknown transform type “{transform}” could not be found', ['transform' => $transform]);
                     Craft::error($msg, __METHOD__);
                 }
             }

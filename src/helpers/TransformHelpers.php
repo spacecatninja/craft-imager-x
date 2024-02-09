@@ -52,7 +52,7 @@ class TransformHelpers
     /**
      * Checks if transforms is a quick syntax
      */
-    public static function isQuickSyntax(?array $transforms): bool
+    public static function isQuickSyntax(mixed $transforms): bool
     {
         return is_array($transforms) && count($transforms) >= 2 && isset($transforms[0], $transforms[1]) && is_int($transforms[0]) && is_int($transforms[1]);
     }
