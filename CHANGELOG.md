@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.3.1 - 2024-02-09
+
+### Added
+- Added support for using quick transform syntax directly in auto generate config.
+
 ## 4.3.0 - 2024-02-08
 
 ### Added
