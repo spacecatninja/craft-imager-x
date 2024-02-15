@@ -248,7 +248,7 @@ class LocalSourceImageModel
         }
 
         try {
-            $this->url = AssetsHelper::generateUrl($image->getVolume(), $image);
+            $this->url = AssetsHelper::generateUrl($image);
             $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
