@@ -46,7 +46,7 @@ class ImgixHelpers
             throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
         }
 
-        if (($config->useCloudSourcePath) && property_exists($fs, 'subfolder') && $fs::class !== Local::class) {
+        if ($config->useCloudSourcePath && property_exists($fs, 'subfolder') && $fs::class !== Local::class) {
             $path = implode('/', [App::parseEnv($fs->subfolder), App::parseEnv($volume->getSubpath()), $image->getPath()]);
         } else {
             $path = $image->getPath();
