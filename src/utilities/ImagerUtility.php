@@ -52,10 +52,11 @@ class ImagerUtility extends Utility
         return 'imager-x-utility';
     }
 
+    
     /**
      * @inheritdoc
      */
-    public static function iconPath(): ?string
+    public static function icon(): ?string
     {
         return Craft::getAlias('@spacecatninja/imagerx/icon-generate-utility.svg');
     }
