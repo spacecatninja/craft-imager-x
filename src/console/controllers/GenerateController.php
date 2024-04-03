@@ -68,6 +68,12 @@ class GenerateController extends Controller
      * @var array
      */
     private array $fields = [];
+    
+    /**
+     * @var bool Enable or disable queue jobs instead of direct transforms
+     */
+    public bool $queue = false;
+    
 
     // Public Methods
     // =========================================================================
@@ -84,6 +90,7 @@ class GenerateController extends Controller
             'recursive',
             'field',
             'transforms',
+            'queue',
         ]);
     }
 
@@ -95,6 +102,7 @@ class GenerateController extends Controller
             'r' => 'recursive',
             'f' => 'field',
             't' => 'transforms',
+            'q' => 'queue',
         ];
     }
 
@@ -199,14 +207,19 @@ class GenerateController extends Controller
             
             /*
             $pid = getmypid();
-            $mem = exec("top -pid $pid -l 1 | grep $pid | awk '{print $8}'");
+            //$mem = exec("top -pid $pid -l 1 | grep $pid | awk '{print $8}'");
+            $mem = array_sum(explode(' ', exec("ps -o vsz=,rss= $pid")));
             */
             
-            $this->stdout("    - [".($current * $numTransforms)."/".$total * $numTransforms."] ($asset->id) ".(strlen($filename) > 50 ? (substr($filename, 0, 47).'...') : $filename)." ... ");
+            $this->stdout("    - [".($current * $numTransforms)."/".$total * $numTransforms."] ($asset->id) ".(strlen($filename) > 50 ? (substr($filename, 0, 47)."...") : $filename)."... ");
+            
+            if ($this->queue) {
+                ImagerX::$plugin->generate->createTransformJob($asset, $transforms);
+            } else {
+                ImagerX::$plugin->generate->generateTransformsForAsset($asset, $transforms);
+            }
 
-            ImagerX::$plugin->generate->generateTransformsForAsset($asset, $transforms);
-
-            $this->stdout('done'.PHP_EOL, Console::FG_GREEN);
+            $this->stdout(($this->queue ? 'queued' : 'done').PHP_EOL, Console::FG_GREEN);
         }
 
         $this->stdout("> Done.".PHP_EOL, Console::FG_YELLOW);
