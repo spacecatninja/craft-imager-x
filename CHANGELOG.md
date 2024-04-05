@@ -1,5 +1,19 @@
 # Imager X Changelog
 
+## 4.4.0 - 2024-04-05
+
+### Changed
+- Changed how Imager do avif and jxl transforms, they are now processed via Imagine.
+- Changed Craft requirement to ^4.5.0.
+
+### Added
+- Added support for using `{transformName}` in `filenamePattern` (resolves #257).
+- Added support for creating queue jobs when using the generate console command.
+- Added support for limit and offset when using the generate console command.
+
+### Fixed
+- Fixed use of deprecated method `ensureTopFolder`.
+
 ## 4.3.1 - 2024-02-09
 
 ### Added
