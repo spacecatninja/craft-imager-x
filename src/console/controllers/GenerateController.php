@@ -278,8 +278,11 @@ class GenerateController extends Controller
             if (!empty($this->folderId)) {
                 $query->folderId($this->folderId);
             } else {
-                $folder = Craft::$app->getVolumes()->ensureTopFolder($targetVolume);
-                $query->folderId($folder->id);
+                $folder = Craft::$app->getAssets()->getRootFolderByVolumeId($targetVolume->id);
+                
+                if ($folder) {
+                    $query->folderId($folder->id);
+                }
             }
 
             $this->success($this->recursive ? '> Recursive' : '> Not recursive');
