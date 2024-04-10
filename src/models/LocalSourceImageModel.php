@@ -145,7 +145,7 @@ class LocalSourceImageModel
             if (!$this->isValidFile($this->getFilePath()) || (($config->cacheDurationRemoteFiles !== false) && ((FileHelper::lastModifiedTime($this->getFilePath()) + $config->cacheDurationRemoteFiles) < time()))) {
                 if ($this->asset && $this->type === 'volume') {
                     try {
-                        $fs = $this->asset->getVolume()->getFs();
+                        $fs = $this->asset->getVolume();
                     } catch (InvalidConfigException $invalidConfigException) {
                         Craft::error($invalidConfigException->getMessage(), __METHOD__);
                         throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
@@ -213,11 +213,13 @@ class LocalSourceImageModel
     private function getPathsForLocalAsset(Asset $image): void
     {
         try {
+            $volume = $image->getVolume();
+            
             /** @var Local $fs */
             $fs = $image->getVolume()->getFs();
 
             $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
-            $this->path = FileHelper::normalizePath($fs->getRootPath().'/'.$image->folderPath);
+            $this->path = FileHelper::normalizePath($fs->getRootPath().'/'.$volume->getSubpath().'/'.$image->folderPath);
             $this->url = $image->getUrl();
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
@@ -246,7 +248,7 @@ class LocalSourceImageModel
         }
 
         try {
-            $this->url = AssetsHelper::generateUrl($image->getVolume()->getFs(), $image);
+            $this->url = AssetsHelper::generateUrl($image);
             $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);

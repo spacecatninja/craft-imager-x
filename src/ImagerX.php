@@ -229,7 +229,7 @@ class ImagerX extends Plugin
         );
 
         // Register utility
-        Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITY_TYPES,
+        Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITIES,
             static function(RegisterComponentTypesEvent $event) {
                 $event->types[] = ImagerUtility::class;
             }
