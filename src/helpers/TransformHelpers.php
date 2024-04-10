@@ -59,8 +59,6 @@ class TransformHelpers
 
     /**
      * Resolves any callables in params
-     *
-     * TODO : Make recursive, it now only resolves callables at the top level
      */
     public static function resolveTransforms(Asset|ImagerAdapterInterface|string $image, ?array $transforms): array
     {
@@ -72,9 +70,14 @@ class TransformHelpers
 
         foreach ($transforms as $transform) {
             foreach ($transform as $key => $val) {
-                if (\is_callable($val)) {
-                    $resolvedVal = $val($image);
-                    $transform[$key] = $resolvedVal;
+                if ($val instanceof \Closure) {
+                    try {
+                        $resolvedVal = $val($image);
+                        $transform[$key] = $resolvedVal;
+                    } catch (\Throwable $throwable) {
+                        \Craft::error('An error occurred when calling closure: '.$throwable->getMessage(), __METHOD__);
+                        unset($transform[$key]);
+                    }
                 }
             }
 
