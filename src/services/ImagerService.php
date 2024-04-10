@@ -205,7 +205,12 @@ class ImagerService extends Component
         'bottom-right' => '100% 100%',
     ];
 
+    /**
+     * @var string
+     */
+    public static string $processingNamedTransform = '';
 
+    
     // Constructor
     // =========================================================================
 
@@ -357,6 +362,8 @@ class ImagerService extends Component
         
         // Let's handle named transforms here
         if (is_string($transforms)) {
+            self::$processingNamedTransform = $transforms;
+                
             $processedTransforms = [];
 
             while (is_string($transforms)) {
@@ -728,6 +735,10 @@ class ImagerService extends Component
     {
         $config = self::getConfig();
 
+        // Reset memoized named transform value 
+        self::$processingNamedTransform = '';
+                
+        // Clears any remote images downloaded during session if `cacheRemoteFiles` is `false`
         if (!$config->cacheRemoteFiles && self::$remoteImageSessionCache !== []) {
             foreach (self::$remoteImageSessionCache as $file) {
                 if (file_exists($file)) {
