@@ -74,6 +74,16 @@ class GenerateController extends Controller
      */
     public bool $queue = false;
     
+    /**
+     * @var int|null Number of assets to process
+     */
+    public ?int $limit = null;
+    
+    /**
+     * @var int|null Offset for assets to process
+     */
+    public ?int $offset = null;
+    
 
     // Public Methods
     // =========================================================================
@@ -91,6 +101,8 @@ class GenerateController extends Controller
             'field',
             'transforms',
             'queue',
+            'limit',
+            'offset',
         ]);
     }
 
@@ -103,6 +115,8 @@ class GenerateController extends Controller
             'f' => 'field',
             't' => 'transforms',
             'q' => 'queue',
+            'l' => 'limit',
+            'o' => 'offset',
         ];
     }
 
@@ -187,8 +201,6 @@ class GenerateController extends Controller
             $assets = $this->getAssetsByField();
         }
 
-        $assets = $this->pruneTransformableAssets($assets);
-
         if (empty($assets)) {
             $this->error("No transformable assets found");
 
@@ -213,13 +225,17 @@ class GenerateController extends Controller
             
             $this->stdout("    - [".($current * $numTransforms)."/".$total * $numTransforms."] ($asset->id) ".(strlen($filename) > 50 ? (substr($filename, 0, 47)."...") : $filename)."... ");
             
-            if ($this->queue) {
-                ImagerX::$plugin->generate->createTransformJob($asset, $transforms);
-            } else {
-                ImagerX::$plugin->generate->generateTransformsForAsset($asset, $transforms);
-            }
+            if (GenerateService::shouldTransformElement($asset)) {
+                if ($this->queue) {
+                    ImagerX::$plugin->generate->createTransformJob($asset, $transforms);
+                } else {
+                    ImagerX::$plugin->generate->generateTransformsForAsset($asset, $transforms);
+                }
 
-            $this->stdout(($this->queue ? 'queued' : 'done').PHP_EOL, Console::FG_GREEN);
+                $this->stdout(($this->queue ? 'queued' : 'done').PHP_EOL, Console::FG_GREEN);
+            } else {
+                $this->stdout('skipped'.PHP_EOL, Console::FG_RED);  
+            }
         }
 
         $this->stdout("> Done.".PHP_EOL, Console::FG_YELLOW);
@@ -256,7 +272,8 @@ class GenerateController extends Controller
             $query = Asset::find()
                 ->volume($targetVolume)
                 ->kind('image')
-                ->limit(null);
+                ->offset($this->offset)
+                ->limit($this->limit);
 
             if (!empty($this->folderId)) {
                 $query->folderId($this->folderId);
@@ -307,7 +324,8 @@ class GenerateController extends Controller
             $query = Asset::find()
                 ->id($assetIds)
                 ->kind('image')
-                ->limit(null);
+                ->offset($this->offset)
+                ->limit($this->limit);
         }
 
         return $query ? $query->all() : [];
