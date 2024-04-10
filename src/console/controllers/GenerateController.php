@@ -342,16 +342,4 @@ class GenerateController extends Controller
             ->all();
     }
 
-    private function pruneTransformableAssets(array $assets): array
-    {
-        $r = [];
-
-        foreach ($assets as $asset) {
-            if (GenerateService::shouldTransformElement($asset)) {
-                $r[] = $asset;
-            }
-        }
-
-        return $r;
-    }
 }
