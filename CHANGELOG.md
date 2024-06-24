@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 5.0.0 - 2024-06-24
+
+### Fixed
+- Fixed an issue that could occur if slashes were used in config override parameters (fixes #268).
+
+### Changed
+- Changed event for registrering extensions to be more in line with what Craft recommends.
+
 ## 5.0.0 - 2024-04-10
 
 ### Added
