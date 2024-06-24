@@ -101,6 +101,6 @@ class ConfigModel extends Settings
     private function addToOverrideFilestring(string $key, mixed $value): void
     {
         $r = (ImagerService::$transformKeyTranslate[$key] ?? $key) . (\is_array($value) ? md5(implode('-', $value)) : $value);
-        $this->configOverrideString .= '_' . str_replace('%', '', str_replace([' ', '.'], '-', $r));
+        $this->configOverrideString .= '_' . str_replace(['%','/'], '', str_replace([' ', '.'], '-', $r));
     }
 }
