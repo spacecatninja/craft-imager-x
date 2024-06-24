@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.4.1 - 2024-06-24
+
+### Fixed
+- Fixed an issue that could occur if slashes were used in config override parameters (fixes #268).
+
 ## 4.4.0 - 2024-04-05
 
 ### Changed
