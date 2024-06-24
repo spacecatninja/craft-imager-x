@@ -264,27 +264,22 @@ class ImagerX extends Plugin
             $this->registerRemoveTransformsListeners();
         }
 
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_LOAD_PLUGINS,
+        Craft::$app->onInit(function() {
+            // Register transformers
+            $this->registerTransformers();
 
-            function() {
-                // Register transformers
-                $this->registerTransformers();
+            // Register effects
+            $this->registerEffects();
 
-                // Register effects
-                $this->registerEffects();
+            // Register optimizers
+            $this->registerOptimizers();
 
-                // Register optimizers
-                $this->registerOptimizers();
+            // Register external storage options
+            $this->registerExternalStorages();
 
-                // Register external storage options
-                $this->registerExternalStorages();
-                
-                // Register adapters
-                $this->registerAdapters();
-            }
-        );
+            // Register adapters
+            $this->registerAdapters();
+        });
 
         // Register console commands
         if (Craft::$app instanceof ConsoleApplication) {
@@ -505,7 +500,7 @@ class ImagerX extends Plugin
 
                     /** @var Element $element */
                     $element = $event->element;
-                    
+
                     if ($element instanceof Asset && $element->getScenario() === Asset::SCENARIO_INDEX) {
                         return;
                     }
@@ -701,7 +696,7 @@ class ImagerX extends Plugin
             }
         }
     }
-    
+
     /**
      * Register adapters
      */
@@ -720,5 +715,5 @@ class ImagerX extends Plugin
         }
     }
 
-    
+
 }
