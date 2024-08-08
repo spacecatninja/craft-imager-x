@@ -15,25 +15,16 @@ use craft\base\Element;
 
 use craft\base\ElementInterface;
 use craft\elements\db\ElementQuery;
-use craft\elements\db\MatrixBlockQuery;
-use craft\elements\MatrixBlock;
+use craft\elements\db\EntryQuery;
 use craft\models\FieldLayout;
 
 class FieldHelpers
 {
-    /**
-     * @param Element|ElementInterface $element
-     *
-     */
     public static function getFieldInFieldLayoutByHandle(ElementInterface|Element $element, FieldLayout $layout, string $handle): ?ElementQuery
     {
         return $layout->getFieldByHandle($handle) !== null ? $element->{$handle} : null;
     }
 
-    /**
-     * @param Element|ElementInterface $element
-     *
-     */
     public static function getFieldsInElementByHandle(ElementInterface|Element $element, string $handle): ?array
     {
         if (str_contains($handle, ':')) {
@@ -50,8 +41,8 @@ class FieldHelpers
             if (!$parentField) {
                 return null;
             }
-            
-            if (!$parentField instanceof MatrixBlockQuery && !$parentField instanceof \verbb\supertable\elements\db\SuperTableBlockQuery && !$parentField instanceof \benf\neo\elements\db\BlockQuery) {
+
+            if (!$parentField instanceof EntryQuery && !$parentField instanceof \benf\neo\elements\db\BlockQuery) {
                 return null;
             }
 
@@ -60,7 +51,6 @@ class FieldHelpers
             
             $fields = [];
 
-            /* @var MatrixBlock $block */
             foreach ($blocks as $block) {
                 if (($block->getType()->handle !== $parentBlockType && $parentBlockType !== '*') || !($block->{$parentBlockFieldHandle} ?? null)) {
                     continue;
