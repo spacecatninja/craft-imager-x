@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 5.0.3 - 2024-11-08
+
+### Fixed
+- Fixed an issue where Imager would try to remove transforms for non-image assets (fixes #273).
+
 ## 5.0.2 - 2024-08-08
 
 ### Fixed
