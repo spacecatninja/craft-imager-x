@@ -238,11 +238,14 @@ class ImagerX extends Plugin
         // Event listener for clearing caches when an asset is replaced
         Event::on(Assets::class, Assets::EVENT_AFTER_REPLACE_ASSET,
             static function(ReplaceAssetEvent $event) use ($config) {
-                ImagerX::$plugin->imagerx->removeTransformsForAsset($event->asset);
-
-                // If Imgix purging is possible, do that too
-                if ($config->imgixEnableAutoPurging && ImgixService::getCanPurge()) {
-                    ImagerX::$plugin->imgix->purgeAssetFromImgix($event->asset);
+                // Check if the asset is an image before proceeding
+                if ($event->asset->kind === 'image') {
+                    ImagerX::$plugin->imagerx->removeTransformsForAsset($event->asset);
+    
+                    // If Imgix purging is possible, do that too
+                    if ($config->imgixEnableAutoPurging && ImgixService::getCanPurge()) {
+                        ImagerX::$plugin->imgix->purgeAssetFromImgix($event->asset);
+                    }
                 }
             }
         );
