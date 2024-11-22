@@ -34,9 +34,9 @@
         "ssnepenthe/color-utils": "~0.4",
         "imgix/imgix-php": "^3.0",
         "kraken-io/kraken-php": "^1.2",
-        "aws/aws-sdk-php": "^3.0.0",
+        "aws/aws-sdk-php": "^3.295.10",
         "google/cloud-storage": "~1.0",
-        "kornrunner/blurhash": "^1.1"
+        "kornrunner/blurhash": "^1.1",
     },
     "autoload": {
         "psr-4": {
