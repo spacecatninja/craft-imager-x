@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 4.5.0 - 2024-12-01
+
+### Added
+- Added support for credential less authentication for AWS external storage, the storage config now take a `useCredentialLessAuth` config setting that can be set to `true`. It should now behave the same as the AWS volume from P&T (closes #254).
+
+### Changed
+- Changed/repurposed behaviour of `hideClearCachesForUserGroups` config setting (which was no longer used), to hide clear cache element actions for user groups (closes #278).
+
 ## 4.4.1 - 2024-06-24
 
 ### Fixed
