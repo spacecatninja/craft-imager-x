@@ -13,9 +13,13 @@ namespace spacecatninja\imagerx\externalstorage;
 use Aws\CloudFront\CloudFrontClient;
 use Aws\CloudFront\Exception\CloudFrontException;
 
+use Aws\Credentials\CredentialProvider;
+use Aws\Credentials\Credentials;
+use Aws\Handler\GuzzleV6\GuzzleHandler;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use Craft;
+use craft\helpers\App;
 use craft\helpers\FileHelper;
 
 use spacecatninja\imagerx\services\ImagerService;
@@ -29,17 +33,7 @@ class AwsStorage implements ImagerStorageInterface
     {
         $config = ImagerService::getConfig();
 
-        $clientConfig = [
-            'version' => 'latest',
-            'region' => $settings['region'],
-        ];
-
-        if (isset($settings['accessKey'], $settings['secretAccessKey'])) {
-            $clientConfig['credentials'] = [
-                'key' => $settings['accessKey'],
-                'secret' => $settings['secretAccessKey'],
-            ];
-        }
+        $clientConfig = self::buildConfigArray($settings);
         
         try {
             $s3 = new S3Client($clientConfig);
@@ -67,7 +61,7 @@ class AwsStorage implements ImagerStorageInterface
         }
 
         $opts = array_merge($opts, [
-            'Bucket' => $settings['bucket'],
+            'Bucket' => App::parseEnv($settings['bucket']),
             'Key' => $uri,
             'Body' => fopen($file, 'rb'),
             'ACL' => $visibility,
@@ -110,7 +104,55 @@ class AwsStorage implements ImagerStorageInterface
     }
     
     /**
+     * Builds config array for S3 client.
+     * Mostly lifted from https://github.com/craftcms/aws-s3/blob/a04ee659490d53da879e302e660ba3807532a926/src/Fs.php#L432
+     * 
+     * @param array $settings
+     * @param bool  $refreshToken
+     *
+     * @return array
+     * @throws \yii\base\Exception
+     */
+    public static function buildConfigArray(array $settings, bool $refreshToken = false): array
+    {
+        $config = [
+            'region' => App::parseEnv($settings['region']),
+            'version' => 'latest',
+        ];
+
+        $client = Craft::createGuzzleClient();
+        $config['http_handler'] = new GuzzleHandler($client);
+
+        if (isset($settings['useCredentialLessAuth']) && $settings['useCredentialLessAuth'] === true) {
+            // Check for predefined access
+            if (App::env('AWS_WEB_IDENTITY_TOKEN_FILE') && App::env('AWS_ROLE_ARN')) {
+                // Check if anything is defined for a web identity provider (see: https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/guide_credentials_provider.html#assume-role-with-web-identity-provider)
+                $provider = CredentialProvider::assumeRoleWithWebIdentityCredentialProvider();
+                $provider = CredentialProvider::memoize($provider);
+                $config['credentials'] = $provider;
+            }
+            // Check if running on ECS
+            if (App::env('AWS_CONTAINER_CREDENTIALS_RELATIVE_URI')) {
+                // Check if anything is defined for an ecsCredentials provider
+                $provider = CredentialProvider::ecsCredentials();
+                $provider = CredentialProvider::memoize($provider);
+                $config['credentials'] = $provider;
+            }
+            
+            // If that didn't happen, assume we're running on EC2, and we have an IAM role assigned so no action required.
+        } else {
+            $credentials = new Credentials(App::parseEnv($settings['accessKey']), App::parseEnv($settings['secretAccessKey']));
+            $config['credentials'] = $credentials;
+        }
+
+        return $config;
+    }
+
+
+    /**
      * @param $storageTypeString
+     *
+     * @return string
      */
     private static function getAWSStorageClass($storageTypeString): string
     {
