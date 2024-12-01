@@ -18,7 +18,6 @@ use Aws\Credentials\Credentials;
 use Aws\Handler\GuzzleV6\GuzzleHandler;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
-use Aws\Sts\StsClient;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\FileHelper;
@@ -51,7 +50,7 @@ class AwsStorage implements ImagerStorageInterface
         // Always use forward slashes for S3
         $uri = str_replace('\\', '/', $uri);
 
-        // Dont start with forward slashes
+        // Don't start with forward slashes
         $uri = ltrim($uri, '/');
 
         $opts = $settings['requestHeaders'] ?? [];
@@ -141,27 +140,9 @@ class AwsStorage implements ImagerStorageInterface
                 $config['credentials'] = $provider;
             }
             
-            // If that didn't happen, assume we're running on EC2 and we have an IAM role assigned so no action required.
+            // If that didn't happen, assume we're running on EC2, and we have an IAM role assigned so no action required.
         } else {
-            //$tokenKey = static::CACHE_KEY_PREFIX . md5($keyId . $secret);
-            
             $credentials = new Credentials(App::parseEnv($settings['accessKey']), App::parseEnv($settings['secretAccessKey']));
-            
-            /*
-            if (Craft::$app->cache->exists($tokenKey) && !$refreshToken) {
-                $cached = Craft::$app->cache->get($tokenKey);
-                $credentials->unserialize($cached);
-            } else {
-                $config['credentials'] = $credentials;
-                $stsClient = new StsClient($config);
-                $result = $stsClient->getSessionToken(['DurationSeconds' => static::CACHE_DURATION_SECONDS]);
-                $credentials = $stsClient->createCredentials($result);
-                $cacheDuration = $credentials->getExpiration() - time();
-                $cacheDuration = $cacheDuration > 0 ? $cacheDuration : static::CACHE_DURATION_SECONDS;
-                Craft::$app->cache->set($tokenKey, $credentials->serialize(), $cacheDuration);
-            }
-            */
-
             $config['credentials'] = $credentials;
         }
 
