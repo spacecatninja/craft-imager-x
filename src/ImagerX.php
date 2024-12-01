@@ -325,6 +325,16 @@ class ImagerX extends Plugin
             static function(RegisterElementActionsEvent $event) {
                 $config = ImagerService::getConfig();
 
+                $identity = Craft::$app->getUser()->getIdentity();
+
+                if ($identity && count($config->hideClearCachesForUserGroups) > 0) {
+                    foreach ($config->hideClearCachesForUserGroups as $userGroup) {
+                        if ($identity->isInGroup($userGroup)) {
+                            return;
+                        }
+                    }
+                }
+                
                 $event->actions[] = ClearTransformsElementAction::class;
 
                 if (ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
