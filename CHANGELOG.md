@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 5.1.1 - 2024-01-07
+
+### Fixed
+- Fixed an issue that could occur if an assets volume didn’t have public URLs enabled (fixes #280).
+
 ## 5.1.0 - 2024-12-01
 
 ### Added
