@@ -220,7 +220,7 @@ class LocalSourceImageModel
 
             $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
             $this->path = FileHelper::normalizePath($fs->getRootPath().'/'.$volume->getSubpath().'/'.$image->folderPath);
-            $this->url = $image->getUrl();
+            $this->url = $image->getUrl() ?? '';
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
             $this->extension = $image->getExtension();
@@ -325,7 +325,7 @@ class LocalSourceImageModel
      *
      * @throws ImagerException
      */
-    private function getPathsForUrl($image): void
+    private function getPathsForUrl(string $image): void
     {
         $config = ImagerService::getConfig();
 
