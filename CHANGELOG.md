@@ -1,6 +1,11 @@
 # Imager X Changelog
 
-## 5.1.1 - 2024-01-07
+## 5.1.2 - 2025-02-27
+
+### Fixed
+- Fixed an issue where GD could throw an error because the output format extension wasn’t an allowed one (addresses #184)
+
+## 5.1.1 - 2025-01-07
 
 ### Fixed
 - Fixed an issue that could occur if an assets volume didn’t have public URLs enabled (fixes #280).
