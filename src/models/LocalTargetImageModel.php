@@ -79,7 +79,7 @@ class LocalTargetImageModel
         $shortHashLength = $config->getSetting('shortHashLength', $transform);
 
         $basename = FileHelper::truncateBasename($source->basename);
-        $extension = $source->extension;
+        $extension = $this->getSourceExtension($source->extension);
 
         if (isset($transform['format'])) {
             $extension = $transform['format'];
@@ -141,5 +141,41 @@ class LocalTargetImageModel
 
         return rtrim($patternFilename, '.');
     }
+    
+    private function getSourceExtension($extension): ?string
+    {
+        if (ImagerService::$imageDriver === 'imagick') {
+            return $extension;
+        }
+
+        $supported_types = imagetypes();
+
+        // Array of GD image types and their corresponding file extensions
+        $image_types = [
+            IMG_GIF => 'gif',
+            IMG_JPG => 'jpg',
+            IMG_PNG => 'png',
+            IMG_WBMP => 'wbmp',
+            IMG_XPM => 'xpm',
+            IMG_WEBP => 'webp',
+            IMG_BMP => 'bmp',
+            IMG_AVIF => 'avif'
+        ];
+
+        $supportedExtensions = [];
+        
+        foreach ($image_types as $const => $ext) {
+            if ($supported_types & $const) {
+                $supportedExtensions[] = $ext;
+                
+                if ($ext === 'jpg') {
+                    $supportedExtensions[]  = 'jpeg';
+                }
+            }
+        }
+        
+        return in_array(strtolower($extension), $supportedExtensions, true) ? $extension : 'jpg';
+    }
+    
 
 }
