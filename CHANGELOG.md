@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.5.1 - 2025-02-27
+
+### Fixed
+- Fixed an issue where GD could throw an error because the output format extension wasn’t an allowed one (addresses #184).
+
 ## 4.5.0 - 2024-12-01
 
 ### Added
