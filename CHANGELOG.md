@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 4.5.1.1 - 2025-03-07
+
+### Fixed
+- Fixed an issue where PHP 8.0 would throw an error because IMG_AVIF wasn't a thing (fixes #285).
+
 ## 4.5.1 - 2025-02-27
 
 ### Fixed
