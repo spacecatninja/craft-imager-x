@@ -158,9 +158,12 @@ class LocalTargetImageModel
             IMG_WBMP => 'wbmp',
             IMG_XPM => 'xpm',
             IMG_WEBP => 'webp',
-            IMG_BMP => 'bmp',
-            IMG_AVIF => 'avif'
+            IMG_BMP => 'bmp'
         ];
+        
+        if (version_compare(phpversion(), '8.1.0', '>')) {
+            $image_types[IMG_AVIF] = 'avif';
+        }
 
         $supportedExtensions = [];
         
