@@ -365,7 +365,7 @@ class ImagerX extends Plugin
         if ($config->useForNativeTransforms) {
             Event::on(Asset::class, Asset::EVENT_DEFINE_URL,
                 static function(DefineAssetUrlEvent $event) {
-                    if ($event->transform !== null && $event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+                    if ($event->transform !== null && $event->sender->kind === 'image' && \in_array(strtolower($event->sender->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
                             $transform = $event->transform;
 
@@ -388,10 +388,10 @@ class ImagerX extends Plugin
 
                             if (is_array($transform)) {
                                 // We need to reset the transform here to avoid an infinite loop
-                                $event->asset->setTransform(null);
+                                $event->sender->setTransform(null);
 
                                 // Do the transform
-                                $transformedImage = ImagerX::$plugin->imagerx->transformImage($event->asset, $transform);
+                                $transformedImage = ImagerX::$plugin->imagerx->transformImage($event->sender, $transform);
 
                                 if ($transformedImage !== null) {
                                     $event->url = $transformedImage->getUrl();
