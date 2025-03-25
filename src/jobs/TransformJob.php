@@ -58,7 +58,7 @@ class TransformJob extends BaseJob
         $asset = $query->one();
         
         if (!$asset) {
-            throw new ImagerException(Craft::t('imager-x', 'Asset with ID ' . $this->assetId . ' in transform job was not found.'));
+            return;
         }
         
         ImagerX::$plugin->generate->generateTransformsForAsset($asset, $this->transforms);
