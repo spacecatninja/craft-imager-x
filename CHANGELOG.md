@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 5.1.3 - 2025-03-25
+
+### Fixed
+- Fixed an issue where TransformJob was throwing an error if an asset couldn’t be found, which would result in errors when replacing assets.
+
 ## 5.1.2 - 2025-02-27
 
 ### Fixed
