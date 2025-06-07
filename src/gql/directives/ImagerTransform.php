@@ -116,6 +116,10 @@ class ImagerTransform extends Directive
             return $transformedImage->getBlurhash();
         }
         
+        if ($returnType === 'dominantColor') {
+            return ImagerX::getInstance()->color->getDominantColor($transformedImage);
+        }
+        
         return $transformedImage->getUrl();
     }
 }
