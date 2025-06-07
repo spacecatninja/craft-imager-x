@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 5.1.4 - 2025-06-07
+
+### Added
+- Added support for dominantColor as a return type for `imagerTransform` GraphQL directive (fixes #290).
+
+### Fixed
+- Fixed an issue where Imgix URLs could have double slashes if `useCloudSourcePath` was `null` (fixes #289).
+
 ## 5.1.3 - 2025-03-25
 
 ### Fixed
