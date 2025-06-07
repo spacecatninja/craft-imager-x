@@ -33,11 +33,11 @@ class ImgixHelpers
         if (\is_string($image)) { // if $image is a string, just pass it to builder, we have to assume the user knows what he's doing (sry) :)
             return $image;
         }
-        
+
         if ($config->sourceIsWebProxy) {
             return $image->getUrl() ?? '';
         }
-            
+
         try {
             $volume = $image->getVolume();
             $fs = $image->getVolume()->getFs();
@@ -47,11 +47,15 @@ class ImgixHelpers
         }
 
         if ($config->useCloudSourcePath && property_exists($fs, 'subfolder') && $fs::class !== Local::class) {
-            $path = implode('/', [App::parseEnv($fs->subfolder), App::parseEnv($volume->getSubpath()), $image->getPath()]);
+            $path = implode('/', array_filter([
+                App::parseEnv($fs->subfolder),
+                App::parseEnv($volume->getSubpath()),
+                $image->getPath()
+            ]));
         } else {
             $path = $image->getPath();
         }
-        
+
         if (!empty($config->addPath)) {
             if (\is_string($config->addPath) && $config->addPath !== '') {
                 $path = implode('/', [$config->addPath, $path]);
@@ -61,7 +65,7 @@ class ImgixHelpers
                 }
             }
         }
-        
+
         $path = FileHelper::normalizePath($path);
 
         //always use forward slashes for imgix
