@@ -59,12 +59,15 @@ class AwsStorage implements ImagerStorageInterface
         if (!isset($opts['CacheControl'])) {
             $opts['CacheControl'] = 'max-age=' . $cacheDuration . ', must-revalidate';
         }
+        
+        if (!isset($settings['disableACL']) || $settings['disableACL'] === false) {
+            $opts['ACL'] = $visibility;
+        }
 
         $opts = array_merge($opts, [
             'Bucket' => App::parseEnv($settings['bucket']),
             'Key' => $uri,
             'Body' => fopen($file, 'rb'),
-            'ACL' => $visibility,
             'StorageClass' => self::getAWSStorageClass($settings['storageType'] ?? 'standard'),
         ]);
 
