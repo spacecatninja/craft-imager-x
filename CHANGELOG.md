@@ -1,5 +1,13 @@
 # Imager X Changelog
 
+## 5.1.5 - 2025-07-16
+
+### Added
+- Added config setting `disableACL` to AWS external storage (fixes #296).
+
+### Fixed
+- Fixed a type issue that could occur when setting opacity for letterbox.
+
 ## 5.1.4 - 2025-06-07
 
 ### Added
