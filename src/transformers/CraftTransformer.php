@@ -483,7 +483,7 @@ class CraftTransformer extends Component implements TransformerInterface
             $palette = new RGB();
             $color = $palette->color(
                 $letterboxDef['color'] ?? '#000',
-                isset($letterboxDef['opacity']) ? ($letterboxDef['opacity'] * 100) : 0
+                isset($letterboxDef['opacity']) ? (int)($letterboxDef['opacity'] * 100) : 0 
             );
 
             if ($this->imagineInstance !== null) {
