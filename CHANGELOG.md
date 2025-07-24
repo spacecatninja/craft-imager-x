@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 5.1.6 - 2025-07-24
+
+### Fixed
+- Fixed asset check in all GQL related code to allow any file kind, to account for adapters (fixes #297, thanks @denisyilmaz).
+
 ## 5.1.5 - 2025-07-16
 
 ### Added
