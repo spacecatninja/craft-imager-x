@@ -80,7 +80,7 @@ class ImagerSrcset extends Directive
             return null;
         }
         
-        if ($source->kind !== 'image' || !\in_array(strtolower($source->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+        if (!\in_array(strtolower($source->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
             return null;
         }
         
