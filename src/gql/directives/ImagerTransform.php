@@ -85,7 +85,7 @@ class ImagerTransform extends Directive
 
         $transform = $arguments['handle'] ?? $arguments;
         
-        if ($source->kind !== 'image' || !\in_array(strtolower($source->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+        if (!\in_array(strtolower($source->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
             return null;
         }
         
