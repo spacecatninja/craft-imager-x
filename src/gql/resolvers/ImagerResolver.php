@@ -53,8 +53,8 @@ class ImagerResolver extends Resolver
                 $asset = $url;
             }
         }
-        
-        if ($asset instanceof Asset && ($asset->kind !== 'image' || !\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true))) {
+
+        if ($asset instanceof Asset && (!\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true))) {
             return null;
         }
         
