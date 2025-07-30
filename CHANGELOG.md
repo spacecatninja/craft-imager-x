@@ -1,5 +1,11 @@
 # Imager X Changelog
 
+## 4.5.3 - 2025-07-30
+
+### Fixed
+- Fixed asset check in all GQL related code to allow any file kind, to account for adapters (fixes #297, thanks @denisyilmaz).
+- Fixed a type issue that could occur when setting opacity for letterbox.
+
 ## 4.5.2 - 2025-03-25
 
 ### Fixed
