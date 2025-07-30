@@ -79,11 +79,11 @@ class ImagerSrcset extends Directive
         if (empty($arguments['handle'])) {
             return null;
         }
-        
-        if ($source->kind !== 'image' || !\in_array(strtolower($source->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+
+        if (!\in_array(strtolower($source->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
             return null;
         }
-        
+
         try {
             $transformedImages = ImagerX::$plugin->imagerx->transformImage($source, $arguments['handle']);
         } catch (ImagerException $imagerException) {
