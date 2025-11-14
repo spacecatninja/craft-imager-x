@@ -58,15 +58,14 @@ class ImgixTransformedImageModel extends BaseTransformedImageModel implements Tr
                 $paramsH = (int)$params['h'];
 
                 if ($sourceWidth !== 0 && $sourceHeight !== 0) {
-                    if ($sourceWidth / $sourceHeight < $paramsW / $paramsH) {
-                        $useW = min($paramsW, $sourceWidth);
-                        $this->width = $useW;
-                        $this->height = round($useW * ($paramsH / $paramsW));
-                    } else {
-                        $useH = min($paramsH, $sourceHeight);
-                        $this->width = round($useH * ($paramsW / $paramsH));
-                        $this->height = $useH;
-                    }
+                    // Scale the source to fit within the transform box (contain)
+                    $scale = min($paramsW / $sourceWidth, $paramsH / $sourceHeight);
+                
+                    // Avoid upscaling
+                    $scale = min($scale, 1);
+                
+                    $this->width = (int)round($sourceWidth * $scale);
+                    $this->height = (int)round($sourceHeight * $scale);
                 }
             } elseif ($source !== null && $params['fit'] === 'clip') {
                 [$sourceWidth, $sourceHeight] = $this->getSourceImageDimensions($source);
