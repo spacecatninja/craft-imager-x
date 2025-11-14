@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 5.1.7 - 2025-11-14
+
+### Fixed
+- Fixed an issue where the width and height of Imgix transforms would be wrong if both `width` and `height` were provided, and mode was `fit`. (fixes #303, thanks @white-ruud).
+
 ## 5.1.6 - 2025-07-24
 
 ### Fixed
