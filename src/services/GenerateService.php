@@ -25,7 +25,6 @@ use spacecatninja\imagerx\helpers\TransformHelpers;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\jobs\TransformJob;
 
-use yii\base\ExitException;
 use yii\base\InvalidConfigException;
 
 /**
