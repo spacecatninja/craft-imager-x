@@ -14,17 +14,10 @@ use Craft;
 use craft\base\Element;
 
 use craft\base\ElementInterface;
-use craft\elements\db\ElementQuery;
 use craft\elements\db\EntryQuery;
-use craft\models\FieldLayout;
 
 class FieldHelpers
 {
-    public static function getFieldInFieldLayoutByHandle(ElementInterface|Element $element, FieldLayout $layout, string $handle): ?ElementQuery
-    {
-        return $layout->getFieldByHandle($handle) !== null ? $element->{$handle} : null;
-    }
-
     public static function getFieldsInElementByHandle(ElementInterface|Element $element, string $handle): ?array
     {
         if (str_contains($handle, ':')) {
@@ -60,6 +53,16 @@ class FieldHelpers
             }
 
             return empty($fields) ? null : $fields;
+        } 
+        
+        if (str_contains($handle, '.')) {
+            $segments = self::getFieldHandleSegments($handle);
+
+            if (empty($segments) || !isset($element->{$segments[0]})) {
+                return null;
+            }
+            
+            return [$element->{$segments[0]}->{$segments[1]}];
         }
         
         if (isset($element->{$handle})) {
@@ -71,16 +74,22 @@ class FieldHelpers
 
     protected static function getFieldHandleSegments(string $handle): array
     {
-        $segments = preg_split('#(\:|\.)#', $handle);
+        $msg = Craft::t('imager-x', 'Invalid field format handle for “{handle}“. Either use a single string for fields directly on the element, or a string with the format “contentBlockField.myField“ or “myMatrixField:myMatrixEntryType.myField“.', ['handle' => $handle]);
         
-        if (!is_array($segments)) {
-            $segments = [];
-        }
+        if (str_contains($handle, ':')) {
+            $segments = preg_split('#(\:|\.)#', $handle);
 
-        if (count($segments) !== 3) {
-            $msg = Craft::t('imager-x', 'Invalid field format handle for “{handle}“. Either use a single string for fields directly on the element, or a string with the format “myMatrixField:myMatrixBlockType.myMatrixBlockField“.', ['handle' => $handle]);
-            Craft::error($msg, __METHOD__);
-            return [];
+            if (!is_array($segments) || count($segments) !== 3) {
+                Craft::error($msg, __METHOD__);
+                return [];
+            }
+        } else {
+            $segments = preg_split('#(\.)#', $handle);
+
+            if (!is_array($segments) || count($segments) !== 2) {
+                Craft::error($msg, __METHOD__);
+                return [];
+            }
         }
         
         return $segments;

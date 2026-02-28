@@ -17,7 +17,6 @@ use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\elements\db\ElementQuery;
-use craft\models\FieldLayout;
 use craft\models\Volume;
 
 use spacecatninja\imagerx\exceptions\ImagerException;
@@ -200,21 +199,20 @@ class GenerateService extends Component
             return;
         }
 
-        $fieldLayout = $element->getFieldLayout();
-        
-        if (!($fieldLayout instanceof FieldLayout)) {
-            return;
-        }
-
         foreach ($fieldsConfig as $fieldHandle => $transforms) {
-            $field = FieldHelpers::getFieldInFieldLayoutByHandle($element, $fieldLayout, $fieldHandle);
+            $fields = FieldHelpers::getFieldsInElementByHandle($element, $fieldHandle);
 
-            if ($field instanceof ElementQuery) {
-                $assets = $field->all();
+            if (is_array($fields)) {
+                foreach ($fields as $field) {
+                    if ($field instanceof ElementQuery) {
+                        $query = clone($field);
+                        $assets = $query->all();
 
-                foreach ($assets as $asset) {
-                    if (self::shouldTransformElement($asset)) {
-                        $this->createTransformJob($asset, $transforms);
+                        foreach ($assets as $asset) {
+                            if (self::shouldTransformElement($asset)) {
+                                $this->createTransformJob($asset, $transforms);
+                            }
+                        }
                     }
                 }
             }
@@ -267,7 +265,7 @@ class GenerateService extends Component
 
     /**
      * @param Asset|ElementInterface $asset
-     * @param array                  $transforms
+     * @param array $transforms
      */
     public function createTransformJob(ElementInterface|Asset $asset, array $transforms): void
     {
@@ -284,7 +282,7 @@ class GenerateService extends Component
 
     /**
      * @param Asset|ElementInterface $asset
-     * @param array                  $transforms
+     * @param array $transforms
      */
     public function generateTransformsForAsset(ElementInterface|Asset $asset, array $transforms): void
     {
@@ -303,11 +301,11 @@ class GenerateService extends Component
 
                     try {
                         $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform, null, ['optimizeType' => 'runtime']);
-                        
+
                         if ($transformedImages && isset($namedTransform['generateFlags']) && is_array($namedTransform['generateFlags'])) {
-                            $this->processGenerateFlags($transformedImages, $namedTransform['generateFlags']); 
+                            $this->processGenerateFlags($transformedImages, $namedTransform['generateFlags']);
                         }
-                        
+
                         unset($transformedImages);
                     } catch (ImagerException $imagerException) {
                         $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and transform “{transform}”: {message}', ['assetId' => $asset->id, 'transform' => print_r($transform, true), 'message' => $imagerException->getMessage()]);
@@ -326,7 +324,7 @@ class GenerateService extends Component
         if (!is_array($transformedImages)) {
             $transformedImages = [$transformedImages];
         }
-        
+
         /** @var \spacecatninja\imagerx\models\BaseTransformedImageModel $transformedImage */
         foreach ($transformedImages as $transformedImage) {
             foreach ($flags as $flag) {
@@ -344,7 +342,7 @@ class GenerateService extends Component
             }
         }
     }
-    
+
     /**
      * @param Asset|Element|ElementInterface $element
      *
