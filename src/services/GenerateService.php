@@ -25,6 +25,7 @@ use spacecatninja\imagerx\helpers\TransformHelpers;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\jobs\TransformJob;
 
+use yii\base\ExitException;
 use yii\base\InvalidConfigException;
 
 /**
@@ -163,12 +164,22 @@ class GenerateService extends Component
 
                 foreach ($fields as $fieldHandle) {
                     $fields = FieldHelpers::getFieldsInElementByHandle($element, $fieldHandle);
+                    [$offset, $limit] = FieldHelpers::getOffsetAndLimitFromFieldHandle($fieldHandle);
 
                     if (is_array($fields)) {
                         foreach ($fields as $field) {
                             if ($field instanceof ElementQuery) {
                                 $query = clone($field);
-                                $assets[] = $query->limit($limit)->all();
+                                
+                                if ($offset !== 0) {
+                                    $query->offset($offset);
+                                }
+                                
+                                if ($limit !== null) {
+                                    $query->limit($limit);
+                                }
+                        
+                                $assets[] = $query->all();
                             }
                         }
                     }
@@ -201,11 +212,21 @@ class GenerateService extends Component
 
         foreach ($fieldsConfig as $fieldHandle => $transforms) {
             $fields = FieldHelpers::getFieldsInElementByHandle($element, $fieldHandle);
-
+            [$offset, $limit] = FieldHelpers::getOffsetAndLimitFromFieldHandle($fieldHandle);
+            
             if (is_array($fields)) {
                 foreach ($fields as $field) {
                     if ($field instanceof ElementQuery) {
                         $query = clone($field);
+                        
+                        if ($offset !== 0) {
+                            $query->offset($offset);
+                        }
+                        
+                        if ($limit !== null) {
+                            $query->limit($limit);
+                        }
+                        
                         $assets = $query->all();
 
                         foreach ($assets as $asset) {

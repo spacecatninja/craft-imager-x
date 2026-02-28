@@ -18,8 +18,15 @@ use craft\elements\db\EntryQuery;
 
 class FieldHelpers
 {
+    /**
+     * @param ElementInterface|Element $element
+     * @param string $handle
+     * @return array|null
+     */
     public static function getFieldsInElementByHandle(ElementInterface|Element $element, string $handle): ?array
     {
+        $handle = preg_replace('/\[.*\]$/', '', $handle);
+        
         if (str_contains($handle, ':')) {
             $segments = self::getFieldHandleSegments($handle);
 
@@ -72,6 +79,10 @@ class FieldHelpers
         return null;
     }
 
+    /**
+     * @param string $handle
+     * @return array
+     */
     protected static function getFieldHandleSegments(string $handle): array
     {
         $msg = Craft::t('imager-x', 'Invalid field format handle for “{handle}“. Either use a single string for fields directly on the element, or a string with the format “contentBlockField.myField“ or “myMatrixField:myMatrixEntryType.myField“.', ['handle' => $handle]);
@@ -93,5 +104,37 @@ class FieldHelpers
         }
         
         return $segments;
+    }
+
+    /**
+     * Parses a field handle string to extract offset and limit values.
+     *
+     * The method uses a pattern to identify and extract content inside square brackets (`[]`).
+     * If the matched content exists, it further splits it by a colon (`:`) to derive the offset and limit.
+     *
+     * @param string $handle The field handle string to parse. It should contain the offset and/or limit in the form `[offset:limit]`.
+     *                       If no colon (`:`) is present, only the offset is extracted.
+     *                       If no valid pattern is matched, the default values are returned.
+     * @return array Returns an array where the first element represents the offset as an integer
+     *               and the second element represents the limit as an integer or null if not defined.
+     */
+    public static function getOffsetAndLimitFromFieldHandle(string $handle): array
+    {
+        preg_match('/\[(.*?)\]/', $handle, $matches);
+        
+        if (empty($matches[1])) {
+            return [0, null];
+        }
+        
+        $parts = explode(':', $matches[1]);
+        
+        if (count($parts) === 1) {
+            return [(int)$parts[0], null];
+        }
+        
+        $offset = $parts[0] !== '' ? (int)$parts[0] : 0;
+        $limit = $parts[1] !== '' ? (int)$parts[1] : null;
+        
+        return [$offset, $limit];
     }
 }
