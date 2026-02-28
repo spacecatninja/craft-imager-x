@@ -1,5 +1,14 @@
 # Imager X Changelog
 
+## 5.2.0 - 2026-02-28
+
+### Added
+- Added support for auto generating images in content blocks, and added support for expanded syntax to `fields` auto generate config (fixes #305 and #39).
+- Added support for specifying offset and limit per field in the format `fieldHandle[offset:limit]` (fixes #301).
+
+### Changed
+- Changed from `Asset::EVENT_DEFINE_URL` to `Asset::EVENT_BEFORE_DEFINE_URL` when replacing native transforms with Imager X for performance (thanks, @johnnynotsolucky).
+
 ## 5.1.7 - 2025-11-14
 
 ### Fixed
