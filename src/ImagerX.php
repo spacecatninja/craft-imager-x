@@ -241,7 +241,7 @@ class ImagerX extends Plugin
                 // Check if the asset is an image before proceeding
                 if ($event->asset->kind === 'image') {
                     ImagerX::$plugin->imagerx->removeTransformsForAsset($event->asset);
-    
+
                     // If Imgix purging is possible, do that too
                     if ($config->imgixEnableAutoPurging && ImgixService::getCanPurge()) {
                         ImagerX::$plugin->imgix->purgeAssetFromImgix($event->asset);
@@ -334,7 +334,7 @@ class ImagerX extends Plugin
                         }
                     }
                 }
-                
+
                 $event->actions[] = ClearTransformsElementAction::class;
 
                 if (ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
@@ -363,7 +363,7 @@ class ImagerX extends Plugin
 
         // Event listener for overriding Craft's internal transform functionality
         if ($config->useForNativeTransforms) {
-            Event::on(Asset::class, Asset::EVENT_DEFINE_URL,
+            Event::on(Asset::class, Asset::EVENT_BEFORE_DEFINE_URL,
                 static function(DefineAssetUrlEvent $event) {
                     if ($event->transform !== null && $event->sender->kind === 'image' && \in_array(strtolower($event->sender->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
@@ -395,6 +395,7 @@ class ImagerX extends Plugin
 
                                 if ($transformedImage !== null) {
                                     $event->url = $transformedImage->getUrl();
+                                    $event->handled = true;
                                 }
                             }
                         } catch (ImagerException $e) {
