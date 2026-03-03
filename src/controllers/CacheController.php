@@ -13,6 +13,7 @@ namespace spacecatninja\imagerx\controllers;
 
 use Craft;
 use craft\web\Controller;
+use yii\web\ForbiddenHttpException;
 
 use spacecatninja\imagerx\ImagerX as Plugin;
 
@@ -47,8 +48,12 @@ class CacheController extends Controller
         $key = $request->getParam('key', '');
         $setKey = $config->clearKey ?? '';
 
-        if ($setKey === '' || $key !== $setKey) {
-            throw new \RuntimeException('Unautorized key');
+        if ($setKey === '') {
+            throw new ForbiddenHttpException('Cache clearing is disabled: no clearKey is configured.');
+        }
+
+        if ($key !== $setKey) {
+            throw new ForbiddenHttpException('Unauthorized key.');
         }
 
         Plugin::$plugin->imagerx->deleteImageTransformCaches();
@@ -69,8 +74,12 @@ class CacheController extends Controller
         $key = $request->getParam('key', '');
         $setKey = $config->clearKey ?? '';
 
-        if ($setKey === '' || $key !== $setKey) {
-            throw new \RuntimeException('Unautorized key');
+        if ($setKey === '') {
+            throw new ForbiddenHttpException('Cache clearing is disabled: no clearKey is configured.');
+        }
+
+        if ($key !== $setKey) {
+            throw new ForbiddenHttpException('Unauthorized key.');
         }
 
         Plugin::$plugin->imagerx->deleteRemoteImageCaches();
