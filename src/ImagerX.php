@@ -70,7 +70,6 @@ use spacecatninja\imagerx\effects\UnsharpMaskEffect;
 
 use spacecatninja\imagerx\elementactions\ClearTransformsElementAction;
 use spacecatninja\imagerx\elementactions\GenerateTransformsAction;
-use spacecatninja\imagerx\elementactions\ImgixPurgeElementAction;
 use spacecatninja\imagerx\events\RegisterAdaptersEvent;
 use spacecatninja\imagerx\events\RegisterEffectsEvent;
 use spacecatninja\imagerx\events\RegisterExternalStoragesEvent;
@@ -102,13 +101,11 @@ use spacecatninja\imagerx\optimizers\TinypngOptimizer;
 use spacecatninja\imagerx\services\GenerateService;
 use spacecatninja\imagerx\services\ImagerColorService;
 use spacecatninja\imagerx\services\ImagerService;
-use spacecatninja\imagerx\services\ImgixService;
 use spacecatninja\imagerx\services\OptimizerService;
 use spacecatninja\imagerx\services\PlaceholderService;
 use spacecatninja\imagerx\services\StorageService;
 
 use spacecatninja\imagerx\transformers\CraftTransformer;
-use spacecatninja\imagerx\transformers\ImgixTransformer;
 use spacecatninja\imagerx\twigextensions\ImagerTwigExtension;
 use spacecatninja\imagerx\utilities\ImagerUtility;
 use spacecatninja\imagerx\variables\ImagerVariable;
@@ -126,7 +123,6 @@ use yii\base\Event;
  * @property  ImagerService      $imagerx
  * @property  ImagerColorService $color
  * @property  PlaceholderService $placeholder
- * @property  ImgixService       $imgix
  * @property  GenerateService    $generate
  * @property  StorageService     $storage
  * @property  OptimizerService   $optimizer
@@ -203,7 +199,6 @@ class ImagerX extends Plugin
             'imagerx' => ImagerService::class,
             'placeholder' => PlaceholderService::class,
             'color' => ImagerColorService::class,
-            'imgix' => ImgixService::class,
             'generate' => GenerateService::class,
             'storage' => StorageService::class,
             'optimizer' => OptimizerService::class,
@@ -237,15 +232,10 @@ class ImagerX extends Plugin
 
         // Event listener for clearing caches when an asset is replaced
         Event::on(Assets::class, Assets::EVENT_AFTER_REPLACE_ASSET,
-            static function(ReplaceAssetEvent $event) use ($config) {
+            static function(ReplaceAssetEvent $event) {
                 // Check if the asset is an image before proceeding
                 if ($event->asset->kind === 'image') {
                     ImagerX::$plugin->imagerx->removeTransformsForAsset($event->asset);
-
-                    // If Imgix purging is possible, do that too
-                    if ($config->imgixEnableAutoPurging && ImgixService::getCanPurge()) {
-                        ImagerX::$plugin->imgix->purgeAssetFromImgix($event->asset);
-                    }
                 }
             }
         );
@@ -338,11 +328,6 @@ class ImagerX extends Plugin
                 $event->actions[] = ClearTransformsElementAction::class;
 
                 if (ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
-                    // If Imgix purging is possible, add element action for purging – unless the element action is disabled
-                    if ($config->imgixEnablePurgeElementAction && ImgixService::getCanPurge()) {
-                        $event->actions[] = ImgixPurgeElementAction::class;
-                    }
-
                     // If any volume transforms were configured, add generate transforms element action
                     $generateVolumeConfig = ImagerService::$generateConfig['volumes'] ?? null;
 
@@ -547,36 +532,24 @@ class ImagerX extends Plugin
      */
     private function registerRemoveTransformsListeners(): void
     {
-        $config = ImagerService::getConfig();
-
         Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT,
-            static function(ElementEvent $event) use ($config) {
+            static function(ElementEvent $event) {
                 if ($event->element instanceof Asset) {
                     /** @var Asset $asset */
                     $asset = $event->element;
 
                     ImagerX::$plugin->imagerx->removeTransformsForAsset($asset);
-
-                    // If Imgix purging is possible, do that too
-                    if ($config->imgixEnableAutoPurging && ImgixService::getCanPurge()) {
-                        ImagerX::$plugin->imgix->purgeAssetFromImgix($asset);
-                    }
                 }
             }
         );
 
         Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT,
-            static function(ElementEvent $event) use ($config) {
+            static function(ElementEvent $event) {
                 /** @var Element $element */
                 $element = $event->element;
 
                 if ($element instanceof Asset && $element->getScenario() === Asset::SCENARIO_FILEOPS) {
                     ImagerX::$plugin->imagerx->removeTransformsForAsset($element);
-
-                    // If Imgix purging is possible, do that too
-                    if ($config->imgixEnableAutoPurging && ImgixService::getCanPurge()) {
-                        ImagerX::$plugin->imgix->purgeAssetFromImgix($element);
-                    }
                 }
             }
         );
@@ -590,7 +563,6 @@ class ImagerX extends Plugin
         if (self::getInstance()?->is(self::EDITION_PRO)) {
             $data = [
                 'craft' => CraftTransformer::class,
-                'imgix' => ImgixTransformer::class,
             ];
 
             $event = new RegisterTransformersEvent([

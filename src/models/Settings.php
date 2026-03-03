@@ -73,24 +73,16 @@ class Settings extends Model
     public bool $useForCpThumbs = false;
     public array $hideClearCachesForUserGroups = [];
 
-    public string $imgixProfile = 'default';
-    public string $imgixApiKey = '';
-    public bool $imgixEnableAutoPurging = true;
-    public bool $imgixEnablePurgeElementAction = true;
-
-    public array $imgixConfig = [
-        'default' => [
-            'domain' => '',
-            'useHttps' => true,
-            'signKey' => '',
-            'sourceIsWebProxy' => false,
-            'useCloudSourcePath' => true,
-            'getExternalImageDimensions' => true,
-            'defaultParams' => [],
-            'apiKey' => '',
-            'excludeFromPurge' => false,
-        ],
-    ];
+    /** @deprecated Install the imager-x-imgix-transformer plugin instead. */
+    public ?string $imgixProfile = null;
+    /** @deprecated Install the imager-x-imgix-transformer plugin instead. */
+    public ?string $imgixApiKey = null;
+    /** @deprecated Install the imager-x-imgix-transformer plugin instead. */
+    public ?bool $imgixEnableAutoPurging = null;
+    /** @deprecated Install the imager-x-imgix-transformer plugin instead. */
+    public ?bool $imgixEnablePurgeElementAction = null;
+    /** @deprecated Install the imager-x-imgix-transformer plugin instead. */
+    public ?array $imgixConfig = null;
 
     public string $optimizeType = 'job';
     public array $optimizers = [];
@@ -192,5 +184,9 @@ class Settings extends Model
     {
         // Set default based on devMode. Overridable through config.
         $this->suppressExceptions = !\Craft::$app->getConfig()->getGeneral()->devMode;
+
+        if ($this->imgixProfile !== null || $this->imgixApiKey !== null || $this->imgixEnableAutoPurging !== null || $this->imgixEnablePurgeElementAction !== null || $this->imgixConfig !== null) {
+            \Craft::$app->deprecator->log(__METHOD__, 'Support for Imgix has been refactored into it\'s own plugin, `spacecatninja/imager-x-imgix-transformer`. Please install it and migrate your Imgix configuration to `config/imager-x-imgix-transformer.php`, see documentation for more details.');
+        }
     }
 }
