@@ -319,14 +319,41 @@ class LocalSourceImageModel
     }
 
     /**
+     * Checks that a URL's resolved IP is not a private or loopback address.
+     *
+     * @throws ImagerException
+     */
+    private function validateExternalUrl(string $image): void
+    {
+        $host = parse_url($image, PHP_URL_HOST);
+
+        if (empty($host)) {
+            throw new ImagerException(Craft::t('imager-x', 'Could not parse host from URL "{url}"', ['url' => $image]));
+        }
+
+        $ip = gethostbyname($host);
+
+        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+            throw new ImagerException(Craft::t('imager-x', 'Could not resolve host "{host}" to a valid IP address', ['host' => $host]));
+        }
+
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            $msg = Craft::t('imager-x', 'URL "{url}" resolves to a private or reserved IP address and cannot be used as an image source', ['url' => $image]);
+            Craft::error($msg, __METHOD__);
+            throw new ImagerException($msg);
+        }
+    }
+
+    /**
      * Get paths for an external file (really external, or on an external source type)
      *
-     * @param $image
-     *
+     * @param string $image
      * @throws ImagerException
      */
     private function getPathsForUrl(string $image): void
     {
+        $this->validateExternalUrl($image);
+
         $config = ImagerService::getConfig();
 
         try {
