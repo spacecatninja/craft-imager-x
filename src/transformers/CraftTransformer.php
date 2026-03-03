@@ -353,7 +353,7 @@ class CraftTransformer extends Component implements TransformerInterface
             // Save temp file
             $tempFile = $this->saveTemporaryFile($imageInstance, $sourceExtension);
 
-            $customEncoderOptions = $transform['customEncoderOptions'] ?? [];
+            $customEncoderOptions = array_map('escapeshellarg', $transform['customEncoderOptions'] ?? []);
 
             $opts = array_merge([
                 '{src}' => escapeshellarg($tempFile),

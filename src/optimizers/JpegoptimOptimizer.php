@@ -27,7 +27,7 @@ class JpegoptimOptimizer implements ImagerOptimizeInterface
         if ($config->skipExecutableExistCheck || file_exists(App::parseEnv($settings['path']))) {
             $cmd = App::parseEnv($settings['path']);
             $cmd .= ' ';
-            $cmd .= $settings['optionString'];
+            $cmd .= escapeshellcmd($settings['optionString']);
             $cmd .= ' ';
             $cmd .= '"' . $file . '"';
     
