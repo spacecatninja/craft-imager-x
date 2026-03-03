@@ -50,6 +50,7 @@ class Settings extends Model
     public string|bool $hashRemoteUrl = false;
     public bool $useRemoteUrlQueryString = false;
     public bool $useRawExternalUrl = true;
+    public bool $skipExternalUrlValidation = false;
     public bool $instanceReuseEnabled = false;
     public bool $noop = false;
     public bool $suppressExceptions = false;

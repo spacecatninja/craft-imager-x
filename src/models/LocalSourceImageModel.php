@@ -352,9 +352,11 @@ class LocalSourceImageModel
      */
     private function getPathsForUrl(string $image): void
     {
-        $this->validateExternalUrl($image);
-
         $config = ImagerService::getConfig();
+
+        if (!$config->skipExternalUrlValidation) {
+            $this->validateExternalUrl($image);
+        }
 
         try {
             $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath().'/imager/';
