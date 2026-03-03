@@ -1,5 +1,15 @@
 # Imager X Changelog
 
+## 5.2.1 - 2026-03-01
+
+### Added
+- Added skipExternalUrlValidation config setting to skip the new external URL validation check.
+
+### Fixed
+- Fixed SSRF vulnerability by blocking private/reserved IP ranges for external URL downloads.
+- Fixed option escaping for shell commands.
+- Fixed handling of cache clear key.
+
 ## 5.2.0 - 2026-02-28
 
 ### Added
