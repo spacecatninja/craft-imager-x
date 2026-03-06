@@ -76,8 +76,6 @@ use spacecatninja\imagerx\events\RegisterExternalStoragesEvent;
 use spacecatninja\imagerx\events\RegisterOptimizersEvent;
 use spacecatninja\imagerx\events\RegisterTransformersEvent;
 use spacecatninja\imagerx\exceptions\ImagerException;
-use spacecatninja\imagerx\externalstorage\AwsStorage;
-use spacecatninja\imagerx\externalstorage\GcsStorage;
 use spacecatninja\imagerx\gql\directives\ImagerSrcset;
 use spacecatninja\imagerx\gql\directives\ImagerTransform;
 use spacecatninja\imagerx\gql\interfaces\ImagerTransformedImageInterface;
@@ -666,13 +664,8 @@ class ImagerX extends Plugin
     private function registerExternalStorages(): void
     {
         if (self::getInstance()?->is(self::EDITION_PRO)) {
-            $data = [
-                'aws' => AwsStorage::class,
-                'gcs' => GcsStorage::class,
-            ];
-
             $event = new RegisterExternalStoragesEvent([
-                'storages' => $data,
+                'storages' => [],
             ]);
 
             $this->trigger(self::EVENT_REGISTER_EXTERNAL_STORAGES, $event);
