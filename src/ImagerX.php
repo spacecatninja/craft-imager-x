@@ -90,11 +90,9 @@ use spacecatninja\imagerx\models\TransformedImageInterface;
 use spacecatninja\imagerx\optimizers\GifsicleOptimizer;
 use spacecatninja\imagerx\optimizers\JpegoptimOptimizer;
 use spacecatninja\imagerx\optimizers\JpegtranOptimizer;
-use spacecatninja\imagerx\optimizers\KrakenOptimizer;
 use spacecatninja\imagerx\optimizers\MozjpegOptimizer;
 use spacecatninja\imagerx\optimizers\OptipngOptimizer;
 use spacecatninja\imagerx\optimizers\PngquantOptimizer;
-use spacecatninja\imagerx\optimizers\TinypngOptimizer;
 
 use spacecatninja\imagerx\services\GenerateService;
 use spacecatninja\imagerx\services\ImagerColorService;
@@ -643,8 +641,6 @@ class ImagerX extends Plugin
             'optipng' => OptipngOptimizer::class,
             'pngquant' => PngquantOptimizer::class,
             'gifsicle' => GifsicleOptimizer::class,
-            'tinypng' => TinypngOptimizer::class,
-            'kraken' => KrakenOptimizer::class,
         ];
 
         $event = new RegisterOptimizersEvent([
