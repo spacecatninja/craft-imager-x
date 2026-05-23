@@ -36,7 +36,7 @@ class Settings extends Model
     public bool $smartResizeEnabled = false;
     public bool $removeMetadata = false;
     public bool $preserveColorProfiles = false;
-    public array $safeFileFormats = ['jpg', 'jpeg', 'gif', 'png'];
+    public array $safeFileFormats = ['jpg', 'jpeg', 'gif', 'png', 'webp'];
     public string $bgColor = '';
     public string $position = '50% 50%';
     public array $letterbox = ['color' => '#000', 'opacity' => 0];
@@ -44,7 +44,7 @@ class Settings extends Model
     public bool $useFilenamePattern = true;
     public string $filenamePattern = '{basename}_{transformString|hash}.{extension}';
     public int $shortHashLength = 10;
-    public string|bool $hashFilename = 'postfix'; // deprecated?
+    public string|bool $hashFilename = 'postfix'; // deprecated
     public bool $hashPath = false;
     public bool $addVolumeToPath = true;
     public string|bool $hashRemoteUrl = false;
@@ -118,7 +118,7 @@ class Settings extends Model
             'path' => '/usr/bin/gifsicle',
             'optionString' => '--optimize=3 --colors 256',
         ],
-        'tinypng' => [
+        'tinify' => [
             'extensions' => ['png', 'jpg'],
             'apiKey' => '',
         ],
@@ -184,9 +184,5 @@ class Settings extends Model
     {
         // Set default based on devMode. Overridable through config.
         $this->suppressExceptions = !\Craft::$app->getConfig()->getGeneral()->devMode;
-
-        if ($this->imgixProfile !== null || $this->imgixApiKey !== null || $this->imgixEnableAutoPurging !== null || $this->imgixEnablePurgeElementAction !== null || $this->imgixConfig !== null) {
-            \Craft::$app->deprecator->log(__METHOD__, 'Support for Imgix has been refactored into it\'s own plugin, `spacecatninja/imager-x-imgix-transformer`. Please install it and migrate your Imgix configuration to `config/imager-x-imgix-transformer.php`, see documentation for more details.');
-        }
     }
 }
