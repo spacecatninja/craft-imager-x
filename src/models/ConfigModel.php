@@ -38,7 +38,16 @@ class ConfigModel extends Settings
         foreach ($settings as $key => $value) {
             $this->$key = $value;
         }
-
+        
+        // Deprecations
+        if ($this->imgixProfile !== null || $this->imgixApiKey !== null || $this->imgixEnableAutoPurging !== null || $this->imgixEnablePurgeElementAction !== null || $this->imgixConfig !== null) {
+            \Craft::$app->deprecator->log(__METHOD__, 'Support for Imgix has been refactored into it\'s own plugin, `spacecatninja/imager-x-imgix-transformer`. Please install it and migrate your Imgix configuration to `config/imager-x-imgix-transformer.php`, see [documentation](https://github.com/spacecatninja/craft-imager-x-imgix-transformer) for more details.');
+        }
+        
+        if (isset($this->optimizerConfig['tinypng'])) {
+            \Craft::$app->deprecator->log(__METHOD__, 'Config key `tinypng` has been renamed to `tinify`. Please update your config.');
+        }
+        
         // Apply transform overrides
         $excludedConfigOverrideProperties = ['fillTransforms', 'fillInterval', 'fillAttribute', 'filenamePattern', 'transformer', 'optimizeType', 'safeFileFormats'];
 
@@ -71,7 +80,6 @@ class ConfigModel extends Settings
         foreach ($parseables as $parseable) {
             $this->{$parseable} = App::parseEnv($this->{$parseable});
         }
-        
         // Normalize imager system path
         $this->imagerSystemPath = FileHelper::normalizePath($this->imagerSystemPath);
     }
