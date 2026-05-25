@@ -210,7 +210,7 @@ class ImagerService extends Component
      */
     public static string $processingNamedTransform = '';
 
-    
+
     // Constructor
     // =========================================================================
 
@@ -356,14 +356,15 @@ class ImagerService extends Component
      */
     public function transformImage($image, array|string $transforms, array $transformDefaults = null, array $configOverrides = null): TransformedImageInterface|array|null
     {
+
         if (!$image) {
             return null;
         }
-        
+
         // Let's handle named transforms here
         if (is_string($transforms)) {
             self::$processingNamedTransform = $transforms;
-                
+
             $processedTransforms = [];
 
             while (is_string($transforms)) {
@@ -396,7 +397,7 @@ class ImagerService extends Component
                 $configOverrides = array_merge($namedTransform['configOverrides'] ?? [], $configOverrides ?? []) ?? [];
             }
         }
-        
+
         if (TransformHelpers::isQuickSyntax($transforms)) {
             $transforms = TransformHelpers::parseQuickTransforms($transforms);
             $configOverrides = array_merge(['fillTransforms' => 'auto'], $configOverrides ?? []); // override fillTransforms if not explicitely set
@@ -421,7 +422,7 @@ class ImagerService extends Component
         if (self::$transformConfig->fillTransforms !== false && \count($transforms) > 1) {
             $transforms = TransformHelpers::fillTransforms($transforms);
         }
-        
+
         // Merge in default transform parameters
         $transforms = TransformHelpers::mergeTransforms($transforms, $transformDefaults);
 
@@ -465,6 +466,7 @@ class ImagerService extends Component
 
         if ($transformedImages === null) {
             // Create transformer
+
             if (!isset(self::$transformers[self::$transformConfig->transformer])) {
                 $msg = 'Invalid transformer "'.self::$transformConfig->transformer.'".';
 
@@ -536,7 +538,7 @@ class ImagerService extends Component
 
     /**
      * Do post-processing on locally transformed images; optimizers and external storage
-     * 
+     *
      * @param array $transformedImages
      *
      * @return void
@@ -545,7 +547,7 @@ class ImagerService extends Component
     public function postProcessTransformedImages(array $transformedImages): void
     {
         $config = self::getConfig();
-        
+
         $taskCreated = false;
 
         // Loop over transformed images and do post optimizations and upload to external storage
@@ -735,9 +737,9 @@ class ImagerService extends Component
     {
         $config = self::getConfig();
 
-        // Reset memoized named transform value 
+        // Reset memoized named transform value
         self::$processingNamedTransform = '';
-                
+
         // Clears any remote images downloaded during session if `cacheRemoteFiles` is `false`
         if (!$config->cacheRemoteFiles && self::$remoteImageSessionCache !== []) {
             foreach (self::$remoteImageSessionCache as $file) {

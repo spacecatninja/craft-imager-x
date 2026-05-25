@@ -14,7 +14,7 @@ use Craft;
 
 use craft\elements\Asset;
 use craft\errors\FsException;
-use craft\fs\Local;
+use CraftCms\Cms\Filesystem\Filesystems\Local;
 use craft\helpers\Assets;
 use craft\helpers\Assets as AssetsHelper;
 use craft\helpers\StringHelper;
@@ -214,7 +214,7 @@ class LocalSourceImageModel
     {
         try {
             $volume = $image->getVolume();
-            
+
             /** @var Local $fs */
             $fs = $image->getVolume()->getFs();
 

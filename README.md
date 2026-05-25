@@ -1,4 +1,4 @@
-Imager X for Craft 5
+Imager X for Craft 6
 ====================
 
 Imager X is a Craft plugin for doing image transforms, optimizations and manipulations.
@@ -11,7 +11,7 @@ To install Imager X, follow these steps:
 2. Install the plugin in the Craft Control Panel under Settings > Plugins, or from the command line via `./craft plugin/install imager-x`.
 3. [Configure it](http://imager-x.spacecat.ninja/configuration.html).
 
-Imager X requires Craft 5.0.0 or higher. 
+Imager X requires Craft 6.0.0 or higher. 
 
 Documentation
 -------------

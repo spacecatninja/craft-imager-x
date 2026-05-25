@@ -25,7 +25,7 @@ class ImagerVariable
 {
     /**
      * Transforms an image
-     * 
+     *
      * @throws ImagerException
      */
     public function transformImage(Asset|ImagerAdapterInterface|string|null $image, array|string $transforms, array $transformDefaults = null, array $configOverrides = null): array|TransformedImageInterface|null
@@ -34,7 +34,7 @@ class ImagerVariable
     }
 
     /**
-     * Takes an array of models that supports getUrl() and getWidth(), 
+     * Takes an array of models that supports getUrl() and getWidth(),
      * and returns a srcset string
      */
     public function srcset(?array $images, string $descriptor = 'w'): string
@@ -262,7 +262,7 @@ class ImagerVariable
         if (!str_contains($format, 'image/')) {
             $format = sprintf('image/%s', $format);
         }
-        
+
         return Craft::$app->getRequest()->accepts($format);
     }
 
@@ -285,7 +285,7 @@ class ImagerVariable
     {
         return Plugin::$plugin->getSettings()->transformer === 'imgix';
     }
-    
+
     /**
      * Returns transformer handle
      */
@@ -298,7 +298,7 @@ class ImagerVariable
     {
         return NamedTransformHelpers::getNamedTransform($name) !== null;
     }
-    
+
     public function getNamedTransform(string $name): ?array
     {
         return NamedTransformHelpers::getNamedTransform($name);

@@ -66,7 +66,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
         $this->imagineInstance = ImagerHelpers::createImagineInstance();
     }
-    
+
     /**
      * Main transform method
      *
@@ -97,6 +97,7 @@ class CraftTransformer extends Component implements TransformerInterface
             }
         }
 
+
         ImagerX::getInstance()->imagerx->postProcessTransformedImages($transformedImages);
 
         return $transformedImages;
@@ -112,7 +113,7 @@ class CraftTransformer extends Component implements TransformerInterface
     private function getTransformedImage(LocalSourceImageModel $sourceModel, array $transform): ?LocalTransformedImageModel
     {
         $config = ImagerService::getConfig();
-        
+
         if ($this->imagineInstance === null) {
             $msg = Craft::t('imager-x', 'Imagine instance was not created for driver “{driver}”.', ['driver' => ImagerService::$imageDriver]);
             Craft::error($msg, __METHOD__);
@@ -246,7 +247,7 @@ class CraftTransformer extends Component implements TransformerInterface
             if (!$config->getSetting('instanceReuseEnabled', $transform)) {
                 $this->imageInstance->__destruct();
             }
-            
+
             $targetModel->isNew = true;
         }
 
@@ -483,14 +484,14 @@ class CraftTransformer extends Component implements TransformerInterface
             $palette = new RGB();
             $color = $palette->color(
                 $letterboxDef['color'] ?? '#000',
-                isset($letterboxDef['opacity']) ? (int)($letterboxDef['opacity'] * 100) : 0 
+                isset($letterboxDef['opacity']) ? (int)($letterboxDef['opacity'] * 100) : 0
             );
 
             if ($this->imagineInstance !== null) {
                 $backgroundImage = $this->imagineInstance->create($size, $color);
 
                 // Set palette of created image. This is necessary to avoid colors being skewed
-                // when pasting an image into one with a different color palette.   
+                // when pasting an image into one with a different color palette.
                 if ($config->getSetting('convertToRGB', $transform)) {
                     $this->imageInstance->usePalette(new RGB());
                 } else {
