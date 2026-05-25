@@ -1,5 +1,20 @@
 # Imager X Changelog
 
+## 6.0.0 - 2026-05-24
+
+> [!WARNING]  
+> This release contains breaking changes. Please review the release notes carefully before upgrading.
+
+### Removed
+- Removed Imgix support from core. Imgix is now available as a separate plugin, `spacecatninja/imager-x-imgix-transformer`. A deprecation notice is logged if old Imgix-related config settings are present. Please install the plugin and migrate your Imgix configuration to `config/imager-x-imgix-transformer.php`, see [documentation for details](https://github.com/spacecatninja/craft-imager-x-imgix-transformer).
+- Removed AWS and GCS external storage drivers from core. These are now available as separate plugins, `spacecatninja/imager-x-aws-storage-driver` and `spacecatninja/imager-x-gcs-storage-driver`.
+- Removed Kraken and Tinify optimizers from core. These are now available as separate plugins, `spacecatninja/imager-x-kraken-optimizer` and `spacecatninja/imager-x-tinify-optimizer`.
+
+### Changed
+- Changed `safeFileFormats` config setting, added `webp` to the default.
+- Changed optimizer config key from `tinypng` to `tinify`.
+
+
 ## 5.2.1 - 2026-03-01
 
 ### Added
