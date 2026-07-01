@@ -1,5 +1,11 @@
 # Imager X Changelog
 
+## 7.0.0-alpha.1
+
+### Added
+- Added compability layer for Craft 6.
+
+
 ## 6.0.0 - 2026-05-24
 
 > [!WARNING]  
