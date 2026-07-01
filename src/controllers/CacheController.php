@@ -52,7 +52,7 @@ class CacheController extends Controller
             throw new ForbiddenHttpException('Cache clearing is disabled: no clearKey is configured.');
         }
 
-        if ($key !== $setKey) {
+        if (!hash_equals($setKey, $key)) {
             throw new ForbiddenHttpException('Unauthorized key.');
         }
 
@@ -78,7 +78,7 @@ class CacheController extends Controller
             throw new ForbiddenHttpException('Cache clearing is disabled: no clearKey is configured.');
         }
 
-        if ($key !== $setKey) {
+        if (!hash_equals($setKey, $key)) {
             throw new ForbiddenHttpException('Unauthorized key.');
         }
 

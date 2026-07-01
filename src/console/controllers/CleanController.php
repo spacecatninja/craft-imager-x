@@ -64,8 +64,13 @@ class CleanController extends Controller
         $config = ImagerService::getConfig();
         $systemPath = $config->imagerSystemPath;
         $this->volume = trim($this->volume);
-        
+
         if (!empty($this->volume)) {
+            if (!preg_match('/^[A-Za-z0-9_\-]+$/', $this->volume)) {
+                $this->error('Invalid volume handle "' . $this->volume . '".');
+                return ExitCode::UNAVAILABLE;
+            }
+
             if (!$config->addVolumeToPath) {
                 $this->error('Cannot clean transforms by volume when `addVolumeToPath` is `false`.');
                 return ExitCode::UNAVAILABLE;
