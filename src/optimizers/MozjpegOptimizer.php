@@ -29,9 +29,9 @@ class MozjpegOptimizer implements ImagerOptimizeInterface
             $cmd .= ' ';
             $cmd .= escapeshellcmd($settings['optionString']);
             $cmd .= ' -outfile ';
-            $cmd .= '"' . $file . '"';
+            $cmd .= escapeshellarg($file);
             $cmd .= ' ';
-            $cmd .= '"' . $file . '"';
+            $cmd .= escapeshellarg($file);
             $result = self::runShellCommand($cmd);
             Craft::info('Command "' . $cmd . '" returned "' . $result . '"');
         } else {

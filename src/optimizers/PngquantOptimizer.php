@@ -30,9 +30,9 @@ class PngquantOptimizer implements ImagerOptimizeInterface
             $cmd .= escapeshellcmd($settings['optionString']);
             $cmd .= ' ';
             $cmd .= '-f -o ';
-            $cmd .= '"' . $file . '"';
+            $cmd .= escapeshellarg($file);
             $cmd .= ' ';
-            $cmd .= '"' . $file . '"';
+            $cmd .= escapeshellarg($file);
             
             $result = self::runShellCommand($cmd);
             Craft::info('Command "' . $cmd . '" returned "' . $result . '"');

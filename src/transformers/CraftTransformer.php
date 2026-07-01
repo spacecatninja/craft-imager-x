@@ -373,7 +373,11 @@ class CraftTransformer extends Component implements TransformerInterface
 
             $opts = $r;
 
-            $command = escapeshellcmd($encoder['path'].' '.strtr($encoder['paramsString'], $opts)) . ' 2>&1';
+            // Note: {src}, {dest} and customEncoderOptions are individually passed through escapeshellarg()
+            // above. The encoder path is escaped here, and paramsString/options come from plugin config. We
+            // deliberately do not wrap the whole string in escapeshellcmd() — doing so mangles the already
+            // escaped arguments (e.g. paths containing spaces or shell metacharacters).
+            $command = escapeshellarg($encoder['path']).' '.strtr($encoder['paramsString'], $opts).' 2>&1';
             $r = shell_exec($command);
 
             if (!file_exists($path)) {

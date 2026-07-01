@@ -29,9 +29,9 @@ class JpegtranOptimizer implements ImagerOptimizeInterface
             $cmd .= ' ';
             $cmd .= escapeshellcmd($settings['optionString']);
             $cmd .= ' -outfile ';
-            $cmd .= '"' . $file . '"';
+            $cmd .= escapeshellarg($file);
             $cmd .= ' ';
-            $cmd .= '"' . $file . '"';
+            $cmd .= escapeshellarg($file);
 
             $result = self::runShellCommand($cmd);
             
