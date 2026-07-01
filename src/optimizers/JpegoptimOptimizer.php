@@ -29,7 +29,7 @@ class JpegoptimOptimizer implements ImagerOptimizeInterface
             $cmd .= ' ';
             $cmd .= escapeshellcmd($settings['optionString']);
             $cmd .= ' ';
-            $cmd .= '"' . $file . '"';
+            $cmd .= escapeshellarg($file);
     
             $result = self::runShellCommand($cmd);
             Craft::info('Command "' . $cmd . '" returned "' . $result . '"');

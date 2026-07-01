@@ -30,7 +30,7 @@ class GifsicleOptimizer implements ImagerOptimizeInterface
             $cmd .= escapeshellcmd($settings['optionString']);
             $cmd .= ' ';
             $cmd .= '-b ';
-            $cmd .= '"' . $file . '"';
+            $cmd .= escapeshellarg($file);
             
             $result = self::runShellCommand($cmd);
 
