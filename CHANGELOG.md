@@ -1,5 +1,14 @@
 # Imager X Changelog
 
+## 6.0.1 - Unreleased
+
+### Fixed
+- Fixed additional SSRF bypasses in external URL validation: redirects are now followed manually and re-validated on every hop, the connection is pinned to the validated IP to mitigate DNS rebinding, all resolved A/AAAA records are checked (not just the first), and downloads are restricted to the `http`/`https` protocols. The `skipExternalUrlValidation` config setting still disables these checks.
+- Fixed a path traversal issue by confining string-based local image sources to the web root / imager system path.
+- Fixed `safeFileFormats` validation to URL sources in the `imagerTransform` GraphQL query.
+- Fixed potential command injection in the image optimizers and custom encoder by escaping file path arguments with `escapeshellarg()`.
+- Fixed the cache clear key comparison to be constant-time, and added validation of the `--volume` handle in the `imager-x/clean` console command.
+
 ## 6.0.0 - 2026-05-24
 
 > [!WARNING]  

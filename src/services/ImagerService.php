@@ -667,7 +667,12 @@ class ImagerService extends Component
             $sourceModel = new LocalSourceImageModel($asset);
             $targetModel = new LocalTargetImageModel($sourceModel, []);
 
-            if (str_contains($targetModel->path, $config->imagerSystemPath)) {
+            $normalizedBase = FileHelper::normalizePath($config->imagerSystemPath);
+            $normalizedPath = FileHelper::normalizePath($targetModel->path);
+
+            // Prefix check on normalized paths (not a substring match) so a traversed path can't
+            // pass by merely containing the base path somewhere in the middle.
+            if ($normalizedBase !== '' && str_starts_with($normalizedPath.'/', rtrim($normalizedBase, '/').'/')) {
                 if (is_dir($targetModel->path)) {
                     try {
                         FileHelper::clearDirectory(FileHelper::normalizePath($targetModel->path));
