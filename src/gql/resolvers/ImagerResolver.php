@@ -54,10 +54,22 @@ class ImagerResolver extends Resolver
             }
         }
         
-        if ($asset instanceof Asset && (!\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true))) {
-            return null;
+        if ($asset instanceof Asset) {
+            if (!\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+                return null;
+            }
+        } elseif (\is_string($asset)) {
+            // A raw `url` argument is an untrusted image source. Enforce safeFileFormats here too — the
+            // guard above only covered Asset sources. Only enforced when an extension is present, so
+            // extension-less image URLs keep working; SSRF and path traversal are handled separately.
+            $path = parse_url($asset, PHP_URL_PATH);
+            $extension = \is_string($path) ? strtolower(pathinfo($path, PATHINFO_EXTENSION)) : '';
+
+            if ($extension !== '' && !\in_array($extension, ImagerService::getConfig()->safeFileFormats, true)) {
+                return null;
+            }
         }
-        
+
         if ($asset !== null) {
             try {
                 $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform);
