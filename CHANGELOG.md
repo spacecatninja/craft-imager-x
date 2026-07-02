@@ -1,6 +1,6 @@
 # Imager X Changelog
 
-## 6.0.1 - Unreleased
+## 6.0.1 - 2026-07-02
 
 ### Fixed
 - Fixed additional SSRF bypasses in external URL validation: redirects are now followed manually and re-validated on every hop, the connection is pinned to the validated IP to mitigate DNS rebinding, all resolved A/AAAA records are checked (not just the first), and downloads are restricted to the `http`/`https` protocols. The `skipExternalUrlValidation` config setting still disables these checks.
