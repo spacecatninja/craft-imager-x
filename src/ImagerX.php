@@ -500,7 +500,8 @@ class ImagerX extends Plugin
                         return;
                     }
 
-                    if (ImagerX::$plugin->generate->shouldGenerateByVolumes($element)) {
+                    // Volume based generation is site agnostic, so skip propagation saves in multi-site installs (see issue #307)
+                    if (!$element->propagating && ImagerX::$plugin->generate->shouldGenerateByVolumes($element)) {
                         ImagerX::$plugin->generate->processAssetByVolumes($element);
                     }
 
