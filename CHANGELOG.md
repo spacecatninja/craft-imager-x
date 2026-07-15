@@ -1,5 +1,16 @@
 # Imager X Changelog
 
+## 6.1.0 - 2026-07-16
+
+### Added
+- Added a `--runtimeCache` option to the `imager-x/clean` console command for cleaning expired files in the runtime cache (fixes #311).
+- Added an `--exclude` option to the `imager-x/clean` console command for excluding subpaths from cleaning. When cleaning the runtime cache, `temp`, `pdf-adapter` and `video-adapter` are always excluded.
+- Added a `--force` option to the `imager-x/generate` console command for forcing transforms to be generated even if they already exist and have not expired (fixes #310).
+
+### Fixed
+- Fixed a race condition where concurrent first transforms of the same remote volume asset or external URL could publish a partial file to the source cache and reuse it until it expired. Source file downloads are now serialized with a mutex and published atomically with `rename()` (fixes #309).
+- Fixed duplicate transform queue jobs when elements were saved in multi-site installs. Identical jobs are now deduplicated per request, and volume-based auto generation skips propagation saves (fixes #307).
+
 ## 6.0.1 - 2026-07-02
 
 ### Fixed
