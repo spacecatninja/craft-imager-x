@@ -10,6 +10,8 @@
 
 namespace spacecatninja\imagerx\console\controllers;
 
+use Craft;
+
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\helpers\FileHelper;
@@ -22,16 +24,31 @@ use yii\helpers\Console;
 class CleanController extends Controller
 {
     /**
-     * @var string Handle of volume to clean transforms for
+     * @var string[] Subpaths that are always excluded when cleaning the runtime cache.
+     */
+    private const RUNTIME_CACHE_EXCLUDES = ['temp', 'pdf-adapter', 'video-adapter'];
+
+    /**
+     * @var string Handle of volume to clean transforms for.
      */
     public string $volume = '';
-    
+
     /**
-     * @var string|null Overrides the default cache duration settings
+     * @var bool Cleans the runtime cache when set to true.
+     */
+    public bool $runtimeCache = false;
+
+    /**
+     * @var array Comma-separated list of subpaths to exclude, relative to the path being cleaned. When cleaning the runtime cache, `temp`, `pdf-adapter` and `video-adapter` are always excluded.
+     */
+    public array $exclude = [];
+
+    /**
+     * @var string|null Overrides the default cache duration settings.
      */
     public ?string $duration = null;
-    
-    
+
+
     // Public Methods
     // =========================================================================
     /**
@@ -40,9 +57,11 @@ class CleanController extends Controller
     public function options($actionID): array
     {
         $options = parent::options($actionID);
-        
+
         return array_merge($options, [
             'volume',
+            'runtimeCache',
+            'exclude',
             'duration',
             'interactive',
         ]);
@@ -52,6 +71,7 @@ class CleanController extends Controller
     {
         return [
             'v' => 'volume',
+            'e' => 'exclude',
             'd' => 'duration',
         ];
     }
@@ -62,10 +82,22 @@ class CleanController extends Controller
     public function actionIndex(): int
     {
         $config = ImagerService::getConfig();
-        $systemPath = $config->imagerSystemPath;
+        $path = $config->imagerSystemPath;
+        $configDuration = $config->cacheDuration;
+        $noun = $this->runtimeCache ? 'files' : 'transforms';
+        $excludes = array_filter(array_map(static fn(string $exclude): string => trim($exclude, "/ \t"), $this->exclude));
         $this->volume = trim($this->volume);
 
-        if (!empty($this->volume)) {
+        if ($this->runtimeCache && !empty($this->volume)) {
+            $this->error('Runtime cache and volume cannot be used together.');
+            return ExitCode::UNAVAILABLE;
+        }
+
+        if ($this->runtimeCache) {
+            $configDuration = $config->cacheDurationRemoteFiles;
+            $path = FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/');
+            $excludes = array_unique(array_merge($excludes, self::RUNTIME_CACHE_EXCLUDES));
+        } elseif (!empty($this->volume)) {
             if (!preg_match('/^[A-Za-z0-9_\-]+$/', $this->volume)) {
                 $this->error('Invalid volume handle "' . $this->volume . '".');
                 return ExitCode::UNAVAILABLE;
@@ -76,59 +108,63 @@ class CleanController extends Controller
                 return ExitCode::UNAVAILABLE;
             }
             
-            $systemPath = FileHelper::normalizePath($systemPath . DIRECTORY_SEPARATOR . $this->volume);
+            $path = FileHelper::normalizePath($path . DIRECTORY_SEPARATOR . $this->volume);
         }
-        
-        if (!$this->duration && $config->cacheDuration === false) {
-            $this->error('`cacheDuration` has been set to `false`, and no duration has been passed to the console command. Nothing to do.');
+
+        if (!$this->duration && $configDuration === false) {
+            $this->error(sprintf('`%s` has been set to `false`, and no duration has been passed to the console command. Nothing to do.', $this->runtimeCache ? 'cacheDurationRemoteFiles' : 'cacheDuration'));
             return ExitCode::UNAVAILABLE;
         }
-        
+
         if (!$this->duration) {
-            $this->duration = $config->cacheDuration;
+            $this->duration = $configDuration;
         }
-        
-        if (!is_dir($systemPath)) {
+
+        if (!is_dir($path)) {
             $this->error("Path not found, cache is probably empty.");
             return ExitCode::OK;
         }
-        
-        $this->success(sprintf('> Scanning %s', $systemPath));
-        
-        $files = FileHelper::filesInPath($systemPath);
-        
+
+        $this->success(sprintf('> Scanning %s', $path));
+
+        if (!empty($excludes)) {
+            $this->message(sprintf('> Excluding %s', implode(', ', $excludes)));
+        }
+
+        $files = $this->filterExcludedFiles(FileHelper::filesInPath($path), $path, $excludes);
+
         if (empty($files)) {
-            $this->error("No transforms found.");
+            $this->error(sprintf('No %s found.', $noun));
             return ExitCode::OK;
         }
-        
+
         $numFiles = count($files);
         $expiredFiles = [];
-        $this->success(sprintf('> Found %d transformed images.', $numFiles));
+        $this->success(sprintf('> Found %d %s.', $numFiles, $noun));
 
         foreach ($files as $file) {
             if (is_file($file) && $this->fileHasExpired($file)) {
                 $expiredFiles[] = $file;
             }
         }
-        
+
         if (empty($expiredFiles)) {
-            $this->success("No expired transforms found, you're all good.");
+            $this->success(sprintf("No expired %s found, you're all good.", $noun));
             return ExitCode::OK;
         }
-        
+
         $numExpiredFiles = count($expiredFiles);
-        
+
         if ($this->interactive) {
-            $promptReply = Console::prompt(sprintf('> Found %d expired transforms. Do you want to delete them (y/N)?', $numExpiredFiles));
-            
+            $promptReply = Console::prompt(sprintf('> Found %d expired %s. Do you want to delete them (y/N)?', $numExpiredFiles, $noun));
+
             if (strtolower($promptReply) !== 'y') {
                 $this->error("> Aborting.");
                 return ExitCode::OK;
             }
         }
-        
-        $this->message(sprintf('> Deleting %d transforms.', $numExpiredFiles));
+
+        $this->message(sprintf('> Deleting %d %s.', $numExpiredFiles, $noun));
         Console::startProgress(0, $numExpiredFiles);
         $current = 0;
 
@@ -137,12 +173,12 @@ class CleanController extends Controller
             Console::updateProgress($current, $numExpiredFiles);
             unlink($expiredFile);
         }
-    
+
         Console::endProgress();
         $this->success("> Done.");
         return ExitCode::OK;
     }
-    
+
     public function success(string $text = ''): void
     {
         $this->stdout($text . PHP_EOL, BaseConsole::FG_GREEN);
@@ -161,5 +197,37 @@ class CleanController extends Controller
     private function fileHasExpired(string $file): bool
     {
         return FileHelper::lastModifiedTime($file) + $this->duration < time();
+    }
+
+    /**
+     * Filters out files inside any of the excluded subpaths.
+     *
+     * @param string[] $files
+     * @param string[] $excludes
+     * @return string[]
+     */
+    private function filterExcludedFiles(array $files, string $basePath, array $excludes): array
+    {
+        if (empty($excludes)) {
+            return $files;
+        }
+
+        $basePath = realpath($basePath);
+
+        if ($basePath === false) {
+            return $files;
+        }
+
+        $prefixes = array_map(static fn(string $exclude): string => $basePath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $exclude) . DIRECTORY_SEPARATOR, $excludes);
+
+        return array_filter($files, static function(string $file) use ($prefixes): bool {
+            foreach ($prefixes as $prefix) {
+                if (str_starts_with($file, $prefix)) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
     }
 }
