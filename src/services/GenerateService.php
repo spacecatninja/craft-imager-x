@@ -37,6 +37,11 @@ use yii\base\InvalidConfigException;
 class GenerateService extends Component
 {
     /**
+     * @var array Keys for transform jobs that have already been queued during this request.
+     */
+    private static array $queuedTransformJobs = [];
+
+    /**
      * @param array|null $transforms
      */
     public function generateByUtility(array $volumeIds, bool $useConfig = true, array $transforms = null): void
@@ -289,6 +294,15 @@ class GenerateService extends Component
      */
     public function createTransformJob(ElementInterface|Asset $asset, array $transforms, bool $force = false): void
     {
+        // Skip identical jobs that have already been queued during this request, ie when element
+        // save events are fired once per site in multi-site installs (see issue #307)
+        $jobKey = $asset->id.':'.md5(json_encode($transforms)).':'.($force ? '1' : '0');
+
+        if (isset(self::$queuedTransformJobs[$jobKey])) {
+            Craft::info('Skipped duplicate transform job for asset with id '.$asset->id, __METHOD__);
+            return;
+        }
+
         $queue = Craft::$app->getQueue();
 
         $jobId = $queue->push(new TransformJob([
@@ -297,6 +311,8 @@ class GenerateService extends Component
             'transforms' => $transforms,
             'force' => $force,
         ]));
+
+        self::$queuedTransformJobs[$jobKey] = true;
 
         Craft::info('Created transform job for asset with id ' . $asset->id . ' (job id is ' . $jobId . ')', __METHOD__);
     }
