@@ -287,7 +287,7 @@ class GenerateService extends Component
      * @param Asset|ElementInterface $asset
      * @param array $transforms
      */
-    public function createTransformJob(ElementInterface|Asset $asset, array $transforms): void
+    public function createTransformJob(ElementInterface|Asset $asset, array $transforms, bool $force = false): void
     {
         $queue = Craft::$app->getQueue();
 
@@ -295,6 +295,7 @@ class GenerateService extends Component
             'description' => Craft::t('imager-x', 'Generating transforms for asset "' . $asset->filename . '" (ID ' . $asset->id . ')'),
             'assetId' => $asset->id,
             'transforms' => $transforms,
+            'force' => $force,
         ]));
 
         Craft::info('Created transform job for asset with id ' . $asset->id . ' (job id is ' . $jobId . ')', __METHOD__);
@@ -304,13 +305,13 @@ class GenerateService extends Component
      * @param Asset|ElementInterface $asset
      * @param array $transforms
      */
-    public function generateTransformsForAsset(ElementInterface|Asset $asset, array $transforms): void
+    public function generateTransformsForAsset(ElementInterface|Asset $asset, array $transforms, bool $force = false): void
     {
         if (self::shouldTransformElement($asset)) {
             foreach ($transforms as $transform) {
                 if (TransformHelpers::isQuickSyntax($transform)) {
                     try {
-                        $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform, null, ['optimizeType' => 'runtime']);
+                        $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform, null, ['optimizeType' => 'runtime'], $force);
                         unset($transformedImages);
                     } catch (ImagerException $imagerException) {
                         $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and quick transform “{transform}”: {message}', ['assetId' => $asset->id, 'transform' => print_r($transform, true), 'message' => $imagerException->getMessage()]);
@@ -320,7 +321,7 @@ class GenerateService extends Component
                     $namedTransform = ImagerService::$namedTransforms[$transform];
 
                     try {
-                        $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform, null, ['optimizeType' => 'runtime']);
+                        $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform, null, ['optimizeType' => 'runtime'], $force);
 
                         if ($transformedImages && isset($namedTransform['generateFlags']) && is_array($namedTransform['generateFlags'])) {
                             $this->processGenerateFlags($transformedImages, $namedTransform['generateFlags']);

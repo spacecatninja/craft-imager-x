@@ -35,6 +35,11 @@ class TransformJob extends BaseJob
      */
     public array $transforms = [];
     
+    /**
+     * @var bool
+     */
+    public bool $force = false;
+    
 
     // Public Methods
     // =========================================================================
@@ -61,7 +66,7 @@ class TransformJob extends BaseJob
             return;
         }
         
-        ImagerX::$plugin->generate->generateTransformsForAsset($asset, $this->transforms);
+        ImagerX::$plugin->generate->generateTransformsForAsset($asset, $this->transforms, $this->force);
     }
 
     // Protected Methods

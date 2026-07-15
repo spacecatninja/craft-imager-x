@@ -50,6 +50,11 @@ class GenerateController extends Controller
     public bool $recursive = false;
 
     /**
+     * @var bool When set to true, transforms will be created even if they already exist and have not expired
+     */
+    public bool $force = false;
+
+    /**
      * @var string Field to generate transforms for
      */
     public string $field = '';
@@ -98,6 +103,7 @@ class GenerateController extends Controller
             'volume',
             'folderId',
             'recursive',
+            'force',
             'field',
             'transforms',
             'queue',
@@ -227,9 +233,9 @@ class GenerateController extends Controller
             
             if (GenerateService::shouldTransformElement($asset)) {
                 if ($this->queue) {
-                    ImagerX::$plugin->generate->createTransformJob($asset, $transforms);
+                    ImagerX::$plugin->generate->createTransformJob($asset, $transforms, $this->force);
                 } else {
-                    ImagerX::$plugin->generate->generateTransformsForAsset($asset, $transforms);
+                    ImagerX::$plugin->generate->generateTransformsForAsset($asset, $transforms, $this->force);
                 }
 
                 $this->stdout(($this->queue ? 'queued' : 'done').PHP_EOL, Console::FG_GREEN);

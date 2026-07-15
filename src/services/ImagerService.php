@@ -354,7 +354,7 @@ class ImagerService extends Component
      *
      * @throws ImagerException
      */
-    public function transformImage($image, array|string $transforms, array $transformDefaults = null, array $configOverrides = null): TransformedImageInterface|array|null
+    public function transformImage($image, array|string $transforms, array $transformDefaults = null, array $configOverrides = null, bool $force = false): TransformedImageInterface|array|null
     {
         if (!$image) {
             return null;
@@ -413,6 +413,11 @@ class ImagerService extends Component
 
         // Create config model
         self::$transformConfig = new ConfigModel(Plugin::$plugin->getSettings(), $configOverrides);
+        
+        // If we're forcing a transform, set cacheDuration to 1
+        if ($force) {
+            self::$transformConfig->cacheDuration = 1;
+        }
 
         // Resolve any callables in base transforms
         $transforms = TransformHelpers::resolveTransforms($image, $transforms);
