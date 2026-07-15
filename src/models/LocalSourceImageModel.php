@@ -40,6 +40,11 @@ use yii\base\InvalidConfigException;
  */
 class LocalSourceImageModel
 {
+    /**
+     * @var int Seconds to wait for another process that is downloading the same source file.
+     */
+    private const SOURCE_CACHE_LOCK_TIMEOUT = 30;
+
     public string $type = 'local';
 
     public string $path = '';
@@ -139,50 +144,64 @@ class LocalSourceImageModel
      */
     public function getLocalCopy(): void
     {
-        $config = ImagerService::getConfig();
+        if ($this->type === 'local') {
+            return;
+        }
 
-        if ($this->type !== 'local') {
-            if (!$this->isValidFile($this->getFilePath()) || (($config->cacheDurationRemoteFiles !== false) && ((FileHelper::lastModifiedTime($this->getFilePath()) + $config->cacheDurationRemoteFiles) < time()))) {
-                if ($this->asset && $this->type === 'volume') {
-                    try {
-                        $fs = $this->asset->getVolume();
-                    } catch (InvalidConfigException $invalidConfigException) {
-                        Craft::error($invalidConfigException->getMessage(), __METHOD__);
-                        throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
-                    }
+        if ($this->shouldRefreshLocalCopy()) {
+            $mutex = Craft::$app->getMutex();
+            $lockName = 'imagerx-sourcecache-'.md5($this->getFilePath());
+            $acquiredLock = $mutex->acquire($lockName, self::SOURCE_CACHE_LOCK_TIMEOUT);
 
-                    // catch any AssetException and rethrow as ImagerException
-                    try {
-                        // If a temp file already exists, something went wrong last time, let's delete it and not assume that the Volume will handle it
-                        if (file_exists($this->getTemporaryFilePath())) {
-                            @unlink($this->getTemporaryFilePath());
+            if (!$acquiredLock) {
+                Craft::warning('Timed out waiting for source cache lock for "'.$this->getFilePath().'", proceeding without lock.', __METHOD__);
+            }
+
+            try {
+                // Re-check after acquiring the lock, another process may have refreshed the file while we waited
+                if ($this->shouldRefreshLocalCopy()) {
+                    if ($this->asset && $this->type === 'volume') {
+                        try {
+                            $fs = $this->asset->getVolume();
+                        } catch (InvalidConfigException $invalidConfigException) {
+                            Craft::error($invalidConfigException->getMessage(), __METHOD__);
+                            throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
                         }
 
-                        Assets::downloadFile($fs, $this->asset->getPath(), $this->getTemporaryFilePath());
-                    } catch (FsException $fsException) {
-                        throw new ImagerException($fsException->getMessage(), $fsException->getCode(), $fsException);
+                        // catch any AssetException and rethrow as ImagerException
+                        try {
+                            // If a temp file already exists, something went wrong last time, let's delete it and not assume that the Volume will handle it
+                            if (file_exists($this->getTemporaryFilePath())) {
+                                @unlink($this->getTemporaryFilePath());
+                            }
+
+                            Assets::downloadFile($fs, $this->asset->getPath(), $this->getTemporaryFilePath());
+                        } catch (FsException $fsException) {
+                            throw new ImagerException($fsException->getMessage(), $fsException->getCode(), $fsException);
+                        }
+
+                        $this->publishTemporaryFile();
                     }
 
-                    if (file_exists($this->getTemporaryFilePath())) {
-                        copy($this->getTemporaryFilePath(), $this->getFilePath());
-                        @unlink($this->getTemporaryFilePath());
+                    if ($this->type === 'remoteurl') {
+                        $this->downloadFile();
+                    }
+
+                    if (file_exists($this->getFilePath())) {
+                        ImagerService::registerCachedRemoteFile($this->getFilePath());
                     }
                 }
-
-                if ($this->type === 'remoteurl') {
-                    $this->downloadFile();
-                }
-
-                if (file_exists($this->getFilePath())) {
-                    ImagerService::registerCachedRemoteFile($this->getFilePath());
+            } finally {
+                if ($acquiredLock) {
+                    $mutex->release($lockName);
                 }
             }
+        }
 
-            if (!file_exists($this->getFilePath())) {
-                $msg = Craft::t('imager-x', 'File could not be downloaded and saved to “{path}”', ['path' => $this->path]);
-                Craft::error($msg, __METHOD__);
-                throw new ImagerException($msg);
-            }
+        if (!file_exists($this->getFilePath())) {
+            $msg = Craft::t('imager-x', 'File could not be downloaded and saved to “{path}”', ['path' => $this->path]);
+            Craft::error($msg, __METHOD__);
+            throw new ImagerException($msg);
         }
     }
 
@@ -202,6 +221,32 @@ class LocalSourceImageModel
         $size = filesize($file);
 
         return $size !== false && $size >= 1024;
+    }
+
+    /**
+     * Checks if the local copy of a remote source file is missing, invalid, or has expired.
+     */
+    private function shouldRefreshLocalCopy(): bool
+    {
+        $config = ImagerService::getConfig();
+
+        return !$this->isValidFile($this->getFilePath()) || (($config->cacheDurationRemoteFiles !== false) && ((FileHelper::lastModifiedTime($this->getFilePath()) + $config->cacheDurationRemoteFiles) < time()));
+    }
+
+    /**
+     * Publishes the downloaded temp file to the final source cache path. Same-directory rename
+     * is atomic, so processes that don't hold the source cache lock never see a partial file.
+     */
+    private function publishTemporaryFile(): void
+    {
+        if (!file_exists($this->getTemporaryFilePath())) {
+            return;
+        }
+
+        if (!@rename($this->getTemporaryFilePath(), $this->getFilePath())) {
+            copy($this->getTemporaryFilePath(), $this->getFilePath());
+            @unlink($this->getTemporaryFilePath());
+        }
     }
 
     /**
@@ -533,10 +578,7 @@ class LocalSourceImageModel
             throw new ImagerException($msg);
         }
 
-        if (file_exists($this->getTemporaryFilePath())) {
-            copy($this->getTemporaryFilePath(), $this->getFilePath());
-            @unlink($this->getTemporaryFilePath());
-        }
+        $this->publishTemporaryFile();
     }
 
     /**
