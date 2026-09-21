@@ -14,6 +14,7 @@ use Craft;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
+use craft\helpers\ConfigHelper;
 use craft\helpers\FileHelper;
 use craft\models\ImageTransform;
 use craft\models\Volume;
@@ -56,13 +57,74 @@ class ImagerHelpers
         return null;
     }
 
+    /**
+     * Normalizes a cache duration setting into a number of seconds.
+     *
+     * Accepts an integer or numeric string of seconds, or any duration string supported by
+     * PHP's `DateInterval`, eg. `P30D`. `false` means "never expires", and is passed through.
+     *
+     * Returns `null` if the value could not be parsed.
+     */
+    public static function normalizeCacheDuration(mixed $duration): int|false|null
+    {
+        if ($duration === false || $duration === null || $duration === '') {
+            return false;
+        }
+
+        if (\is_int($duration)) {
+            return $duration;
+        }
+
+        if (\is_numeric($duration)) {
+            return (int)$duration;
+        }
+
+        if (!\is_string($duration)) {
+            return null;
+        }
+
+        try {
+            return ConfigHelper::durationInSeconds($duration);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a cache duration value as a string, for use in error messages.
+     */
+    public static function cacheDurationToString(mixed $duration): string
+    {
+        return \is_scalar($duration) ? var_export($duration, true) : get_debug_type($duration);
+    }
+
     public static function shouldCreateTransform(LocalTargetImageModel $targetModel, array $transform): bool
     {
         $config = ImagerService::getConfig();
 
-        return !$config->getSetting('cacheEnabled', $transform) ||
-            !file_exists($targetModel->getFilePath()) ||
-            (($config->getSetting('cacheDuration', $transform) !== false) && (FileHelper::lastModifiedTime($targetModel->getFilePath()) + $config->getSetting('cacheDuration', $transform) < time()));
+        if (!$config->getSetting('cacheEnabled', $transform)) {
+            return true;
+        }
+
+        if (!file_exists($targetModel->getFilePath())) {
+            return true;
+        }
+
+        // Note that the config file settings are already normalized by ConfigModel, this only
+        // does any work when a transform overrides `cacheDuration`.
+        $rawCacheDuration = $config->getSetting('cacheDuration', $transform);
+        $cacheDuration = self::normalizeCacheDuration($rawCacheDuration);
+
+        if ($cacheDuration === null) {
+            Craft::error(sprintf('Invalid `cacheDuration` in transform: %s. Expected a number of seconds, `false`, or a duration string supported by PHP\'s `DateInterval`, eg. `P30D`. Treating it as `false`.', self::cacheDurationToString($rawCacheDuration)), __METHOD__);
+            return false;
+        }
+
+        if ($cacheDuration === false) {
+            return false;
+        }
+
+        return FileHelper::lastModifiedTime($targetModel->getFilePath()) + $cacheDuration < time();
     }
 
     /**

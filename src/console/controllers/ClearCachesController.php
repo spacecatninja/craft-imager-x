@@ -11,7 +11,6 @@
 namespace spacecatninja\imagerx\console\controllers;
 
 use spacecatninja\imagerx\ImagerX;
-use spacecatninja\imagerx\helpers\FileHelper;
 
 use yii\console\Controller;
 use yii\console\ExitCode;
@@ -71,10 +70,5 @@ class ClearCachesController extends Controller
     public function error(string $text = ''): void
     {
         $this->stdout($text . PHP_EOL, BaseConsole::FG_RED);
-    }
-
-    private function fileHasExpired(string $file): bool
-    {
-        return FileHelper::lastModifiedTime($file) + $this->duration < time();
     }
 }
