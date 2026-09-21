@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 6.1.1 - 2026-09-21
+
+### Fixed
+- Fixed date interval parsing for all durations (fixes #313).
+
 ## 6.1.0 - 2026-07-16
 
 ### Added
