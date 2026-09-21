@@ -15,6 +15,7 @@ use craft\base\Model;
 use craft\helpers\App;
 use craft\helpers\ConfigHelper;
 use craft\helpers\FileHelper;
+use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\services\ImagerService;
 
 class ConfigModel extends Settings
@@ -58,6 +59,22 @@ class ConfigModel extends Settings
                     $this->addToOverrideFilestring($key, $value);
                 }
             }
+        }
+
+        // Normalize cache durations. This has to happen after the transform overrides have been
+        // applied, so that the override filestring is built from the raw value and transform
+        // filenames stay the same.
+        $durations = ['cacheDuration', 'cacheDurationRemoteFiles', 'cacheDurationExternalStorage', 'cacheDurationNonOptimized'];
+
+        foreach ($durations as $duration) {
+            $normalizedDuration = ImagerHelpers::normalizeCacheDuration($this->{$duration});
+
+            if ($normalizedDuration === null) {
+                \Craft::error(sprintf('Invalid value for config setting `%s`: %s. Expected a number of seconds, `false`, or a duration string supported by PHP\'s `DateInterval`, eg. `P30D`. Treating it as `false`.', $duration, ImagerHelpers::cacheDurationToString($this->{$duration})), __METHOD__);
+                $normalizedDuration = false;
+            }
+
+            $this->{$duration} = $normalizedDuration;
         }
 
         // Prep position value

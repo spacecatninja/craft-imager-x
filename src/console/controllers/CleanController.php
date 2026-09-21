@@ -15,6 +15,7 @@ use Craft;
 use spacecatninja\imagerx\ImagerX;
 use spacecatninja\imagerx\services\ImagerService;
 use spacecatninja\imagerx\helpers\FileHelper;
+use spacecatninja\imagerx\helpers\ImagerHelpers;
 
 use yii\console\Controller;
 use yii\console\ExitCode;
@@ -44,9 +45,14 @@ class CleanController extends Controller
     public array $exclude = [];
 
     /**
-     * @var string|null Overrides the default cache duration settings.
+     * @var string|null Overrides the default cache duration settings. Accepts a number of seconds, or any duration string supported by PHP's `DateInterval`, eg. `P30D`.
      */
     public ?string $duration = null;
+
+    /**
+     * @var int The resolved cache duration, in seconds.
+     */
+    private int $durationInSeconds = 0;
 
 
     // Public Methods
@@ -116,9 +122,20 @@ class CleanController extends Controller
             return ExitCode::UNAVAILABLE;
         }
 
-        if (!$this->duration) {
-            $this->duration = $configDuration;
+        $resolvedDuration = $this->duration ?: $configDuration;
+        $durationInSeconds = ImagerHelpers::normalizeCacheDuration($resolvedDuration);
+
+        if ($durationInSeconds === null) {
+            $this->error(sprintf('Invalid duration %s. Expected a number of seconds, or a duration string supported by PHP\'s `DateInterval`, eg. `P30D`.', ImagerHelpers::cacheDurationToString($resolvedDuration)));
+            return ExitCode::UNAVAILABLE;
         }
+
+        if ($durationInSeconds === false) {
+            $this->error(sprintf('`%s` has been set to `false`, and no duration has been passed to the console command. Nothing to do.', $this->runtimeCache ? 'cacheDurationRemoteFiles' : 'cacheDuration'));
+            return ExitCode::UNAVAILABLE;
+        }
+
+        $this->durationInSeconds = $durationInSeconds;
 
         if (!is_dir($path)) {
             $this->error("Path not found, cache is probably empty.");
@@ -196,7 +213,7 @@ class CleanController extends Controller
 
     private function fileHasExpired(string $file): bool
     {
-        return FileHelper::lastModifiedTime($file) + $this->duration < time();
+        return FileHelper::lastModifiedTime($file) + $this->durationInSeconds < time();
     }
 
     /**
