@@ -12,7 +12,7 @@ namespace spacecatninja\imagerx\helpers;
 
 use Craft;
 use craft\db\Query;
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use craft\helpers\ArrayHelper;
 use craft\helpers\FileHelper;
 use craft\models\ImageTransform;

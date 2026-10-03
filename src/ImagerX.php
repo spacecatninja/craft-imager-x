@@ -15,7 +15,7 @@ use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use craft\events\DefineAssetThumbUrlEvent;
 use craft\events\DefineAssetUrlEvent;
 use craft\events\DefineGqlTypeFieldsEvent;
@@ -279,7 +279,7 @@ class ImagerX extends Plugin
     /**
      * @inheritdoc
      */
-    protected function createSettingsModel(): ?Model
+    protected function createSettingsModel(): ?\CraftCms\Cms\Plugin\PluginSettings
     {
         return new Settings();
     }

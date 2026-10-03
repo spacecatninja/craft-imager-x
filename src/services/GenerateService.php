@@ -15,7 +15,7 @@ use craft\base\Component;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\db\Query;
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use craft\elements\db\ElementQuery;
 use craft\models\Volume;
 

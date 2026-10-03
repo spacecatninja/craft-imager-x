@@ -12,7 +12,7 @@ namespace spacecatninja\imagerx\variables;
 
 use Craft;
 
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\NamedTransformHelpers;

@@ -13,7 +13,7 @@ namespace spacecatninja\imagerx\console\controllers;
 use Craft;
 use craft\base\Field;
 use craft\db\Query;
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\models\Volume;
 

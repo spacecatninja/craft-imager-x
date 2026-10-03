@@ -11,13 +11,13 @@
 namespace spacecatninja\imagerx\utilities;
 
 use Craft;
-use craft\base\Utility;
 
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use craft\helpers\App;
 use craft\helpers\Html;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
+use CraftCms\Cms\Utility\Utility;
 use spacecatninja\imagerx\assetbundles\ImagerUtilityAssets;
 use spacecatninja\imagerx\helpers\FileHelper;
 use spacecatninja\imagerx\helpers\FormatHelper;
@@ -52,7 +52,7 @@ class ImagerUtility extends Utility
         return 'imager-x-utility';
     }
 
-    
+
     /**
      * @inheritdoc
      */
@@ -67,12 +67,12 @@ class ImagerUtility extends Utility
     public static function contentHtml(): string
     {
         $config = ImagerService::getConfig();
-        
+
         // Get cache paths
         $caches = [];
         $transformsCachePath = FileHelper::normalizePath($config->imagerSystemPath);
         $runtimeCachePath = FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/');
-        
+
         try {
             $transformsCacheCount = count(FileHelper::filesInPath($transformsCachePath));
             $transformsCacheSize = FormatHelper::formatBytes(FileHelper::pathSize($transformsCachePath), 'm', 1) . ' MB';
@@ -80,7 +80,7 @@ class ImagerUtility extends Utility
             $transformsCacheCount = '-';
             $transformsCacheSize = '-';
         }
-        
+
         $caches[] = [
             'handle' => 'transforms',
             'name' => 'Transforms Cache',
@@ -88,7 +88,7 @@ class ImagerUtility extends Utility
             'fileCount' => $transformsCacheCount,
             'size' => $transformsCacheSize,
         ];
-        
+
         try {
             $runtimeCacheCount = count(FileHelper::filesInPath($runtimeCachePath));
             $runtimeCacheSize = FormatHelper::formatBytes(FileHelper::pathSize($runtimeCachePath), 'm', 1) . ' MB';
@@ -96,7 +96,7 @@ class ImagerUtility extends Utility
             $runtimeCacheCount = '-';
             $runtimeCacheSize = '-';
         }
-        
+
         $caches[] = [
             'handle' => 'runtime',
             'name' => 'Runtime Cache',
@@ -104,7 +104,7 @@ class ImagerUtility extends Utility
             'fileCount' => $runtimeCacheCount,
             'size' => $runtimeCacheSize,
         ];
-        
+
         // Get checkboxes for volumes
         $volumes = Craft::$app->getVolumes()->getAllVolumes();
         $volumeOptions = [];
@@ -130,7 +130,7 @@ class ImagerUtility extends Utility
             'showAllOption' => false,
         ]);
 
-        // Get checkboxes for named transforms 
+        // Get checkboxes for named transforms
         $namedTransforms = ImagerService::$namedTransforms;
         $namedTransformsOptions = [];
         $hasTransformWithoutDisplayName = false;
@@ -139,7 +139,7 @@ class ImagerUtility extends Utility
             if (!isset($namedTransformValue['displayName'])) {
                 $hasTransformWithoutDisplayName = true;
             }
-            
+
             $namedTransformsOptions[] = [
                 'label' => Html::encode($namedTransformValue['displayName'] ?? $namedTransformKey),
                 'value' => $namedTransformKey,
@@ -155,14 +155,14 @@ class ImagerUtility extends Utility
 
         // Compile debug info
         $debugInfo = self::debugInfo();
-        
+
         // Register asset bundle
         try {
             Craft::$app->getView()->registerAssetBundle(ImagerUtilityAssets::class);
         } catch (InvalidConfigException) {
             return Craft::t('imager-x', 'Could not load asset bundle');
         }
-        
+
         // Render template
         return Craft::$app->getView()->renderTemplate(
             'imager-x/utility/_utility',
@@ -177,12 +177,12 @@ class ImagerUtility extends Utility
             ]
         );
     }
-    
-    private static function debugInfo(): array 
+
+    private static function debugInfo(): array
     {
         $config = ImagerService::getConfig();
         $r = [];
-        
+
         $r[] = [
             'label' => 'Imager version & edition',
             'value' => ImagerX::getInstance()->version . ' ' . mb_strtoupper(ImagerX::getInstance()->edition),
@@ -199,21 +199,21 @@ class ImagerUtility extends Utility
             'label' => 'PHP version',
             'value' => App::phpVersion(),
         ];
-        
+
         $imagesService = Craft::$app->getImages();
-        
+
         $r[] = [
             'label' => 'Image driver & version',
             'value' => ($imagesService->getIsGd() ? 'GD' : 'Imagick') . ' ' . $imagesService->getVersion(),
         ];
-        
+
         $r[] = [
             'label' => 'Image driver supported formats',
             'value' => implode(', ', $imagesService->getSupportedImageFormats()),
         ];
-        
+
         $customEncoders = implode(', ', array_keys($config->customEncoders));
-        
+
         $r[] = [
             'label' => 'Custom encoders',
             'value' => !empty($customEncoders) ? $customEncoders : 'No <a href="https://imager-x.spacecat.ninja/usage/webp-avif-jpegxl.html">custom encoders</a> configured.',
@@ -225,7 +225,7 @@ class ImagerUtility extends Utility
             'label' => 'Enabled external storages',
             'value' => !empty($externalStorages) ? $externalStorages : 'No <a href="https://imager-x.spacecat.ninja/configuration.html#storages-array">external storage</a> configured.',
         ];
-        
+
         $optimizers = implode(', ', $config->optimizers);
 
         $r[] = [
@@ -235,6 +235,6 @@ class ImagerUtility extends Utility
 
         return $r;
     }
-    
-        
+
+
 }

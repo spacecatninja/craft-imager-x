@@ -11,7 +11,7 @@
 namespace spacecatninja\imagerx\jobs;
 
 use Craft;
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use craft\queue\BaseJob;
 use craft\queue\QueueInterface;
 

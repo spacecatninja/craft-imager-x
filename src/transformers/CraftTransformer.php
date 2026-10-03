@@ -13,7 +13,7 @@ namespace spacecatninja\imagerx\transformers;
 use Craft;
 use craft\base\Component;
 
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use craft\helpers\FileHelper;
 use Imagine\Exception\InvalidArgumentException;
 

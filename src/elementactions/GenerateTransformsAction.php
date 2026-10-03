@@ -12,7 +12,7 @@ namespace spacecatninja\imagerx\elementactions;
 
 use Craft;
 use craft\base\ElementAction;
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\elements\db\ElementQueryInterface;
 use spacecatninja\imagerx\ImagerX;

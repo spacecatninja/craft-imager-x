@@ -11,7 +11,7 @@
 namespace spacecatninja\imagerx\events;
 
 use yii\base\Event;
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
 use spacecatninja\imagerx\models\TransformedImageInterface;
 

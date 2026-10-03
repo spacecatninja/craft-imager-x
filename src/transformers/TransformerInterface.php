@@ -10,7 +10,7 @@
 
 namespace spacecatninja\imagerx\transformers;
 
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use spacecatninja\imagerx\exceptions\ImagerException;
 
 interface TransformerInterface

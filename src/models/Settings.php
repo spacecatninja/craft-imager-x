@@ -11,9 +11,9 @@
 namespace spacecatninja\imagerx\models;
 
 use craft\base\Model;
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 
-class Settings extends Model
+class Settings extends \CraftCms\Cms\Plugin\PluginSettings
 {
     public string $transformer = 'craft';
     public string $imagerSystemPath = '@webroot/imager/';
@@ -60,15 +60,15 @@ class Settings extends Model
     public bool $removeTransformsOnAssetFileops = false;
     public array $curlOptions = [];
     public bool $runJobsImmediatelyOnAjaxRequests = true;
-    
+
     public bool|string $fillTransforms = false;
     public string $fillAttribute = 'width';
     public int|string $fillInterval = 200;
     public int|string $autoFillCount = 3;
-    
+
     public int|string|Asset|null $fallbackImage = null;
     public int|string|Asset|null $mockImage = null;
-    
+
     public bool $useForNativeTransforms = false;
     public bool $useForCpThumbs = false;
     public array $hideClearCachesForUserGroups = [];
@@ -162,7 +162,7 @@ class Settings extends Model
 
     public array $customEncoders = [];
     public ?array $transformerConfig = null;
-    
+
 
     /**
      * Settings constructor.

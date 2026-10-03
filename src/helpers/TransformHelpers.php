@@ -10,7 +10,7 @@
 
 namespace spacecatninja\imagerx\helpers;
 
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use craft\helpers\ArrayHelper;
 use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
 use spacecatninja\imagerx\services\ImagerService;

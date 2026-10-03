@@ -12,7 +12,7 @@ namespace spacecatninja\imagerx\services;
 
 use ColorThief\ColorThief;
 use craft\base\Component;
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use spacecatninja\imagerx\helpers\CacheHelpers;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\models\LocalSourceImageModel;

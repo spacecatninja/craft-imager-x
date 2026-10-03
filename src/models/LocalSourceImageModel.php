@@ -12,8 +12,9 @@ namespace spacecatninja\imagerx\models;
 
 use Craft;
 
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use craft\errors\FsException;
+use CraftCms\Cms\Filesystem\Exceptions\FilesystemException;
 use CraftCms\Cms\Filesystem\Filesystems\Local;
 use craft\helpers\Assets;
 use craft\helpers\Assets as AssetsHelper;
@@ -145,7 +146,7 @@ class LocalSourceImageModel
             if (!$this->isValidFile($this->getFilePath()) || (($config->cacheDurationRemoteFiles !== false) && ((FileHelper::lastModifiedTime($this->getFilePath()) + $config->cacheDurationRemoteFiles) < time()))) {
                 if ($this->asset && $this->type === 'volume') {
                     try {
-                        $fs = $this->asset->getVolume();
+                        $fs = $this->asset->getVolume()->sourceDisk();
                     } catch (InvalidConfigException $invalidConfigException) {
                         Craft::error($invalidConfigException->getMessage(), __METHOD__);
                         throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
@@ -159,7 +160,7 @@ class LocalSourceImageModel
                         }
 
                         Assets::downloadFile($fs, $this->asset->getPath(), $this->getTemporaryFilePath());
-                    } catch (FsException $fsException) {
+                    } catch (FsException|FilesystemException $fsException) {
                         throw new ImagerException($fsException->getMessage(), $fsException->getCode(), $fsException);
                     }
 

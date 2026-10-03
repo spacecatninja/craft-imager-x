@@ -11,7 +11,7 @@
 namespace spacecatninja\imagerx\gql\resolvers;
 
 use Craft;
-use craft\elements\Asset;
+use CraftCms\Cms\Asset\Elements\Asset;
 use craft\gql\base\Resolver;
 
 use GraphQL\Type\Definition\ResolveInfo;
