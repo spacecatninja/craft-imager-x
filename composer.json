@@ -28,6 +28,7 @@
     "require": {
         "php": "^8.5",
         "craftcms/cms": "^6.0.0-alpha",
+        "imagine/imagine": "^1.5.0",
         "craftcms/yii2-adapter": "^6.0.0-alpha",
         "mikehaertl/php-shellcommand": "^1.2",
         "ksubileau/color-thief-php": "^1.3|^2.0",
