@@ -349,10 +349,12 @@ class ImagerX extends Plugin
                     if ($event->transform !== null && $event->sender->kind === 'image' && \in_array(strtolower($event->sender->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
                         try {
                             $transform = $event->transform;
+                            $isNativeTransform = false;
 
                             // Transform is an ImageTransform
                             if ($transform instanceof ImageTransform) {
                                 $transform = ImagerHelpers::normalizeAssetTransformToObject($transform);
+                                $isNativeTransform = true;
                             }
 
                             // Transform is a named asset transform
@@ -361,10 +363,16 @@ class ImagerX extends Plugin
 
                                 if ($assetTransform) {
                                     $transform = ImagerHelpers::normalizeAssetTransformToObject($assetTransform);
+                                    $isNativeTransform = true;
                                 } else {
                                     Craft::error('Unknown asset transform handle supplied to native transform', __METHOD__);
                                     $transform = [];
                                 }
+                            }
+
+                            // Like Craft, let the asset's focal point take precedence over a native transform's position when cropping
+                            if ($isNativeTransform && ($transform['mode'] ?? null) === 'crop' && $event->sender->getHasFocalPoint()) {
+                                unset($transform['position']);
                             }
 
                             if (is_array($transform)) {
