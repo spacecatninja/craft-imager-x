@@ -1,6 +1,6 @@
 # Imager X Changelog
 
-## 6.1.2 - Unreleased
+## 6.1.2 - 2026-10-13
 
 ### Fixed
 - Fixed native crop transforms not using the asset's focal point when `useForNativeTransforms` is enabled, so they now match Craft (fixes #314).
