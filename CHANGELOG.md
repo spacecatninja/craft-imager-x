@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## 6.1.3 - 2026-10-26
+
+### Fixed
+- Fixed transformed images having their file type detected with `finfo` on every render, also when the transform already existed. For JPEG, PNG, GIF, WebP and AVIF the mime type is now taken from the `getimagesize()` call that reads the image dimensions (fixes #315).
+
 ## 6.1.2 - 2026-10-13
 
 ### Fixed
