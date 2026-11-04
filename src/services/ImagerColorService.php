@@ -175,7 +175,6 @@ class ImagerColorService extends Component
                     area: $area,
                     adapter: new WhiteInclusiveColorThiefAdapter((new ImageLoader())->createAdapter()),
                 );
-                $palette = array_slice($palette, 0, $colorCount);
             } catch (\RuntimeException $runtimeException) {
                 \Craft::error('Couldn\'t get palette for "'.$source->getFilePath().'". Error was: '.$runtimeException->getMessage());
 
@@ -184,8 +183,12 @@ class ImagerColorService extends Component
 
             ImagerService::cleanSession();
 
-            return $palette;
+            return \is_array($palette) ? array_slice($palette, 0, $colorCount) : null;
         }, null, $dep);
+
+        if (!\is_array($palette)) {
+            return null;
+        }
 
         return $colorValue === 'hex' ? $this->paletteToHex($palette) : $palette;
     }
