@@ -11,11 +11,13 @@
 namespace spacecatninja\imagerx\services;
 
 use ColorThief\ColorThief;
+use ColorThief\Image\ImageLoader;
 use craft\base\Component;
 use CraftCms\Cms\Asset\Elements\Asset;
 use spacecatninja\imagerx\helpers\CacheHelpers;
 use spacecatninja\imagerx\helpers\ColorHelpers;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
+use spacecatninja\imagerx\lib\WhiteInclusiveColorThiefAdapter;
 use spacecatninja\imagerx\models\LocalSourceImageModel;
 
 use yii\caching\TagDependency;
@@ -120,14 +122,23 @@ class ImagerColorService extends Component
     }
 
     /**
-     * Gets color palette for image
+     * Gets a palette of the most prominent colors in an image, using Color Thief. White pixels are
+     * counted, see WhiteInclusiveColorThiefAdapter.
      *
+     * @param Asset|string $image      The image, as an asset or a path/URL.
+     * @param int          $colorCount Number of colors in the palette.
+     * @param int          $quality    Sampling step. 1 looks at every pixel, 10 at every tenth.
+     * @param string       $colorValue `hex` for hex strings, anything else for `[r, g, b]` arrays.
+     * @param array|null   $area       Optional area to sample, with the keys `x`, `y`, `w` and `h`, in pixels.
      *
+     * @return array|null The palette, or null if the image couldn't be analyzed or is fully transparent.
+     *
+     * @throws \InvalidArgumentException If `$colorCount` is out of range, `$quality` is less than 1, or `$area` is outside the image.
      */
     public function getColorPalette(Asset|string $image, int $colorCount = 8, int $quality = 10, string $colorValue = 'hex', ?array $area = null): ?array
     {
         $imageIdString = is_string($image) ? base64_encode($image) : ('asset-'.$image->id);
-        $key = "imager-x-palette-$imageIdString-$colorCount-$quality";
+        $key = 'imager-x-palette-'.self::CACHE_KEY_VERSION."-$imageIdString-$colorCount-$quality";
         
         if ($area !== null) {
             $key .= '-' . ImagerHelpers::createTransformFilestring($area);
@@ -157,14 +168,20 @@ class ImagerColorService extends Component
                 // Hack for count error in ColorThief
                 // See: https://github.com/lokesh/color-thief/issues/19 and https://github.com/lokesh/color-thief/pull/84
                 $adjustedColorCount = $colorCount > 7 ? $colorCount + 1 : $colorCount;
-                $palette = ColorThief::getPalette($source->getFilePath(), $adjustedColorCount, $quality, $area);
+                $palette = ColorThief::getPalette(
+                    sourceImage: $source->getFilePath(),
+                    colorCount: $adjustedColorCount,
+                    quality: $quality,
+                    area: $area,
+                    adapter: new WhiteInclusiveColorThiefAdapter((new ImageLoader())->createAdapter()),
+                );
                 $palette = array_slice($palette, 0, $colorCount);
             } catch (\RuntimeException $runtimeException) {
                 \Craft::error('Couldn\'t get palette for "'.$source->getFilePath().'". Error was: '.$runtimeException->getMessage());
-    
+
                 return null;
             }
-    
+
             ImagerService::cleanSession();
 
             return $palette;
