@@ -14,6 +14,7 @@ use ColorThief\ColorThief;
 use craft\base\Component;
 use craft\elements\Asset;
 use spacecatninja\imagerx\helpers\CacheHelpers;
+use spacecatninja\imagerx\helpers\ColorHelpers;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\models\LocalSourceImageModel;
 
@@ -43,15 +44,35 @@ use function SSNepenthe\ColorUtils\saturation;
  */
 class ImagerColorService extends Component
 {
+    // Const Properties
+    // =========================================================================
+
     /**
-     * Get dominant color of image
+     * Part of every color cache key. Bump it when the color analysis changes, so that
+     * values cached by an earlier version aren't served.
+     */
+    private const CACHE_KEY_VERSION = 'v2';
+
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * Gets the dominant color of an image, which is the most common color in it, white included.
+     * See ColorHelpers::getDominantColor() for how it's calculated.
      *
+     * @param Asset|string $image      The image, as an asset or a path/URL.
+     * @param int          $quality    Sampling step. 1 looks at every pixel, 10 at every tenth.
+     * @param string       $colorValue `hex` for a hex string, anything else for an `[r, g, b]` array.
+     * @param array|null   $area       Optional area to sample, with the keys `x`, `y`, `w` and `h`, in pixels.
      *
+     * @return bool|array|string|null The color, or null if the image couldn't be analyzed or is fully transparent.
+     *
+     * @throws \InvalidArgumentException If `$quality` is less than 1, or `$area` is outside the image.
      */
     public function getDominantColor(Asset|string $image, int $quality = 10, string $colorValue = 'hex', ?array $area = null): bool|array|string|null
     {
         $imageIdString = is_string($image) ? base64_encode($image) : ('asset-'.$image->id);
-        $key = "imager-x-dominant-color-$imageIdString-$quality";
+        $key = 'imager-x-dominant-color-'.self::CACHE_KEY_VERSION."-$imageIdString-$quality";
         
         if ($area !== null) {
             $key .= '-' . ImagerHelpers::createTransformFilestring($area);
@@ -78,7 +99,7 @@ class ImagerColorService extends Component
             }
 
             try {
-                $dominantColor = ColorThief::getColor($source->getFilePath(), $quality, $area);
+                $dominantColor = ColorHelpers::getDominantColor($source->getFilePath(), $quality, $area);
             } catch (\RuntimeException $runtimeException) {
                 \Craft::error('Couldn\'t get dominant color for "'.$source->getFilePath().'". Error was: '.$runtimeException->getMessage());
 
@@ -330,6 +351,9 @@ class ImagerColorService extends Component
 
         return [$r, $g, $b];
     }
+
+    // Private Methods
+    // =========================================================================
 
     /**
      * Convert palette to array of hex colors
