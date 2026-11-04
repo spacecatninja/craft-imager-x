@@ -1,5 +1,19 @@
 # Imager X Changelog
 
+## 6.2.0 - 2026-11-04
+
+> [!IMPORTANT]  
+> Dominant colors are now calculated differently, and existing images may get a different dominant color after updating. Cached colors from earlier versions are not reused.
+
+### Changed
+- `getDominantColor()` now returns the most common color in the image. Previously it returned the first color of the Color Thief palette, which is ranked by how much of the color space a group of colors spans, not just by how many pixels it has. A small, varied detail could beat a large, flat area, so an image that is 90% red with a blue detail would get blue as its dominant color. This also applies to the `dominantColor` generate flag and the `dominantColor` return type of the `@imagerTransform` GraphQL directive.
+- `getDominantColor()` and `getColorPalette()` no longer ignore white. Color Thief skips pixels where all channels are above 250, so a mostly white image got the color of whatever else was in it as its dominant color, and a white image got `null`.
+- `getDominantColor()` now returns the actual average color of the matching pixels, so a white image gets `#ffffff` and a black image gets `#000000`, instead of `#fcfcfc` and `#040404`.
+- `ksubileau/color-thief-php` 2.0 or later is now required.
+
+### Fixed
+- Fixed `getColorPalette()` throwing a `TypeError` instead of returning `null` when an image couldn't be analyzed.
+
 ## 6.1.3 - 2026-10-26
 
 ### Fixed
