@@ -12,12 +12,16 @@ namespace spacecatninja\imagerx\gql\resolvers;
 
 use Craft;
 use CraftCms\Cms\Asset\Elements\Asset;
+use CraftCms\Cms\Element\Queries\AssetQuery;
+use CraftCms\Cms\Gql\Resolvers\Elements\Asset as AssetResolver;
 use craft\gql\base\Resolver;
 
 use GraphQL\Type\Definition\ResolveInfo;
 
 use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\ImagerX;
+use spacecatninja\imagerx\models\LocalSourceImageModel;
 use spacecatninja\imagerx\services\ImagerService;
 
 class ImagerResolver extends Resolver
@@ -43,10 +47,13 @@ class ImagerResolver extends Resolver
             }
 
             if (!empty($id)) {
-                $query = Asset::find()
-                    ->id($id)
-                    ->kind('image')
-                    ->limit(null);
+                // Use Craft's asset resolver to prepare the query, so that the volume scope of the
+                // active schema is applied, the same as for Craft's own asset queries.
+                $query = AssetResolver::prepareQuery(null, ['id' => $id, 'kind' => 'image']);
+
+                if (!$query instanceof AssetQuery) {
+                    return null;
+                }
 
                 $asset = $query->one();
             } elseif (!empty($url)) {
@@ -62,10 +69,39 @@ class ImagerResolver extends Resolver
             // A raw `url` argument is an untrusted image source. Enforce safeFileFormats here too — the
             // guard above only covered Asset sources. Only enforced when an extension is present, so
             // extension-less image URLs keep working; SSRF and path traversal are handled separately.
-            $path = parse_url($asset, PHP_URL_PATH);
-            $extension = \is_string($path) ? strtolower(pathinfo($path, PATHINFO_EXTENSION)) : '';
+            // The extension is checked both as sent, and the way the transform pipeline will see it, so
+            // that encoded characters, dot segments or backslashes can't hide the real extension.
+            $paths = [
+                parse_url($asset, PHP_URL_PATH),
+                parse_url(ImagerHelpers::normalizeRemoteUrlString($asset), PHP_URL_PATH),
+                ImagerHelpers::getRemoteUrlPath($asset),
+            ];
 
-            if ($extension !== '' && !\in_array($extension, ImagerService::getConfig()->safeFileFormats, true)) {
+            foreach ($paths as $path) {
+                $extension = \is_string($path) ? strtolower(pathinfo($path, PATHINFO_EXTENSION)) : '';
+
+                if ($extension !== '' && !\in_array($extension, ImagerService::getConfig()->safeFileFormats, true)) {
+                    return null;
+                }
+            }
+
+            // Local paths and imager urls are resolved differently than remote urls, so check the source
+            // the way the transform pipeline resolves it too.
+            try {
+                $source = new LocalSourceImageModel($asset);
+            } catch (ImagerException) {
+                return null;
+            }
+
+            $sourceExtension = strtolower($source->extension);
+
+            if ($source->type === 'remoteurl') {
+                if ($sourceExtension !== '' && !\in_array($sourceExtension, ImagerService::getConfig()->safeFileFormats, true)) {
+                    return null;
+                }
+            } elseif (!\in_array($sourceExtension, ImagerService::getConfig()->safeFileFormats, true) || rtrim($source->filename, '. ') !== $source->filename) {
+                // Local files aren't checked for their content like downloads are, so they need an allowed extension.
+                // Windows ignores trailing dots and spaces in filenames, which could hide the real extension.
                 return null;
             }
         }

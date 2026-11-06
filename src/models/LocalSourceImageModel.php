@@ -569,7 +569,7 @@ class LocalSourceImageModel
         $convertedImageStr = ImagerHelpers::normalizeRemoteUrlString($image);
         $this->transformPath = ImagerHelpers::getTransformPathForUrl($convertedImageStr);
         $urlParts = parse_url($convertedImageStr);
-        $pathParts = pathinfo(ImagerHelpers::removeDotSegments((string)($urlParts['path'] ?? '')));
+        $pathParts = pathinfo(ImagerHelpers::getRemoteUrlPath($image));
         $queryString = $config->getSetting('useRemoteUrlQueryString') ? ($urlParts['query'] ?? '') : '';
 
         $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
