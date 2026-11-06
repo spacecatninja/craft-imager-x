@@ -59,6 +59,25 @@ class FileHelper extends \craft\helpers\FileHelper
         return $bytesTotal;
     }
 
+    /**
+     * Checks if a path is the same as, or inside, a base path.
+     *
+     * Both paths are normalized lexically with '/' as separator before comparing, which resolves "." and ".."
+     * segments, and makes the check work the same way on Windows where DIRECTORY_SEPARATOR is '\'.
+     */
+    public static function isWithinBase(string $path, string $base): bool
+    {
+        $normalizedBase = self::normalizePath($base, '/');
+
+        if ($normalizedBase === '') {
+            return false;
+        }
+
+        $normalizedPath = self::normalizePath($path, '/');
+
+        return str_starts_with(rtrim($normalizedPath, '/').'/', rtrim($normalizedBase, '/').'/');
+    }
+
     public static function truncateBasename(string $basename): string
     {
         if (strlen($basename) <= self::BASENAME_MAX_LENGTH) {

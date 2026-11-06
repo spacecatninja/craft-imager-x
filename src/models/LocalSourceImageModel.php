@@ -18,7 +18,6 @@ use CraftCms\Cms\Filesystem\Exceptions\FilesystemException;
 use CraftCms\Cms\Filesystem\Filesystems\Local;
 use craft\helpers\Assets;
 use craft\helpers\Assets as AssetsHelper;
-use craft\helpers\StringHelper;
 
 use spacecatninja\imagerx\helpers\FileHelper;
 use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
@@ -323,7 +322,8 @@ class LocalSourceImageModel
     {
         $config = ImagerService::getConfig();
 
-        $imageString = '/'.str_replace($config->getSetting('imagerUrl'), '', $image);
+        // Backslashes are separators when the path is used on disk, so split on them too
+        $imageString = '/'.str_replace($config->getSetting('imagerUrl'), '', str_replace('\\', '/', $image));
 
         $pathParts = pathinfo($imageString);
 
@@ -335,6 +335,7 @@ class LocalSourceImageModel
         $this->filename = $pathParts['basename'];
         $this->basename = $pathParts['filename'];
         $this->extension = $pathParts['extension'] ?? '';
+        $this->assertPathWithinBase($this->getFilePath(), $base);
     }
 
     /**
@@ -345,15 +346,19 @@ class LocalSourceImageModel
     private function getPathsForLocalFile(string $image): void
     {
         $webroot = (string)Yii::getAlias('@webroot');
-        $pathParts = pathinfo($image);
 
-        $this->transformPath = ImagerHelpers::getTransformPathForPath($image);
+        // Backslashes are separators when the path is used on disk, so split on them too
+        $normalizedImage = str_replace('\\', '/', $image);
+        $pathParts = pathinfo($normalizedImage);
+
+        $this->transformPath = ImagerHelpers::getTransformPathForPath($normalizedImage);
         $this->path = FileHelper::normalizePath($webroot.'/'.$pathParts['dirname']);
         $this->assertPathWithinBase($this->path, $webroot);
         $this->url = $image;
         $this->filename = $pathParts['basename'];
         $this->basename = $pathParts['filename'];
         $this->extension = $pathParts['extension'] ?? '';
+        $this->assertPathWithinBase($this->getFilePath(), $webroot);
     }
 
     /**
@@ -367,12 +372,9 @@ class LocalSourceImageModel
      */
     private function assertPathWithinBase(string $path, string $base): void
     {
-        $normalizedBase = FileHelper::normalizePath($base);
-        $normalizedPath = FileHelper::normalizePath($path);
-
-        if ($normalizedBase === '' || !str_starts_with($normalizedPath.'/', rtrim($normalizedBase, '/').'/')) {
+        if (!FileHelper::isWithinBase($path, $base)) {
             $msg = Craft::t('imager-x', 'Refusing to resolve an image path outside of the allowed base directory.');
-            Craft::error($msg.' Path: "'.$normalizedPath.'", base: "'.$normalizedBase.'".', __METHOD__);
+            Craft::error($msg.' Path: "'.FileHelper::normalizePath($path).'", base: "'.FileHelper::normalizePath($base).'".', __METHOD__);
             throw new ImagerException($msg);
         }
     }
@@ -530,13 +532,14 @@ class LocalSourceImageModel
             throw new ImagerException($exception->getMessage(), $exception->getCode(), $exception);
         }
 
-        $convertedImageStr = StringHelper::toAscii(urldecode($image));
+        $convertedImageStr = ImagerHelpers::normalizeRemoteUrlString($image);
         $this->transformPath = ImagerHelpers::getTransformPathForUrl($convertedImageStr);
         $urlParts = parse_url($convertedImageStr);
-        $pathParts = pathinfo($urlParts['path']);
+        $pathParts = pathinfo(ImagerHelpers::removeDotSegments((string)($urlParts['path'] ?? '')));
         $queryString = $config->getSetting('useRemoteUrlQueryString') ? ($urlParts['query'] ?? '') : '';
 
         $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
+        $this->assertPathWithinBase($this->path, $runtimeImagerPath);
         $this->url = $image;
         $this->basename = FileHelper::truncateBasename(str_replace(' ', '-', $pathParts['filename']).($queryString !== '' ? '_'.md5($queryString) : ''));
         $this->extension = $pathParts['extension'] ?? '';
