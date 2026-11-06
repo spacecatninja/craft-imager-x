@@ -553,7 +553,17 @@ class ImagerX extends Plugin
                 /** @var Element $element */
                 $element = $event->element;
 
-                if ($element instanceof Asset && $element->getScenario() === Asset::SCENARIO_FILEOPS) {
+                if (!$element instanceof Asset || $event->isNew) {
+                    return;
+                }
+
+                // Craft only uses the file operations scenario when the filename changes, a plain move uses the move scenario
+                $isRelocation = \in_array($element->getScenario(), [Asset::SCENARIO_FILEOPS, Asset::SCENARIO_MOVE], true)
+                    || ($element->newFolderId !== null && $element->newFolderId !== (int)$element->folderId)
+                    || ($element->newFilename !== null && $element->newFilename !== $element->getFilename())
+                    || $element->newLocation !== null;
+
+                if ($isRelocation) {
                     ImagerX::$plugin->imagerx->removeTransformsForAsset($element);
                 }
             }
