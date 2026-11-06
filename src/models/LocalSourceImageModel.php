@@ -478,11 +478,45 @@ class LocalSourceImageModel
     }
 
     /**
-     * Checks whether an IP address is safe to connect to (a public, non-reserved address).
+     * Checks whether an IP address is safe to connect to (a globally routable unicast address).
      */
     private function isPublicIp(string $ip): bool
     {
-        return (bool)filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE | FILTER_FLAG_GLOBAL_RANGE)) {
+            return false;
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            // 224.0.0.0/4 multicast is never a valid image host
+            return ((int)explode('.', $ip)[0] & 0xF0) !== 0xE0;
+        }
+
+        $hex = bin2hex((string)inet_pton($ip));
+
+        // NAT64 well-known prefix 64:ff9b::/96 embeds an IPv4 address, judge the embedded address
+        if (str_starts_with($hex, '0064ff9b0000000000000000')) {
+            return $this->isPublicIp((string)inet_ntop((string)hex2bin(substr($hex, 24, 8))));
+        }
+
+        // Checked explicitly because PHP's filter tables differ between versions (PHP 8.2 accepts
+        // ::ffff:0:0/96 with NO_RES_RANGE, and 2002::/16 with GLOBAL_RANGE): IPv4-compatible ::/96,
+        // IPv4-mapped ::ffff:0:0/96, IPv4-translated ::ffff:0:0:0/96, 6to4 2002::/16, local-use NAT64
+        // 64:ff9b:1::/48, deprecated site-local fec0::/10, multicast ff00::/8, documentation 3fff::/20
+        // and SRv6 SIDs 5f00::/16.
+        if (str_starts_with($hex, '000000000000000000000000')
+            || str_starts_with($hex, '00000000000000000000ffff')
+            || str_starts_with($hex, '0000000000000000ffff0000')
+            || str_starts_with($hex, '2002')
+            || str_starts_with($hex, '0064ff9b0001')
+            || (hexdec(substr($hex, 0, 3)) & 0xFFC) === 0xFEC
+            || str_starts_with($hex, 'ff')
+            || str_starts_with($hex, '3fff0')
+            || str_starts_with($hex, '5f00')
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
