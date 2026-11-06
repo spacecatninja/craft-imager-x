@@ -15,11 +15,11 @@ use Craft;
 use craft\base\Component;
 use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
-use craft\helpers\FileHelper;
 use Imagine\Image\ImageInterface;
 use spacecatninja\imagerx\adapters\ImagerAdapterInterface;
 use spacecatninja\imagerx\events\TransformImageEvent;
 use spacecatninja\imagerx\exceptions\ImagerException;
+use spacecatninja\imagerx\helpers\FileHelper;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
 use spacecatninja\imagerx\helpers\QueueHelpers;
 use spacecatninja\imagerx\helpers\TransformHelpers;
@@ -672,12 +672,9 @@ class ImagerService extends Component
             $sourceModel = new LocalSourceImageModel($asset);
             $targetModel = new LocalTargetImageModel($sourceModel, []);
 
-            $normalizedBase = FileHelper::normalizePath($config->imagerSystemPath);
-            $normalizedPath = FileHelper::normalizePath($targetModel->path);
-
             // Prefix check on normalized paths (not a substring match) so a traversed path can't
             // pass by merely containing the base path somewhere in the middle.
-            if ($normalizedBase !== '' && str_starts_with($normalizedPath.'/', rtrim($normalizedBase, '/').'/')) {
+            if (FileHelper::isWithinBase($targetModel->path, $config->imagerSystemPath)) {
                 if (is_dir($targetModel->path)) {
                     try {
                         FileHelper::clearDirectory(FileHelper::normalizePath($targetModel->path));

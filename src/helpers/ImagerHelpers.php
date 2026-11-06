@@ -16,6 +16,7 @@ use craft\elements\Asset;
 use craft\helpers\ArrayHelper;
 use craft\helpers\ConfigHelper;
 use craft\helpers\FileHelper;
+use craft\helpers\StringHelper;
 use craft\models\ImageTransform;
 use craft\models\Volume;
 use Imagine\Exception\InvalidArgumentException;
@@ -416,6 +417,48 @@ class ImagerHelpers
     }
 
     /**
+     * Normalizes a remote image url the way it is interpreted when creating cache paths and the
+     * source extension. Validation of untrusted urls must use this too, so that encoded or
+     * transliterated characters can't make the two disagree.
+     */
+    public static function normalizeRemoteUrlString(string $url): string
+    {
+        return StringHelper::toAscii(urldecode($url));
+    }
+
+    /**
+     * Resolves "." and ".." segments in a url path, and treats backslashes as separators, the same way
+     * the path is later interpreted on disk. ".." segments can't climb above the root of the path,
+     * so the result always stays below it.
+     *
+     * Paths that contain no "." or ".." segments, and no backslashes, are returned unchanged.
+     */
+    public static function removeDotSegments(string $path): string
+    {
+        if (!str_contains($path, '\\') && !preg_match('#(^|/)\.{1,2}(/|$)#', $path)) {
+            return $path;
+        }
+
+        $path = str_replace('\\', '/', $path);
+        $segments = [];
+
+        foreach (explode('/', $path) as $segment) {
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+
+            if ($segment === '..') {
+                array_pop($segments);
+                continue;
+            }
+
+            $segments[] = $segment;
+        }
+
+        return (str_starts_with($path, '/') ? '/' : '').implode('/', $segments);
+    }
+
+    /**
      * Returns the transform path for a given url.
      *
      *
@@ -425,21 +468,26 @@ class ImagerHelpers
         $config = ImagerService::getConfig();
 
         $urlParts = parse_url($url);
-        $pathParts = pathinfo($urlParts['path']);
+        $rawPath = (string)($urlParts['path'] ?? '');
+        $pathParts = pathinfo(self::removeDotSegments($rawPath));
         $hashRemoteUrl = $config->getSetting('hashRemoteUrl');
         $hashPath = $config->getSetting('hashPath');
         $shortHashLength = $config->getSetting('shortHashLength');
         $transformPath = $pathParts['dirname'];
 
+        // Hashes are made from the path as given, like in earlier versions, so that existing caches are still used.
+        // A hash can't point outside of the cache directory, only the unhashed path needs dot segments removed.
+        $rawDirname = pathinfo($rawPath)['dirname'] ?? '';
+
         if ($hashPath) {
-            $transformPath = '/'.md5($pathParts['dirname']);
+            $transformPath = '/'.md5($rawDirname);
         }
 
         if ($hashRemoteUrl) {
             if ($hashRemoteUrl === 'host') {
                 $transformPath = '/'.substr(md5($urlParts['host']), 0, $shortHashLength).$transformPath;
             } else {
-                $transformPath = '/'.md5($urlParts['host'].$pathParts['dirname']);
+                $transformPath = '/'.md5($urlParts['host'].$rawDirname);
             }
         } else {
             $transformPath = '/'.str_replace('.', '_', $urlParts['host']).$transformPath;

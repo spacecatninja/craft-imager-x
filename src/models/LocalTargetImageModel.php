@@ -10,6 +10,7 @@
 
 namespace spacecatninja\imagerx\models;
 
+use Craft;
 use spacecatninja\imagerx\helpers\FileHelper;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\helpers\ImagerHelpers;
@@ -26,6 +27,13 @@ use spacecatninja\imagerx\services\ImagerService;
  */
 class LocalTargetImageModel
 {
+    /**
+     * File extensions a transformed image can be saved with, in addition to the keys of the
+     * customEncoders config setting. Keeps active file types (php, html, svg, etc) out of the
+     * public transform path, regardless of image driver and of where the extension came from.
+     */
+    public const SAFE_TARGET_EXTENSIONS = ['jpg', 'jpeg', 'jpe', 'jfif', 'jp2', 'png', 'gif', 'webp', 'avif', 'jxl', 'heic', 'heif', 'tif', 'tiff', 'bmp', 'wbmp', 'xpm', 'ico'];
+
     public string $path = '';
 
     public string $url = '';
@@ -48,8 +56,19 @@ class LocalTargetImageModel
     {
         $config = ImagerService::getConfig();
 
-        $this->filename = $this->createTargetFilename($source, $transform);
+        // The transform path is derived from the image reference, make sure the target never leaves the
+        // imager system path. Checked before the filename is created, since that may download the source.
         $this->path = FileHelper::normalizePath($config->imagerSystemPath.'/'.$source->transformPath);
+        $this->assertWithinBase($this->path, $config->imagerSystemPath);
+
+        $this->filename = $this->createTargetFilename($source, $transform);
+
+        if ($this->filename === '') {
+            throw new ImagerException(Craft::t('imager-x', 'Could not create a filename for the transformed image.'));
+        }
+
+        $this->assertWithinBase($this->getFilePath(), $this->path);
+
         $this->url = ImagerHelpers::stripTrailingSlash($config->imagerUrl).FileHelper::normalizePath($source->transformPath.'/'.$this->filename, '/');
     }
 
@@ -59,6 +78,37 @@ class LocalTargetImageModel
     public function getFilePath(): string
     {
         return FileHelper::normalizePath($this->path.'/'.$this->filename);
+    }
+
+    /**
+     * Checks if an extension is one that transformed images can be saved with.
+     */
+    public static function isSafeTargetExtension(string $extension): bool
+    {
+        $extension = mb_strtolower($extension);
+
+        if (\in_array($extension, self::SAFE_TARGET_EXTENSIONS, true)) {
+            return true;
+        }
+
+        // Custom encoders are configured by the site, read them from config and never from a transform
+        $customEncoders = array_map(static fn($key) => mb_strtolower((string)$key), array_keys(ImagerService::getConfig()->customEncoders));
+
+        return \in_array($extension, $customEncoders, true);
+    }
+
+    /**
+     * Throws if path is not inside base
+     *
+     * @throws ImagerException
+     */
+    private function assertWithinBase(string $path, string $base): void
+    {
+        if (!FileHelper::isWithinBase($path, $base)) {
+            $msg = Craft::t('imager-x', 'Refusing to resolve an image path outside of the allowed base directory.');
+            Craft::error($msg.' Path: "'.FileHelper::normalizePath($path).'", base: "'.FileHelper::normalizePath($base).'".', __METHOD__);
+            throw new ImagerException($msg);
+        }
     }
 
     /**
@@ -84,6 +134,14 @@ class LocalTargetImageModel
         if (isset($transform['format'])) {
             $extension = $transform['format'];
             unset($transform['format']);
+
+            // The format is used as the file extension, only allow formats that we can save to. An empty
+            // format is ignored, and the extension is detected from the file below.
+            if ($extension !== '' && (!\is_string($extension) || !self::isSafeTargetExtension($extension))) {
+                $msg = Craft::t('imager-x', 'Format “{format}” is not a supported transform format.', ['format' => \is_string($extension) ? $extension : \gettype($extension)]);
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
+            }
         }
 
         if ($extension === '') {
@@ -94,6 +152,12 @@ class LocalTargetImageModel
             } catch (\Throwable) {
                 // just continue, we can handle it
             }
+        }
+
+        // The source extension is used verbatim with Imagick, and may come from an untrusted url.
+        // Anything that isn't an image format we can save to is saved as jpg.
+        if ($extension !== '' && !self::isSafeTargetExtension($extension)) {
+            $extension = 'jpg';
         }
 
         $this->extension = $extension;
