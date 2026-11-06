@@ -347,6 +347,12 @@ class ImagerX extends Plugin
             Event::on(Asset::class, Asset::EVENT_BEFORE_DEFINE_URL,
                 static function(DefineAssetUrlEvent $event) {
                     if ($event->transform !== null && $event->sender->kind === 'image' && \in_array(strtolower($event->sender->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+                        // In the control panel, leave transforms of assets without public transform URLs to Craft.
+                        // Craft then uses its own transforms that require a logged in user, for thumbnails and previews.
+                        if (Craft::$app->getRequest()->getIsCpRequest() && !self::hasPublicTransformUrls($event->sender)) {
+                            return;
+                        }
+
                         try {
                             $transform = $event->transform;
                             $isNativeTransform = false;
@@ -400,6 +406,12 @@ class ImagerX extends Plugin
             Event::on(Assets::class, Assets::EVENT_DEFINE_THUMB_URL,
                 static function(DefineAssetThumbUrlEvent $event) {
                     if ($event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+                        // Leave thumbnails of assets without public transform URLs to Craft, which uses its own
+                        // transforms that require a logged in user.
+                        if (!self::hasPublicTransformUrls($event->asset)) {
+                            return;
+                        }
+
                         try {
                             /** @var TransformedImageInterface $transformedImage */
                             $transformedImage = ImagerX::$plugin->imagerx->transformImage($event->asset, ['width' => $event->width, 'height' => $event->height, 'mode' => 'fit']);
@@ -413,6 +425,19 @@ class ImagerX extends Plugin
                     }
                 }
             );
+        }
+    }
+
+    /**
+     * Checks if Craft would publish transforms of an asset, which it only does if the volume's
+     * transform filesystem has public URLs.
+     */
+    private static function hasPublicTransformUrls(Asset $asset): bool
+    {
+        try {
+            return $asset->getVolume()->getTransformFs()->hasUrls;
+        } catch (\Throwable) {
+            return false;
         }
     }
 
