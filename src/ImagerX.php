@@ -344,6 +344,18 @@ class ImagerX extends Plugin
 
         // Event listener for overriding Craft's internal transform functionality
         if ($config->useForNativeTransforms) {
+            // Imager does native transforms right away, so Craft's srcset field has to count each size
+            // towards the GraphQL complexity, the same as Craft counts the url field with a transform.
+            Event::on(TypeManager::class, TypeManager::EVENT_DEFINE_GQL_TYPE_FIELDS,
+                static function(DefineGqlTypeFieldsEvent $event) {
+                    if ($event->typeName !== 'AssetInterface' || !isset($event->fields['srcset'])) {
+                        return;
+                    }
+
+                    $event->fields['srcset']['complexity'] = static fn($childrenComplexity, $args) => $childrenComplexity + Gql::GRAPHQL_COMPLEXITY_CPU_HEAVY * max(1, \count((array)($args['sizes'] ?? [])));
+                }
+            );
+
             Event::on(Asset::class, Asset::EVENT_BEFORE_DEFINE_URL,
                 static function(DefineAssetUrlEvent $event) {
                     if ($event->transform !== null && $event->sender->kind === 'image' && \in_array(strtolower($event->sender->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
