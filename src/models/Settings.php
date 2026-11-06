@@ -62,6 +62,8 @@ class Settings extends \CraftCms\Cms\Plugin\PluginSettings
     public int $remoteMaxFileSize = 67_108_864; // bytes, 0 disables
     public int $remoteDownloadTimeout = 120; // seconds, total for all redirects, 0 disables
     public int $maxTransformPixels = 100_000_000; // max pixels in any intermediate image, 0 disables
+    public bool $graphqlAllowCustomTransforms = true;
+    public int $graphqlMaxTransformSize = 6000; // max width/height in the imagerTransform directive, 0 disables
     public bool $runJobsImmediatelyOnAjaxRequests = true;
 
     public bool|string $fillTransforms = false;
