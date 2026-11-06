@@ -20,6 +20,7 @@ use Imagine\Exception\InvalidArgumentException;
 use Imagine\Gd\Image as GdImage;
 use Imagine\Gd\Imagine;
 use Imagine\Image\Box;
+use Imagine\Image\BoxInterface;
 use Imagine\Image\ImageInterface;
 use Imagine\Image\LayersInterface;
 use Imagine\Image\Palette\RGB;
@@ -207,6 +208,7 @@ class CraftTransformer extends Component implements TransformerInterface
                 // We need to create a new image instance with the target size, or letterboxing will be wrong.
                 $originalSize = $this->imageInstance->getSize();
                 $resizeSize = ImagerHelpers::getResizeSize($originalSize, $transform, $config->getSetting('allowUpscale', $transform));
+                $this->assertWithinPixelLimit($resizeSize, $originalSize);
                 $layers = $this->imageInstance->layers() ?? [];
                 $gif = $this->imagineInstance->create($resizeSize);
 
@@ -282,6 +284,8 @@ class CraftTransformer extends Component implements TransformerInterface
             $originalSize = $layer->getSize();
             $cropSize = ImagerHelpers::getCropSize($originalSize, $transform, $config->getSetting('allowUpscale', $transform));
             $resizeSize = ImagerHelpers::getResizeSize($originalSize, $transform, $config->getSetting('allowUpscale', $transform));
+            $this->assertWithinPixelLimit($resizeSize, $originalSize);
+            $this->assertWithinPixelLimit($cropSize, $originalSize);
             $filterMethod = $this->getFilterMethod($transform);
 
             // Do the resize
@@ -308,7 +312,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
         // Letterbox, add padding
         if (isset($transform['mode']) && mb_strtolower($transform['mode']) === 'letterbox') {
-            $this->applyLetterbox($layer, $transform);
+            $this->applyLetterbox($layer, $transform, $originalSize);
         }
 
         // Interlace if true
@@ -334,7 +338,7 @@ class CraftTransformer extends Component implements TransformerInterface
 
         // Add padding
         if (isset($transform['pad'])) {
-            $this->applyPadding($layer, $transform, $sourceExtension);
+            $this->applyPadding($layer, $transform, $sourceExtension, $originalSize);
         }
     }
 
@@ -466,7 +470,7 @@ class CraftTransformer extends Component implements TransformerInterface
      *
      * @throws ImagerException
      */
-    private function applyLetterbox(ImagickImage|ImageInterface|GdImage &$imageInstance, array $transform): void
+    private function applyLetterbox(ImagickImage|ImageInterface|GdImage &$imageInstance, array $transform, BoxInterface $sourceSize): void
     {
         if (isset($transform['width'], $transform['height'])) {
             $config = ImagerService::getConfig();
@@ -496,6 +500,7 @@ class CraftTransformer extends Component implements TransformerInterface
             );
 
             if ($this->imagineInstance !== null) {
+                $this->assertWithinPixelLimit($size, $sourceSize);
                 $backgroundImage = $this->imagineInstance->create($size, $color);
 
                 // Set palette of created image. This is necessary to avoid colors being skewed
@@ -518,7 +523,7 @@ class CraftTransformer extends Component implements TransformerInterface
      *
      * @throws ImagerException
      */
-    private function applyPadding(ImagickImage|ImageInterface|GdImage &$imageInstance, array $transform, string $sourceExtension): void
+    private function applyPadding(ImagickImage|ImageInterface|GdImage &$imageInstance, array $transform, string $sourceExtension, BoxInterface $sourceSize): void
     {
         if (isset($transform['pad'])) {
             $config = ImagerService::getConfig();
@@ -548,6 +553,7 @@ class CraftTransformer extends Component implements TransformerInterface
             $color = $bgColor === 'transparent' ? $palette->color('#000', 0) : $palette->color($bgColor);
 
             if ($this->imagineInstance !== null) {
+                $this->assertWithinPixelLimit($size, $sourceSize);
                 $backgroundImage = $this->imagineInstance->create($size, $color);
                 $backgroundImage->paste($imageInstance, $position);
                 $imageInstance = $backgroundImage;
@@ -716,6 +722,25 @@ class CraftTransformer extends Component implements TransformerInterface
                 Craft::error($msg, __METHOD__);
                 throw new ImagerException($msg, $throwable->getCode(), $throwable);
             }
+        }
+    }
+
+    /**
+     * Throws if an image of the given size would be larger than the maxTransformPixels config setting.
+     * Read from config only, so that it can't be changed by a transform. Images that are no larger than
+     * the source image are always allowed, since the source has already been opened at that size.
+     *
+     * @throws ImagerException
+     */
+    private function assertWithinPixelLimit(BoxInterface $size, BoxInterface $sourceSize): void
+    {
+        $maxPixels = ImagerService::getConfig()->maxTransformPixels;
+        $pixels = $size->getWidth() * $size->getHeight();
+
+        if ($maxPixels > 0 && $pixels > $maxPixels && $pixels > $sourceSize->getWidth() * $sourceSize->getHeight()) {
+            $msg = Craft::t('imager-x', 'The transformed image would be {width}x{height} pixels, which is more than the configured maxTransformPixels.', ['width' => $size->getWidth(), 'height' => $size->getHeight()]);
+            Craft::error($msg, __METHOD__);
+            throw new ImagerException($msg);
         }
     }
 

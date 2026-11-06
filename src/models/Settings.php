@@ -61,6 +61,7 @@ class Settings extends Model
     public array $curlOptions = [];
     public int $remoteMaxFileSize = 67_108_864; // bytes, 0 disables
     public int $remoteDownloadTimeout = 120; // seconds, total for all redirects, 0 disables
+    public int $maxTransformPixels = 100_000_000; // max pixels in any intermediate image, 0 disables
     public bool $runJobsImmediatelyOnAjaxRequests = true;
     
     public bool|string $fillTransforms = false;
