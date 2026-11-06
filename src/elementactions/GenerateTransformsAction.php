@@ -45,7 +45,15 @@ class GenerateTransformsAction extends ElementAction
             return false;
         }
         
-        $assetsToGenerate = $query->kind('image')->all();
+        $elementsService = Craft::$app->getElements();
+        $user = Craft::$app->getUser()->getIdentity();
+
+        // Only act on assets the current user can view. This is done first, so that the
+        // response doesn't say anything about other assets.
+        $assetsToGenerate = array_filter(
+            $query->kind('image')->all(),
+            static fn($asset) => $asset instanceof Asset && $elementsService->canView($asset, $user)
+        );
 
         if (empty($assetsToGenerate)) {
             $this->setMessage(Craft::t('imager-x', 'No images to transform'));

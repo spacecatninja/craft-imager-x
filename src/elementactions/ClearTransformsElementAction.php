@@ -14,6 +14,7 @@ use Craft;
 
 use craft\base\ElementAction;
 use craft\elements\db\ElementQueryInterface;
+use CraftCms\Cms\Asset\Elements\Asset;
 use spacecatninja\imagerx\ImagerX as Plugin;
 
 use yii\base\Exception;
@@ -39,8 +40,16 @@ class ClearTransformsElementAction extends ElementAction
      */
     public function performAction(ElementQueryInterface $query): bool
     {
+        $elementsService = Craft::$app->getElements();
+        $user = Craft::$app->getUser()->getIdentity();
+
         try {
             foreach ($query->all() as $asset) {
+                // Only act on assets the current user can view
+                if (!$asset instanceof Asset || !$elementsService->canView($asset, $user)) {
+                    continue;
+                }
+
                 Plugin::$plugin->imagerx->removeTransformsForAsset($asset);
             }
         } catch (Exception $exception) {
