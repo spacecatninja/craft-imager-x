@@ -777,6 +777,7 @@ class CraftTransformer extends Component implements TransformerInterface
             }
         }
 
-        return [$startFrame, $endFrame, $interval];
+        // A step of zero or less would never reach the end frame
+        return [max(0, $startFrame), $endFrame, max(1, $interval)];
     }
 }
