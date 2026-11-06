@@ -427,6 +427,18 @@ class ImagerHelpers
     }
 
     /**
+     * Returns the path of a remote image url the way the transform pipeline uses it: normalized, and
+     * with dot segments and backslashes resolved. The source filename and extension are taken from
+     * this path, so validation of untrusted urls must use it too.
+     */
+    public static function getRemoteUrlPath(string $url): string
+    {
+        $urlParts = parse_url(self::normalizeRemoteUrlString($url));
+
+        return self::removeDotSegments(\is_array($urlParts) ? (string)($urlParts['path'] ?? '') : '');
+    }
+
+    /**
      * Resolves "." and ".." segments in a url path, and treats backslashes as separators, the same way
      * the path is later interpreted on disk. ".." segments can't climb above the root of the path,
      * so the result always stays below it.
