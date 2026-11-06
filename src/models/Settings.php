@@ -59,6 +59,8 @@ class Settings extends Model
     public bool $skipExecutableExistCheck = false;
     public bool $removeTransformsOnAssetFileops = false;
     public array $curlOptions = [];
+    public int $remoteMaxFileSize = 67_108_864; // bytes, 0 disables
+    public int $remoteDownloadTimeout = 120; // seconds, total for all redirects, 0 disables
     public bool $runJobsImmediatelyOnAjaxRequests = true;
     
     public bool|string $fillTransforms = false;

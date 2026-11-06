@@ -180,6 +180,11 @@ class CraftTransformer extends Component implements TransformerInterface
                 try {
                     $this->imageInstance = $this->imagineInstance->open($sourceModel->getFilePath());
                 } catch (\Throwable $throwable) {
+                    // A downloaded file that can't be opened as an image would otherwise be kept in the source cache
+                    if ($sourceModel->type === 'remoteurl') {
+                        @unlink($sourceModel->getFilePath());
+                    }
+
                     $msg = Craft::t('imager-x', 'An error occured when trying to open image: '.$throwable->getMessage());
                     Craft::error($msg, __METHOD__);
                     throw new ImagerException($msg);
