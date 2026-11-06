@@ -18,6 +18,9 @@ use spacecatninja\imagerx\helpers\FormatHelper;
 use spacecatninja\imagerx\ImagerX as Plugin;
 
 use spacecatninja\imagerx\services\ImagerService;
+use spacecatninja\imagerx\utilities\ImagerUtility;
+use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
@@ -36,6 +39,25 @@ class UtilityController extends Controller
     // =========================================================================
 
     /**
+     * @inheritdoc
+     *
+     * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
+     */
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // The utility actions change state, and are only for users that have access to the utility
+        $this->requirePostRequest();
+        $this->requirePermission('utility:'.ImagerUtility::id());
+
+        return true;
+    }
+
+    /**
      * Controller action to generate transforms from utility
      */
     public function actionGenerateTransforms(): Response
@@ -44,6 +66,9 @@ class UtilityController extends Controller
         $volumes = $request->getParam('volumes');
         $useConfiguredTransforms = $request->getParam('useConfiguredTransforms') === '1';
         $namedTransforms = $request->getParam('namedTransforms');
+
+        // Only named transforms that are configured for the site can be generated from the utility
+        $namedTransforms = \is_array($namedTransforms) ? array_values(array_filter($namedTransforms, static fn($handle) => \is_string($handle) && isset(ImagerService::$namedTransforms[$handle]))) : [];
         
         $hasErrors = false;
         $errors = [];
@@ -72,7 +97,7 @@ class UtilityController extends Controller
             return $this->asJson([
                 'success' => false,
                 'errors' => [
-                    $throwable->getMessage(),
+                    Craft::t('imager-x', 'An error occurred when trying to generate transform jobs. Please check the logs for details.'),
                 ],
             ]);
         }
