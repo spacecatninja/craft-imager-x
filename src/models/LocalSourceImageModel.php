@@ -606,14 +606,20 @@ class LocalSourceImageModel
             $imageUrl = implode('?', $imageUrlArr);
         }
 
-        if (\function_exists('curl_init')) {
-            $this->downloadFileWithCurl($imageUrl, $config);
-        } elseif (ini_get('allow_url_fopen')) {
-            $this->downloadFileWithFopen($imageUrl, $config);
-        } else {
-            $msg = Craft::t('imager-x', 'Looks like allow_url_fopen is off and cURL is not enabled. To download external files, one of these methods has to be enabled.');
-            Craft::error($msg, __METHOD__);
-            throw new ImagerException($msg);
+        try {
+            if (\function_exists('curl_init')) {
+                $this->downloadFileWithCurl($imageUrl, $config);
+            } elseif (ini_get('allow_url_fopen')) {
+                $this->downloadFileWithFopen($imageUrl, $config);
+            } else {
+                $msg = Craft::t('imager-x', 'Looks like allow_url_fopen is off and cURL is not enabled. To download external files, one of these methods has to be enabled.');
+                Craft::error($msg, __METHOD__);
+                throw new ImagerException($msg);
+            }
+        } catch (ImagerException $imagerException) {
+            // Don't leave a partial download behind
+            @unlink($this->getTemporaryFilePath());
+            throw $imagerException;
         }
 
         $this->publishTemporaryFile();
@@ -635,9 +641,22 @@ class LocalSourceImageModel
         $maxRedirects = 10;
         $currentUrl = $imageUrl;
         $httpStatus = 0;
+        $maxFileSize = $config->remoteMaxFileSize;
+        $deadline = $config->remoteDownloadTimeout > 0 ? microtime(true) + $config->remoteDownloadTimeout : null;
 
         for ($redirect = 0; $redirect <= $maxRedirects; ++$redirect) {
             $resolve = [];
+            $remainingTime = null;
+
+            if ($deadline !== null) {
+                $remainingTime = (int)ceil($deadline - microtime(true));
+
+                if ($remainingTime <= 0) {
+                    $msg = Craft::t('imager-x', 'Download of “{imageUrl}” took longer than the configured remoteDownloadTimeout', ['imageUrl' => $imageUrl]);
+                    Craft::error($msg, __METHOD__);
+                    throw new ImagerException($msg);
+                }
+            }
 
             if (!$config->skipExternalUrlValidation) {
                 $resolve = $this->buildResolveList($currentUrl, $this->validateExternalUrl($currentUrl));
@@ -672,6 +691,31 @@ class LocalSourceImageModel
                 $options[CURLOPT_RESOLVE] = $resolve;
             }
 
+            // Keep each request within what remains of the total time budget. cURL treats 0 as no
+            // limit, so a configured 0 is replaced by the remaining time rather than kept.
+            if ($remainingTime !== null) {
+                $options[CURLOPT_TIMEOUT] = empty($options[CURLOPT_TIMEOUT]) ? $remainingTime : min((int)$options[CURLOPT_TIMEOUT], $remainingTime);
+                $options[CURLOPT_CONNECTTIMEOUT] = empty($options[CURLOPT_CONNECTTIMEOUT]) ? $remainingTime : min((int)$options[CURLOPT_CONNECTTIMEOUT], $remainingTime);
+
+                // The millisecond variants replace the ones above if they're set, so they're limited the same way
+                foreach ([CURLOPT_TIMEOUT_MS, CURLOPT_CONNECTTIMEOUT_MS] as $msOption) {
+                    if (empty($options[$msOption])) {
+                        unset($options[$msOption]);
+                    } else {
+                        $options[$msOption] = min((int)$options[$msOption], $remainingTime * 1000);
+                    }
+                }
+            }
+
+            // Limit the size of the download. MAXFILESIZE only works when the server sends a content length,
+            // the progress callback aborts other downloads once they get too big. The written file is checked
+            // too, since it can be larger than what was transferred if cURL decompresses the response.
+            if ($maxFileSize > 0) {
+                $options[CURLOPT_MAXFILESIZE] = $maxFileSize;
+                $options[CURLOPT_NOPROGRESS] = false;
+                $options[CURLOPT_XFERINFOFUNCTION] = static fn($curl, int $downloadTotal, int $downloaded): int => ($downloaded > $maxFileSize || ftell($fp) > $maxFileSize) ? 1 : 0;
+            }
+
             curl_setopt_array($ch, $options);
             curl_exec($ch);
             $curlErrorNo = curl_errno($ch);
@@ -703,6 +747,16 @@ class LocalSourceImageModel
             Craft::error($msg, __METHOD__);
             throw new ImagerException($msg);
         }
+
+        // The progress callback may not run after the last write, so check the size of the result too
+        clearstatcache(true, $this->getTemporaryFilePath());
+
+        if ($maxFileSize > 0 && (int)@filesize($this->getTemporaryFilePath()) > $maxFileSize) {
+            @unlink($this->getTemporaryFilePath());
+            $msg = Craft::t('imager-x', 'Download of “{imageUrl}” is larger than the configured remoteMaxFileSize', ['imageUrl' => $imageUrl]);
+            Craft::error($msg, __METHOD__);
+            throw new ImagerException($msg);
+        }
     }
 
     /**
@@ -719,17 +773,90 @@ class LocalSourceImageModel
             $this->validateExternalUrl($imageUrl);
         }
 
-        $context = stream_context_create([
-            'http' => [
-                'follow_location' => 0,
-                'max_redirects' => 1,
-            ],
-        ]);
+        $httpOptions = [
+            'follow_location' => 0,
+            'max_redirects' => 1,
+        ];
 
-        if (!@copy($imageUrl, $this->getTemporaryFilePath(), $context)) {
+        $deadline = null;
+
+        if ($config->remoteDownloadTimeout > 0) {
+            $httpOptions['timeout'] = $config->remoteDownloadTimeout;
+            $deadline = microtime(true) + $config->remoteDownloadTimeout;
+        }
+
+        $context = stream_context_create(['http' => $httpOptions]);
+        $maxFileSize = $config->remoteMaxFileSize;
+
+        error_clear_last();
+        $source = @fopen($imageUrl, 'rb', false, $context);
+        $target = $source !== false ? @fopen($this->getTemporaryFilePath(), 'wb') : false;
+        $copied = false;
+        $timedOut = false;
+
+        if ($source !== false && $target !== false) {
+            $copied = 0;
+
+            // Copy in chunks, since the stream timeout only limits how long each read can wait. Every read
+            // gets what's left of the total time, so that a slow server can't keep the download going.
+            while (!feof($source)) {
+                if ($deadline !== null) {
+                    $remainingTime = $deadline - microtime(true);
+
+                    if ($remainingTime <= 0) {
+                        $timedOut = true;
+                        break;
+                    }
+
+                    stream_set_timeout($source, (int)$remainingTime, (int)(($remainingTime - floor($remainingTime)) * 1_000_000));
+                }
+
+                $chunk = @fread($source, 65536);
+
+                if (stream_get_meta_data($source)['timed_out']) {
+                    $timedOut = true;
+                    break;
+                }
+
+                if ($chunk === false || @fwrite($target, $chunk) === false) {
+                    $copied = false;
+                    break;
+                }
+
+                $copied += \strlen($chunk);
+
+                if ($maxFileSize > 0 && $copied > $maxFileSize) {
+                    break;
+                }
+            }
+        }
+
+        if (\is_resource($source)) {
+            fclose($source);
+        }
+
+        if (\is_resource($target)) {
+            fclose($target);
+        }
+
+        if ($timedOut) {
+            @unlink($this->getTemporaryFilePath());
+            $msg = Craft::t('imager-x', 'Download of “{imageUrl}” took longer than the configured remoteDownloadTimeout', ['imageUrl' => $imageUrl]);
+            Craft::error($msg, __METHOD__);
+            throw new ImagerException($msg);
+        }
+
+        if ($copied === false) {
             @unlink($this->getTemporaryFilePath());
             $errors = error_get_last();
-            $msg = Craft::t('imager-x', 'Error “{errorType}” encountered while attempting to download “{imageUrl}”: {errorMessage}', ['imageUrl' => $imageUrl, 'errorType' => $errors['type'], 'errorMessage' => $errors['message']]);
+            $msg = Craft::t('imager-x', 'Error “{errorType}” encountered while attempting to download “{imageUrl}”: {errorMessage}', ['imageUrl' => $imageUrl, 'errorType' => $errors['type'] ?? '', 'errorMessage' => $errors['message'] ?? '']);
+            Craft::error($msg, __METHOD__);
+            throw new ImagerException($msg);
+        }
+
+        if ($maxFileSize > 0 && $copied > $maxFileSize) {
+            @unlink($this->getTemporaryFilePath());
+            $msg = Craft::t('imager-x', 'Download of “{imageUrl}” is larger than the configured remoteMaxFileSize', ['imageUrl' => $imageUrl]);
             Craft::error($msg, __METHOD__);
             throw new ImagerException($msg);
         }
