@@ -45,6 +45,24 @@ class LocalSourceImageModel
      */
     private const SOURCE_CACHE_LOCK_TIMEOUT = 30;
 
+    /**
+     * @var string[] Raster image types that remote sources are always allowed to contain.
+     */
+    private const RASTER_MIME_TYPES = [
+        'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/jxl',
+        'image/heic', 'image/heif', 'image/heic-sequence', 'image/heif-sequence', 'image/tiff',
+        'image/bmp', 'image/x-bmp', 'image/x-ms-bmp', 'image/vnd.microsoft.icon', 'image/x-icon',
+        'image/jp2', 'image/jpx', 'image/jpm', 'image/x-jp2-codestream',
+        // Names used by some versions of libmagic, including the one bundled with PHP's fileinfo extension
+        'image/x-jxl',
+    ];
+
+    /**
+     * @var string[] Major brands of the ISO base media files that are images (AVIF, HEIF and HEIC). Only the major
+     * brand is checked, since that's what image libraries use to pick a decoder.
+     */
+    private const ISOBMFF_IMAGE_BRANDS = ['avif', 'avis', 'heic', 'heix', 'heim', 'heis', 'hevc', 'hevx', 'hevm', 'hevs', 'mif1', 'msf1'];
+
     public string $type = 'local';
 
     public string $path = '';
@@ -203,6 +221,84 @@ class LocalSourceImageModel
             Craft::error($msg, __METHOD__);
             throw new ImagerException($msg);
         }
+
+        // Downloads are checked before they are published to the source cache, this covers files cached by earlier versions
+        if ($this->type === 'remoteurl') {
+            $this->assertRemoteFileIsImage($this->getFilePath());
+        }
+    }
+
+    /**
+     * Checks that a downloaded file is a raster image, or the type of file that the extension of the url says it
+     * is, like a PDF from a .pdf url. Image libraries like ImageMagick pick the format from the file content, so
+     * other content could otherwise be opened as a format that was never intended, like SVG.
+     *
+     * @throws ImagerException
+     */
+    private function assertRemoteFileIsImage(string $file): void
+    {
+        $extension = strtolower($this->extension);
+        $imageInfo = @getimagesize($file);
+        $mimeType = \is_array($imageInfo) ? ($imageInfo['mime'] ?? null) : null;
+
+        // getimagesize() doesn't know all image types, like HEIC and JPEG XL
+        if ($mimeType === null) {
+            try {
+                $mimeType = FileHelper::getMimeType($file, null, false);
+            } catch (\Throwable) {
+                $mimeType = null;
+            }
+        }
+
+        if ($mimeType !== null && \in_array(strtolower($mimeType), self::RASTER_MIME_TYPES, true)) {
+            return;
+        }
+
+        // The fileinfo extension is optional, and older versions of libmagic don't know all newer formats,
+        // so if the type couldn't be determined, check the signature of those formats directly
+        if (($mimeType === null || $mimeType === 'application/octet-stream') && self::hasNewerImageSignature($file)) {
+            return;
+        }
+
+        // Other content is only allowed if it's what the url's own extension says it is, like a PDF from a .pdf
+        // url or an SVG from a .svg url. Urls with an image file extension or none must contain a raster image.
+        // Plain text, XML and ImageMagick's own drawing and scripting formats are never allowed, since ImageMagick
+        // detects them from the content, and neither is content of an unknown type.
+        $mimeType = $mimeType !== null ? strtolower($mimeType) : null;
+
+        if ($mimeType !== null && $extension !== '' && !str_starts_with($mimeType, 'text/')
+            && !\in_array($mimeType, ['application/xml', 'application/octet-stream', 'image/x-mvg', 'image/x-msl'], true)
+            && \in_array($extension, FileHelper::getExtensionsByMimeType($mimeType), true)) {
+            return;
+        }
+
+        // Remove it, so that it isn't used again
+        @unlink($file);
+
+        $msg = Craft::t('imager-x', 'The remote file “{imageUrl}” is not a supported image.', ['imageUrl' => $this->url]);
+        Craft::error($msg.' Detected type: '.($mimeType ?? 'unknown').'.', __METHOD__);
+        throw new ImagerException($msg);
+    }
+
+    /**
+     * Checks if a file starts with the signature of an image format that getimagesize() and older versions of
+     * libmagic don't know: AVIF and HEIF/HEIC (an ISO base media file with an image brand), or JPEG XL.
+     */
+    private static function hasNewerImageSignature(string $file): bool
+    {
+        $header = @file_get_contents($file, false, null, 0, 16);
+
+        if (!\is_string($header) || \strlen($header) < 12) {
+            return false;
+        }
+
+        // JPEG XL codestream, or JPEG XL container
+        if (str_starts_with($header, "\xFF\x0A") || str_starts_with($header, "\x00\x00\x00\x0CJXL \x0D\x0A\x87\x0A")) {
+            return true;
+        }
+
+        // ISO base media file, the major brand follows the ftyp box type
+        return substr($header, 4, 4) === 'ftyp' && \in_array(substr($header, 8, 4), self::ISOBMFF_IMAGE_BRANDS, true);
     }
 
     /**
@@ -622,6 +718,8 @@ class LocalSourceImageModel
             throw $imagerException;
         }
 
+        // Check the download before it's published to the source cache, so that only checked files are ever used
+        $this->assertRemoteFileIsImage($this->getTemporaryFilePath());
         $this->publishTemporaryFile();
     }
 
