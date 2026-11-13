@@ -1,5 +1,10 @@
 # Imager X Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed GraphQL support on Craft 6.0.0-beta.1, where querying any GraphQL schema threw an exception when Imager X was installed.
+
 ## 7.0.0-beta.1 - 2026-11-14
 
 ### Added

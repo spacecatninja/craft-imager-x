@@ -15,7 +15,6 @@ use craft\gql\base\Directive;
 use craft\gql\GqlEntityRegistry;
 use GraphQL\Language\DirectiveLocation;
 use GraphQL\Type\Definition\Directive as GqlDirective;
-use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Type\Definition\ResolveInfo;
 use spacecatninja\imagerx\exceptions\ImagerException;
 use spacecatninja\imagerx\gql\arguments\ImagerSrcsetArguments;
@@ -29,17 +28,6 @@ use spacecatninja\imagerx\services\ImagerService;
  */
 class ImagerSrcset extends Directive
 {
-    public function __construct(array $config)
-    {
-        $args = &$config['args'];
-
-        foreach ($args as &$argument) {
-            $argument = new FieldArgument($argument);
-        }
-
-        parent::__construct($config);
-    }
-
     /**
      * @inheritdoc
      */

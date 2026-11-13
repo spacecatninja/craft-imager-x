@@ -14,12 +14,13 @@ use craft\gql\base\InterfaceType as BaseInterfaceType;
 
 use craft\gql\GqlEntityRegistry;
 use craft\gql\TypeLoader;
+use CraftCms\Cms\Gql\Contracts\SingularTypeInterface;
 use GraphQL\Type\Definition\InterfaceType;
 
 use GraphQL\Type\Definition\Type;
 use spacecatninja\imagerx\gql\types\generators\ImagerGenerator;
 
-class ImagerTransformedImageInterface extends BaseInterfaceType
+class ImagerTransformedImageInterface extends BaseInterfaceType implements SingularTypeInterface
 {
     /**
      * @inheritdoc
