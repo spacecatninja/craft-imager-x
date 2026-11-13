@@ -1,5 +1,39 @@
 # Imager X Changelog
 
+## 7.0.0-beta.1 - 2026-11-14
+
+### Added
+- Added the `remoteMaxFileSize` config setting (default 64 MB), which limits the size of remote image downloads.
+- Added the `remoteDownloadTimeout` config setting (default 120 seconds), which limits the total time a remote image download can take, including redirects.
+- Added the `maxTransformPixels` config setting (default 100 megapixels), which limits the size of images created while transforming. Images that are no larger than the source image are always allowed.
+- Added the `graphqlMaxTransformSize` config setting (default 6000), which limits the width and height of transforms made with the `@imagerTransform` GraphQL directive.
+- Added the `graphqlAllowCustomTransforms` config setting. When set to `false`, the `@imagerTransform` GraphQL directive can only be used with named transforms.
+
+### Changed
+- Changed the `imagerTransform` GraphQL query to apply the schema's volume scope when querying by `id`.
+- Changed the `imagerTransform` GraphQL query to only accept local paths with a file extension in `safeFileFormats` in the `url` argument.
+- Changed the `@imagerTransform` GraphQL directive to return `null` for invalid transform parameters.
+- Changed transforms to only be saved with image file extensions. An unsupported `format` now throws an exception.
+- Changed remote images to be checked after downloading. They must be a supported image type, or match the file extension of the URL, like a PDF from a `.pdf` URL.
+- Changed `useForCpThumbs` and `useForNativeTransforms` to leave control panel thumbnails and previews of assets in volumes without public URLs to Craft.
+- Changed Craft's `srcset` GraphQL field to count each size towards `maxGraphqlComplexity` when `useForNativeTransforms` is enabled, the same as Craft counts `url` with a transform.
+- `getDominantColor()` now returns the most common color in the image. Previously it returned the first color of the Color Thief palette, which is ranked by how much of the color space a group of colors spans, not just by how many pixels it has. A small, varied detail could beat a large, flat area, so an image that is 90% red with a blue detail would get blue as its dominant color. This also applies to the `dominantColor` generate flag and the `dominantColor` return type of the `@imagerTransform` GraphQL directive.
+- `getDominantColor()` and `getColorPalette()` no longer ignore white. Color Thief skips pixels where all channels are above 250, so a mostly white image got the color of whatever else was in it as its dominant color, and a white image got `null`.
+- `getDominantColor()` now returns the actual average color of the matching pixels, so a white image gets `#ffffff` and a black image gets `#000000`, instead of `#fcfcfc` and `#040404`.
+- `ksubileau/color-thief-php` 2.0 or later is now required.
+
+### Fixed
+- Fixed several security issues.
+- Fixed `removeTransformsOnAssetFileops` not removing transforms when an asset was moved without being renamed.
+- Fixed a potential infinite loop when using the `frames` parameter.
+- Fixed remote images that couldn't be opened being kept in the source cache.
+- Fixed partially downloaded remote images being left behind when a download failed.
+- Fixed some path checks failing on Windows.
+- Fixed `getColorPalette()` throwing a `TypeError` instead of returning `null` when an image couldn't be analyzed.
+- Fixed transformed images having their file type detected with `finfo` on every render, also when the transform already existed. For JPEG, PNG, GIF, WebP and AVIF the mime type is now taken from the `getimagesize()` call that reads the image dimensions (fixes #315).
+- Fixed native crop transforms not using the asset's focal point when `useForNativeTransforms` is enabled, so they now match Craft (fixes #314).
+- Fixed the Imager X utility being unstyled on Craft 6, and the transform picker not showing when “Use configured transforms” was turned off.
+
 ## 7.0.0-alpha.3 - 2026-10-03
 
 ### Added
