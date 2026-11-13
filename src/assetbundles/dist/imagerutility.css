@@ -1,21 +1,62 @@
-.imager-utility__label {
-    font-weight: bold;
-    color: #606d7b;
-    margin-bottom: 10px;
+/*
+ * Imager X utility, styled for the Craft 6 control panel.
+ *
+ * Craft 6 doesn't load Craft 5's cp.css, so this builds on the new CP classes
+ * (cp-h2, cp-table, cp-code) and design tokens (--c-*) instead.
+ */
+
+.imager-utility [hidden] {
+    display: none !important;
 }
 
-.imager-utility__block {
-    margin-bottom: 20px;
+.imager-utility__prose {
+    max-width: 75ch;
+    margin-block-end: var(--c-spacing-lg);
 }
 
-.imager-utility__block .instructions {
-    margin-bottom: 10px;
+.imager-utility__prose > * + * {
+    margin-block-start: var(--c-spacing-sm);
 }
 
-.imager-utility__block fieldset{
-    margin-top: 0 !important;
+.imager-utility__prose a {
+    color: var(--c-text-link);
+    text-decoration: underline;
 }
 
-.imager-utility tbody tr td {
-    text-align: left !important;
+.imager-utility__muted {
+    color: var(--c-text-quiet);
+}
+
+/* Tables: let long values (paths, format lists) wrap instead of being cut off */
+.imager-utility__table .imager-utility__wrap {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+}
+
+.imager-utility__table .imager-utility__wrap .cp-code {
+    display: inline;
+    padding-block: 1px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+.imager-utility__table .imager-utility__num {
+    text-align: end;
+}
+
+.imager-utility__table .imager-utility__actions {
+    overflow: visible;
+}
+
+/* Key/value table (debug info): quiet labels, as in Craft's System Report */
+.imager-utility__table--kv tbody th {
+    color: var(--c-text-quiet);
+    font-weight: normal;
+}
+
+/* Generate form */
+.imager-utility__fields {
+    display: grid;
+    gap: var(--c-spacing-lg);
 }

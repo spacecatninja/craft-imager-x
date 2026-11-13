@@ -118,17 +118,10 @@ class ImagerUtility extends Utility
                 ->count();
 
             $volumeOptions[] = [
-                'label' => Template::raw(Html::encode($volume->name) . sprintf(' <span class=\'light\'>(%s images)</span>', $assetsCount)),
+                'label' => Template::raw(Html::encode($volume->name) . sprintf(' <span class="imager-utility__muted">(%s images)</span>', $assetsCount)),
                 'value' => $volume->id,
             ];
         }
-
-        $view = Craft::$app->getView();
-        $volumesCheckboxSelectHtml = $view->renderTemplate('_includes/forms/checkboxSelect', [
-            'name' => 'volumes',
-            'options' => $volumeOptions,
-            'showAllOption' => false,
-        ]);
 
         // Get checkboxes for named transforms
         $namedTransforms = ImagerService::$namedTransforms;
@@ -146,13 +139,6 @@ class ImagerUtility extends Utility
             ];
         }
 
-        $view = Craft::$app->getView();
-        $transformsCheckboxSelectHtml = $view->renderTemplate('_includes/forms/checkboxSelect', [
-            'name' => 'namedTransforms',
-            'options' => $namedTransformsOptions,
-            'showAllOption' => false,
-        ]);
-
         // Compile debug info
         $debugInfo = self::debugInfo();
 
@@ -167,8 +153,8 @@ class ImagerUtility extends Utility
         return Craft::$app->getView()->renderTemplate(
             'imager-x/utility/_utility',
             [
-                'volumesCheckboxSelectHtml' => $volumesCheckboxSelectHtml,
-                'transformsCheckboxSelectHtml' => $transformsCheckboxSelectHtml,
+                'volumeOptions' => $volumeOptions,
+                'namedTransformsOptions' => $namedTransformsOptions,
                 'showDisplayNameInfo' => $hasTransformWithoutDisplayName,
                 'queueUrl' => UrlHelper::cpUrl('utilities/queue-manager'),
                 'caches' => $caches,

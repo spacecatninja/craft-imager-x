@@ -1,132 +1,141 @@
 {% import "_includes/forms" as forms %}
 
-<div class="imager-utility">
-    <h1>Caches</h1>
-    
-    <p>
-        Imager X currently have two caches; <strong>the transforms cache</strong>, where all your transformed images 
-        are stored, and <strong>the runtime cache</strong>, where images that are downloaded from external filesystems and urls, and temporary files 
-        created by Imager X, are stored.
-    </p>
-    <p>
-        <strong>Not sure if it's a good idea to clear them?</strong>&nbsp;😬&nbsp;  
-        Check out <a href="https://imager-x.spacecat.ninja/usage/caching.html">the documentation</a> first.
-    </p>
+{#
+ # Rendered inside Craft 6's CP shell, where this HTML is compiled as a Vue template and
+ # Craft 5's cp.css isn't loaded. Uses Craft 6 components (<craft-button>, <craft-callout>)
+ # and classes (cp-h2, cp-table, cp-code); the rest is in imagerutility.css.
+ #}
 
-    <form id="imager-x-utility-cache" class="utility" method="post" accept-charset="UTF-8" data-action-url="imager-x/utility/clear-cache" data-queue-url="{{ queueUrl }}">
-        {{ csrfInput() }}
-        {{ actionInput('imager-x/utility/clear-cache') }}
-        {{ hiddenInput('cacheClearType', '') }}
-        
-        <table id="imagerCaches" class="editable fullwidth">
-            <thead>
-            <tr>
-                <th scope="col" class="heading-cell">Cache</th>
-                <th scope="col" class="code html-cell">Path</th>
-                <th scope="col" class="html-cell">Files</th>
-                <th scope="col" class="html-cell">Size</th>
-                <th scope="col" class="html-cell"></th>
-            </tr>
-            </thead>
+<div class="imager-utility">
+    <section>
+        <h2 class="cp-h2 mb-3">{{ 'Caches'|t('imager-x') }}</h2>
+
+        <div class="imager-utility__prose">
+            <p>
+                Imager X currently have two caches; <strong>the transforms cache</strong>, where all your transformed images
+                are stored, and <strong>the runtime cache</strong>, where images that are downloaded from external filesystems and urls, and temporary files
+                created by Imager X, are stored.
+            </p>
+            <p>
+                <strong>Not sure if it's a good idea to clear them?</strong>&nbsp;😬&nbsp;
+                Check out <a href="https://imager-x.spacecat.ninja/usage/caching.html">the documentation</a> first.
+            </p>
+        </div>
+
+        <form id="imager-x-utility-cache" method="post" accept-charset="UTF-8" data-action-url="imager-x/utility/clear-cache" data-queue-url="{{ queueUrl }}">
+            {{ csrfInput() }}
+            {{ actionInput('imager-x/utility/clear-cache') }}
+            {{ hiddenInput('cacheClearType', '') }}
+
+            <table class="cp-table cp-table--auto cp-table--aligned imager-utility__table">
+                <thead>
+                    <tr>
+                        <th scope="col" class="thin">{{ 'Cache'|t('imager-x') }}</th>
+                        <th scope="col">{{ 'Path'|t('imager-x') }}</th>
+                        <th scope="col" class="thin imager-utility__num">{{ 'Files'|t('imager-x') }}</th>
+                        <th scope="col" class="thin imager-utility__num">{{ 'Size'|t('imager-x') }}</th>
+                        <th scope="col" class="thin"><span class="sr-only">{{ 'Actions'|t('imager-x') }}</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cache in caches %}
+                        <tr>
+                            <th scope="row" class="thin">{{ cache.name }}</th>
+                            <td class="imager-utility__wrap"><code class="cp-code">{{ cache.path }}</code></td>
+                            <td class="thin imager-utility__num" data-cache-file-count="{{ cache.handle }}">{{ cache.fileCount }}</td>
+                            <td class="thin imager-utility__num" data-cache-file-size="{{ cache.handle }}">{{ cache.size }}</td>
+                            <td class="thin imager-utility__actions">
+                                <craft-button type="button" size="small" data-cache-clear-btn="{{ cache.handle }}">{{ 'Clear'|t('imager-x') }}</craft-button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="mt-4 flex gap-2 items-center">
+                <craft-button type="button" variant="accent" data-cache-clear-btn="all">{{ 'Clear all'|t('imager-x') }}</craft-button>
+                <div data-imager-x-cache-status role="status" aria-live="polite"></div>
+            </div>
+        </form>
+    </section>
+
+    {% if isPro %}
+        <hr class="my-lg">
+
+        <section>
+            <h2 class="cp-h2 mb-3">{{ 'Generate transforms'|t('imager-x') }}</h2>
+
+            <div class="imager-utility__prose">
+                <p>
+                    You can read more about auto-generation of transforms <a href="https://imager-x.spacecat.ninja/usage/generate.html">in the documentation</a>. ⚙️
+                </p>
+            </div>
+
+            <form id="imager-x-utility-generate" method="post" accept-charset="UTF-8" data-action-url="imager-x/utility/generate-transforms" data-queue-url="{{ queueUrl }}">
+                {{ csrfInput() }}
+                {{ actionInput('imager-x/utility/generate-transforms') }}
+
+                <div class="imager-utility__fields">
+                    {{ forms.checkboxSelectField({
+                        label: 'Choose volumes'|t('imager-x'),
+                        name: 'volumes',
+                        options: volumeOptions,
+                        showAllOption: false,
+                    }) }}
+
+                    {{ forms.lightswitchField({
+                        name: 'useConfiguredTransforms',
+                        label: 'Use configured transforms'|t('imager-x'),
+                        instructions: 'Use the transforms configured in imager-x-generate.php for each volume. Disable to pick transforms manually.'|t('imager-x'),
+                        on: true,
+                    }) }}
+
+                    <div id="imager-x-utility-generate-transforms" hidden>
+                        {% if namedTransformsOptions|length %}
+                            {{ forms.checkboxSelectField({
+                                label: 'Choose transforms'|t('imager-x'),
+                                instructions: showDisplayNameInfo ? 'It appears that one or more of your named transforms doesn\'t have a display name. If you add this to your transforms in imager-x-transforms.php, those will be shown instead of the handle.'|t('imager-x') : null,
+                                name: 'namedTransforms',
+                                options: namedTransformsOptions,
+                                showAllOption: false,
+                            }) }}
+                        {% else %}
+                            <craft-callout variant="info" icon="circle-info">
+                                {{ 'No named transforms are configured. Add some to imager-x-transforms.php to pick them here.'|t('imager-x') }}
+                            </craft-callout>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mt-4 flex gap-2 items-center">
+                    <craft-button type="submit" variant="accent" data-imager-x-generate-btn>{{ 'Generate transforms'|t('imager-x') }}</craft-button>
+                    <div data-imager-x-generate-status role="status" aria-live="polite"></div>
+                </div>
+            </form>
+        </section>
+    {% endif %}
+
+    <hr class="my-lg">
+
+    <section>
+        <h2 class="cp-h2 mb-3">{{ 'Debug information'|t('imager-x') }}</h2>
+
+        <div class="imager-utility__prose">
+            <p>
+                If you need to <a href="https://github.com/spacecatninja/craft-imager-x/issues/new">submit an issue</a>, please
+                provide the following information to speed up the debugging process. 🙏
+            </p>
+        </div>
+
+        <table class="cp-table cp-table--auto cp-table--aligned imager-utility__table imager-utility__table--kv">
             <tbody>
-            {% for cache in caches %}
-                <tr data-id="0">
-                    <th scope="row" class="heading-cell">{{ cache.name }}</th>
-                    <td class="code html-cell">{{ cache.path }}</td>
-                    <td class="html-cell" data-cache-file-count="{{ cache.handle }}">{{ cache.fileCount }}</td>
-                    <td class="html-cell" data-cache-file-size="{{ cache.handle }}">{{ cache.size }}</td>
-                    <td class="html-cell" style="width: 115px;">
-                        <div class="flex">
-                            <input type="submit" class="btn small secondary" value="{{ 'Clear'|t('imager-x') }}" data-cache-clear-btn="{{ cache.handle }}"/>
-                            <span class="spinner invisible" data-imager-x-cache-spinner="{{ cache.handle }}"></span>
-                        </div>
-                    </td>
-                </tr>
-            {% endfor %}
+                {% for info in debugInfo %}
+                    <tr>
+                        <th scope="row" class="thin">{{ info.label }}</th>
+                        <td class="imager-utility__wrap">{{ info.value|raw }}</td>
+                    </tr>
+                {% endfor %}
             </tbody>
         </table>
-        
-        <div class="buttons">
-            <input type="submit" class="btn big submit" value="{{ 'Clear all'|t('imager-x') }}"  data-cache-clear-btn="all"/>
-            <span class="spinner invisible" data-imager-x-cache-spinner="all"></span>
-        </div>
-        
-        <p class="light" data-imager-x-cache-status>
-            &nbsp;
-        </p>
-    </form>
-    
-    {% if isPro %}
-        <hr>
-        &nbsp;<br>
-        <h1>Generate transforms</h1>
-        
-        <p>
-            You can read more about auto-generation of transforms <a href="https://imager-x.spacecat.ninja/usage/generate.html">in the documentation</a>. ⚙️
-        </p>
-    
-        <form id="imager-x-utility-generate" class="utility" method="post" accept-charset="UTF-8" data-action-url="imager-x/utility/generate-transforms" data-queue-url="{{ queueUrl }}">
-            {{ csrfInput() }}
-            {{ actionInput('imager-x/utility/generate-transforms') }}
-        
-            <div class="imager-utility__block field">
-                <div class="heading">
-                    <div class="imager-utility__label">{{ 'Choose volumes' | t('imager-x') }}</div>
-                </div>
-                {{ volumesCheckboxSelectHtml|raw }}
-            </div>
-        
-            {{ forms.lightswitchField({
-                name: 'useConfiguredTransforms',
-                label: 'Use configured transforms'|t('imager-x'),
-                instructions: 'Use the transforms configured in imager-x-generate.php for each volume. Disable to pick transforms manually.'|t('imager-x'),
-                on: true,
-            }) }}
-        
-            <div id="imager-x-utility-generate-transforms" class="imager-utility__block field" style="display: none;">
-                <div class="heading">
-                    <div class="imager-utility__label">{{ "Choose transforms" | t('imager-x') }}</div>
-        
-                    {% if showDisplayNameInfo %}
-                        <div class="instructions">
-                            <p>{{ 'It appears that one or more of your named transforms doesn\'t have a display name. If you add this to your transforms in imager-x-transforms.php, those will be shown instead of the handle.' }}</p>
-                        </div>
-                    {% endif %}
-                </div>
-        
-                {{ transformsCheckboxSelectHtml|raw }}
-            </div>
-        
-            <div class="buttons">
-                <input type="submit" class="btn big submit" value="{{ 'Generate transforms'|t('imager-x') }}" data-imager-x-generate-btn/>
-                <span class="spinner invisible" data-imager-x-generate-spinner></span>
-            </div>
-        
-            <p class="light" data-imager-x-generate-status>
-                &nbsp;
-            </p>
-        </form>
-    {% endif %}
-    
-    <hr>
-    &nbsp;<br>
-    <h1>Debug Information</h1>
-    
-    <p>
-        If you need to <a href="https://github.com/spacecatninja/craft-imager-x/issues/new">submit an issue</a>, please
-        provide the following information to speed up the debugging process. 🙏
-    </p>
-    
-    <table id="imagerCaches" class="editable fullwidth">
-            <tbody>
-            {% for info in debugInfo %}
-                <tr data-id="0">
-                    <th scope="row" class="heading-cell" style="max-width: 100px;">{{ info.label }}</th>
-                    <td class="code html-cell">{{ info.value | raw }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        
-    </table>
-    <p>&nbsp;</p>
+    </section>
 </div>
