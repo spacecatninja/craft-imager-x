@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Services;
 
+use Illuminate\Container\Attributes\Singleton;
 use Craft;
 use craft\base\Component;
 use craft\base\Element;
@@ -34,6 +35,7 @@ use yii\base\InvalidConfigException;
  * @package   Imager
  * @since     3.0.0
  */
+#[Singleton]
 class GenerateService extends Component
 {
     /**
@@ -44,7 +46,7 @@ class GenerateService extends Component
     /**
      * @param array|null $transforms
      */
-    public function generateByUtility(array $volumeIds, bool $useConfig = true, array $transforms = null): void
+    public function generateByUtility(array $volumeIds, bool $useConfig = true, ?array $transforms = null): void
     {
         $volumesConfig = ImagerService::$generateConfig->volumes ?? [];
 
@@ -327,7 +329,7 @@ class GenerateService extends Component
             foreach ($transforms as $transform) {
                 if (TransformHelpers::isQuickSyntax($transform)) {
                     try {
-                        $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform, null, ['optimizeType' => 'runtime'], $force);
+                        $transformedImages = app(ImagerService::class)->transformImage($asset, $transform, null, ['optimizeType' => 'runtime'], $force);
                         unset($transformedImages);
                     } catch (ImagerException $imagerException) {
                         $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and quick transform “{transform}”: {message}', ['assetId' => $asset->id, 'transform' => print_r($transform, true), 'message' => $imagerException->getMessage()]);
@@ -337,7 +339,7 @@ class GenerateService extends Component
                     $namedTransform = ImagerService::$namedTransforms[$transform];
 
                     try {
-                        $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform, null, ['optimizeType' => 'runtime'], $force);
+                        $transformedImages = app(ImagerService::class)->transformImage($asset, $transform, null, ['optimizeType' => 'runtime'], $force);
 
                         if ($transformedImages && isset($namedTransform['generateFlags']) && is_array($namedTransform['generateFlags'])) {
                             $this->processGenerateFlags($transformedImages, $namedTransform['generateFlags']);
@@ -370,10 +372,10 @@ class GenerateService extends Component
                         $transformedImage->getBlurhash();
                         break;
                     case 'palette':
-                        ImagerX::getInstance()->color->getColorPalette($transformedImage);
+                        app(ImagerColorService::class)->getColorPalette($transformedImage);
                         break;
                     case 'dominantColor':
-                        ImagerX::getInstance()->color->getDominantColor($transformedImage);
+                        app(ImagerColorService::class)->getDominantColor($transformedImage);
                         break;
                 }
             }

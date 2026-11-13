@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Services;
 
+use Illuminate\Container\Attributes\Singleton;
 use ColorThief\ColorThief;
 use ColorThief\Image\ImageLoader;
 use craft\base\Component;
@@ -44,6 +45,7 @@ use function SSNepenthe\ColorUtils\saturation;
  * @package   Imager
  * @since     2.0.0
  */
+#[Singleton]
 class ImagerColorService extends Component
 {
     // Const Properties

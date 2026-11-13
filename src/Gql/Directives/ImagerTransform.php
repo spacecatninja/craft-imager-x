@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Gql\Directives;
 
+use SpaceCatNinja\ImagerX\Services\ImagerColorService;
 use Craft;
 use craft\gql\base\Directive;
 use craft\gql\GqlEntityRegistry;
@@ -87,7 +88,7 @@ class ImagerTransform extends Directive
         }
         
         try {
-            $transformedImage = ImagerX::$plugin->imagerx->transformImage($source, $transform);
+            $transformedImage = app(ImagerService::class)->transformImage($source, $transform);
         } catch (ImagerException $imagerException) {
             Craft::error('An error occured when trying to transform image in GraphQL directive: ' . $imagerException->getMessage(), __METHOD__);
             return null;
@@ -114,7 +115,7 @@ class ImagerTransform extends Directive
         }
         
         if ($returnType === 'dominantColor') {
-            return ImagerX::getInstance()->color->getDominantColor($transformedImage);
+            return app(ImagerColorService::class)->getDominantColor($transformedImage);
         }
         
         return $transformedImage->getUrl();

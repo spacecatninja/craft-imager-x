@@ -8,82 +8,52 @@
  * @copyright Copyright (c) 2022 André Elvan
  */
 
-
 namespace SpaceCatNinja\ImagerX\Http\Controllers;
 
-use Craft;
-use craft\web\Controller;
-use yii\web\ForbiddenHttpException;
-
-use SpaceCatNinja\ImagerX\ImagerX as Plugin;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use SpaceCatNinja\ImagerX\Services\ImagerService;
+use SpaceCatNinja\ImagerX\Settings;
 
 /**
- * Class CacheController
- *
- * @package spacecatninja\imager\controllers
+ * Clears the Imager X caches from a URL, using the `clearKey` config setting.
  */
-class CacheController extends Controller
+readonly class CacheController
 {
-    // Protected Properties
-    // =========================================================================
-
-    /**
-     * @var int|bool|array
-     */
-    protected int|bool|array $allowAnonymous = ['actionClearTransforms', 'actionClearRemoteImages'];
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * Controller action to clear image transforms
-     *
-     * @throws \Throwable
-     */
-    public function actionClearTransforms(): bool
-    {
-        $config = Plugin::$plugin->getSettings();
-        $request = Craft::$app->getRequest();
-
-        $key = $request->getParam('key', '');
-        $setKey = $config->clearKey ?? '';
-
-        if ($setKey === '') {
-            throw new ForbiddenHttpException('Cache clearing is disabled: no clearKey is configured.');
-        }
-
-        if (!hash_equals($setKey, $key)) {
-            throw new ForbiddenHttpException('Unauthorized key.');
-        }
-
-        Plugin::$plugin->imagerx->deleteImageTransformCaches();
-
-        return true;
+    public function __construct(
+        private Settings $settings,
+        private ImagerService $imager,
+    ) {
     }
 
     /**
-     * Controller action to clear remote images
-     *
-     * @throws \Throwable
+     * Clears the transforms cache.
      */
-    public function actionClearRemoteImages(): bool
+    public function clearTransforms(Request $request): JsonResponse
     {
-        $config = Plugin::$plugin->getSettings();
-        $request = Craft::$app->getRequest();
+        $this->authorizeKey($request);
+        $this->imager->deleteImageTransformCaches();
 
-        $key = $request->getParam('key', '');
-        $setKey = $config->clearKey ?? '';
+        return response()->json(['success' => true]);
+    }
 
-        if ($setKey === '') {
-            throw new ForbiddenHttpException('Cache clearing is disabled: no clearKey is configured.');
-        }
+    /**
+     * Clears the runtime cache, where remote images are cached.
+     */
+    public function clearRemoteImages(Request $request): JsonResponse
+    {
+        $this->authorizeKey($request);
+        $this->imager->deleteRemoteImageCaches();
 
-        if (!hash_equals($setKey, $key)) {
-            throw new ForbiddenHttpException('Unauthorized key.');
-        }
+        return response()->json(['success' => true]);
+    }
 
-        Plugin::$plugin->imagerx->deleteRemoteImageCaches();
+    private function authorizeKey(Request $request): void
+    {
+        $key = (string)$request->input('key', '');
+        $setKey = $this->settings->clearKey;
 
-        return true;
+        abort_if($setKey === '', 403, 'Cache clearing is disabled: no clearKey is configured.');
+        abort_unless(hash_equals($setKey, $key), 403, 'Unauthorized key.');
     }
 }

@@ -10,6 +10,8 @@
 
 namespace SpaceCatNinja\ImagerX\Services;
 
+use Illuminate\Container\Attributes\Singleton;
+use SpaceCatNinja\ImagerX\Settings;
 use Craft;
 
 use craft\base\Component;
@@ -30,7 +32,7 @@ use SpaceCatNinja\ImagerX\Data\GenerateSettings;
 use SpaceCatNinja\ImagerX\Data\LocalSourceImageModel;
 use SpaceCatNinja\ImagerX\Data\LocalTargetImageModel;
 use SpaceCatNinja\ImagerX\Data\TransformedImageInterface;
-use SpaceCatNinja\ImagerX\Transformers\CraftTransformer;
+use SpaceCatNinja\ImagerX\Transformers\Transformers;
 use SpaceCatNinja\ImagerX\Transformers\TransformerInterface;
 use yii\base\Exception;
 
@@ -41,6 +43,7 @@ use yii\base\Exception;
  * @package   Imager
  * @since     2.0.0
  */
+#[Singleton]
 class ImagerService extends Component
 {
     // Events
@@ -69,33 +72,6 @@ class ImagerService extends Component
      * @var null|GenerateSettings
      */
     public static ?GenerateSettings $generateConfig = null;
-
-    /**
-     * @var array
-     */
-    public static array $transformers = [
-        'craft' => CraftTransformer::class,
-    ];
-
-    /**
-     * @var array
-     */
-    public static array $effects = [];
-
-    /**
-     * @var array
-     */
-    public static array $optimizers = [];
-
-    /**
-     * @var array
-     */
-    public static array $storage = [];
-
-    /**
-     * @var array
-     */
-    public static array $adapters = [];
 
     /**
      * @var array
@@ -243,7 +219,7 @@ class ImagerService extends Component
 
     public static function getConfig(): ConfigModel
     {
-        return self::$transformConfig ?? new ConfigModel(Plugin::$plugin->getSettings(), null);
+        return self::$transformConfig ?? new ConfigModel(app(Settings::class), null);
     }
 
     /**
@@ -309,31 +285,6 @@ class ImagerService extends Component
         return self::$imageDriver === 'imagick' && (\Imagick::queryFormats('JXL') !== []);
     }
 
-    public static function registerTransformer(string $handle, string $class): void
-    {
-        self::$transformers[mb_strtolower($handle)] = $class;
-    }
-
-    public static function registerEffect(string $handle, string $class): void
-    {
-        self::$effects[mb_strtolower($handle)] = $class;
-    }
-
-    public static function registerOptimizer(string $handle, string $class): void
-    {
-        self::$optimizers[mb_strtolower($handle)] = $class;
-    }
-
-    public static function registerExternalStorage(string $handle, string $class): void
-    {
-        self::$storage[mb_strtolower($handle)] = $class;
-    }
-
-    public static function registerAdapter(string $handle, string $class): void
-    {
-        self::$adapters[mb_strtolower($handle)] = $class;
-    }
-
     public static function registerCachedRemoteFile(string $path): void
     {
         self::$remoteImageSessionCache[] = $path;
@@ -354,7 +305,7 @@ class ImagerService extends Component
      *
      * @throws ImagerException
      */
-    public function transformImage($image, array|string $transforms, array $transformDefaults = null, array $configOverrides = null, bool $force = false): TransformedImageInterface|array|null
+    public function transformImage($image, array|string $transforms, ?array $transformDefaults = null, ?array $configOverrides = null, bool $force = false): TransformedImageInterface|array|null
     {
 
         if (!$image) {
@@ -413,7 +364,7 @@ class ImagerService extends Component
         }
 
         // Create config model
-        self::$transformConfig = new ConfigModel(Plugin::$plugin->getSettings(), $configOverrides);
+        self::$transformConfig = new ConfigModel(app(Settings::class), $configOverrides);
         
         // If we're forcing a transform, set cacheDuration to 1
         if ($force) {
@@ -458,7 +409,7 @@ class ImagerService extends Component
             if ($event->transformedImages !== null) {
                 // Limited to Pro edition, otherwise plugins could use this to
                 // re-produce the custom transformers feature for Lite edition
-                if (!Plugin::getInstance()?->is(Plugin::EDITION_PRO)) {
+                if (!app(ImagerX::class)->isPro()) {
                     $msg = Craft::t('imager-x', 'Overriding transformed images is only available when using the Pro edition of Imager, you need to upgrade to use this feature.');
 
                     Craft::error($msg, __METHOD__);
@@ -472,10 +423,14 @@ class ImagerService extends Component
         if ($transformedImages === null) {
             // Create transformer
 
-            if (!isset(self::$transformers[self::$transformConfig->transformer])) {
-                $msg = 'Invalid transformer "'.self::$transformConfig->transformer.'".';
+            $transformerHandle = self::$transformConfig->transformer;
+            $isCustomTransformer = mb_strtolower($transformerHandle) !== 'craft';
+            $transformerClass = !$isCustomTransformer || app(ImagerX::class)->isPro() ? app(Transformers::class)->get($transformerHandle) : null;
 
-                if (self::$transformConfig->transformer !== 'craft' && !Plugin::getInstance()?->is(Plugin::EDITION_PRO)) {
+            if ($transformerClass === null) {
+                $msg = 'Invalid transformer "'.$transformerHandle.'".';
+
+                if ($isCustomTransformer && !app(ImagerX::class)->isPro()) {
                     $msg .= ' Custom transformers are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
                 }
 
@@ -484,7 +439,7 @@ class ImagerService extends Component
             }
 
             /** @var TransformerInterface $transformer */
-            $transformer = new self::$transformers[self::$transformConfig->transformer]();
+            $transformer = new $transformerClass();
 
             // Do we have a debug image?
             if (self::$transformConfig->mockImage !== null) {
@@ -559,8 +514,8 @@ class ImagerService extends Component
         foreach ($transformedImages as $transformedImage) {
             /** @var TransformedImageInterface $transformedImage */
             if ($transformedImage->getIsNew()) {
-                $isFinalVersion = ImagerX::getInstance()->optimizer->optimize($transformedImage);
-                ImagerX::getInstance()->storage->store($transformedImage->getPath(), $isFinalVersion);
+                $isFinalVersion = app(OptimizerService::class)->optimize($transformedImage);
+                app(StorageService::class)->store($transformedImage->getPath(), $isFinalVersion);
 
                 if (!$isFinalVersion) {
                     $taskCreated = true;

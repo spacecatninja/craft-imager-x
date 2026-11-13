@@ -10,6 +10,8 @@
 
 namespace SpaceCatNinja\ImagerX\Jobs;
 
+use SpaceCatNinja\ImagerX\Optimizers\Optimizers;
+use SpaceCatNinja\ImagerX\Services\StorageService;
 use Craft;
 
 use craft\queue\BaseJob;
@@ -52,9 +54,10 @@ class OptimizeJob extends BaseJob
      */
     public function execute($queue): void
     {
-        if (isset(ImagerService::$optimizers[$this->optimizer])) {
-            /** @var ImagerOptimizeInterface $optimizerClass */
-            $optimizerClass = ImagerService::$optimizers[$this->optimizer];
+        /** @var class-string<ImagerOptimizeInterface>|null $optimizerClass */
+        $optimizerClass = app(Optimizers::class)->get($this->optimizer);
+
+        if ($optimizerClass !== null) {
             $optimizerClass::optimize($this->filePath, $this->optimizerSettings);
             
             // Clear stat cache to make sure old file size is not cached
@@ -66,7 +69,7 @@ class OptimizeJob extends BaseJob
                 return;
             }
     
-            ImagerX::$plugin->storage->store($this->filePath, true);
+            app(StorageService::class)->store($this->filePath, true);
         }
     }
 

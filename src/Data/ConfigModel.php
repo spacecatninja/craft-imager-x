@@ -32,7 +32,7 @@ class ConfigModel extends Settings
      * @param Settings|Model $settings
      * @param array|null     $overrides
      */
-    public function __construct($settings, array $overrides = null, array $config = [])
+    public function __construct($settings, ?array $overrides = null, array $config = [])
     {
         parent::__construct($config);
 
@@ -108,7 +108,7 @@ class ConfigModel extends Settings
      * @param array|null $transform
      *
      */
-    public function getSetting(string $key, array $transform = null): mixed
+    public function getSetting(string $key, ?array $transform = null): mixed
     {
         return $transform[$key] ?? $this[$key];
     }

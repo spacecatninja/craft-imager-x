@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Data;
 
+use SpaceCatNinja\ImagerX\Services\PlaceholderService;
 use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 use SpaceCatNinja\ImagerX\ImagerX;
 
@@ -120,7 +121,7 @@ class BaseTransformedImageModel implements \Stringable
             }
         }
 
-        return ImagerX::$plugin->placeholder->placeholder($settings);
+        return app(PlaceholderService::class)->placeholder($settings);
     }
 
     public function getIsNew(): bool

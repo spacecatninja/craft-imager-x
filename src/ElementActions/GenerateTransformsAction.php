@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\ElementActions;
 
+use SpaceCatNinja\ImagerX\Services\GenerateService;
 use Craft;
 use craft\base\ElementAction;
 use CraftCms\Cms\Asset\Elements\Asset;
@@ -75,7 +76,7 @@ class GenerateTransformsAction extends ElementAction
                 $transforms = $generateConfig[$volumeHandle] ?? null;
                 
                 if ($transforms) {
-                    ImagerX::$plugin->generate->createTransformJob($asset, $transforms);
+                    app(GenerateService::class)->createTransformJob($asset, $transforms);
                 }
             }
         } catch (\Throwable $throwable) {

@@ -10,6 +10,8 @@
 
 namespace SpaceCatNinja\ImagerX\Transformers;
 
+use SpaceCatNinja\ImagerX\Adapters\Adapters;
+use SpaceCatNinja\ImagerX\Effects\Effects;
 use Craft;
 use craft\base\Component;
 
@@ -82,8 +84,10 @@ class CraftTransformer extends Component implements TransformerInterface
         $transformedImages = [];
 
         foreach ($transforms as $transform) {
-            if (isset(ImagerService::$adapters[$sourceModel->extension])) {
-                $transformSourceModel = new LocalSourceImageModel(new ImagerService::$adapters[$sourceModel->extension]($image, $transform['adapterParams'] ?? []));
+            $adapterClass = app(Adapters::class)->get($sourceModel->extension);
+
+            if ($adapterClass !== null) {
+                $transformSourceModel = new LocalSourceImageModel(new $adapterClass($image, $transform['adapterParams'] ?? []));
             } else {
                 $transformSourceModel = $sourceModel;
             }
@@ -99,7 +103,7 @@ class CraftTransformer extends Component implements TransformerInterface
         }
 
 
-        ImagerX::getInstance()->imagerx->postProcessTransformedImages($transformedImages);
+        app(ImagerService::class)->postProcessTransformedImages($transformedImages);
 
         return $transformedImages;
     }
@@ -699,9 +703,10 @@ class CraftTransformer extends Component implements TransformerInterface
         foreach ($effects as $effect => $value) {
             $effect = mb_strtolower($effect);
 
-            if (isset(ImagerService::$effects[$effect])) {
-                /** @var ImagerEffectsInterface $effectClass */
-                $effectClass = ImagerService::$effects[$effect];
+            /** @var class-string<ImagerEffectsInterface>|null $effectClass */
+            $effectClass = app(Effects::class)->get($effect);
+
+            if ($effectClass !== null) {
                 $effectClass::apply($image, $value);
             }
         }

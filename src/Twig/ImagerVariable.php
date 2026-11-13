@@ -10,6 +10,8 @@
 
 namespace SpaceCatNinja\ImagerX\Twig;
 
+use SpaceCatNinja\ImagerX\Services\PlaceholderService;
+use SpaceCatNinja\ImagerX\Settings;
 use Craft;
 
 use CraftCms\Cms\Asset\Elements\Asset;
@@ -28,9 +30,9 @@ class ImagerVariable
      *
      * @throws ImagerException
      */
-    public function transformImage(Asset|ImagerAdapterInterface|string|null $image, array|string $transforms, array $transformDefaults = null, array $configOverrides = null): array|TransformedImageInterface|null
+    public function transformImage(Asset|ImagerAdapterInterface|string|null $image, array|string $transforms, ?array $transformDefaults = null, ?array $configOverrides = null): array|TransformedImageInterface|null
     {
-        return Plugin::$plugin->imagerx->transformImage($image, $transforms, $transformDefaults, $configOverrides);
+        return app(ImagerService::class)->transformImage($image, $transforms, $transformDefaults, $configOverrides);
     }
 
     /**
@@ -39,7 +41,7 @@ class ImagerVariable
      */
     public function srcset(?array $images, string $descriptor = 'w'): string
     {
-        return Plugin::$plugin->imagerx->srcset($images, $descriptor);
+        return app(ImagerService::class)->srcset($images, $descriptor);
     }
 
     /**
@@ -57,9 +59,9 @@ class ImagerVariable
      *
      * @throws ImagerException
      */
-    public function placeholder(array $config = null): string
+    public function placeholder(?array $config = null): string
     {
-        return Plugin::$plugin->placeholder->placeholder($config);
+        return app(PlaceholderService::class)->placeholder($config);
     }
 
     /**
@@ -69,7 +71,7 @@ class ImagerVariable
      */
     public function getDominantColor(Asset|string $image, int $quality = 10, string $colorValue = 'hex', ?array $area = null): string|array|bool|null
     {
-        return Plugin::$plugin->color->getDominantColor($image, $quality, $colorValue, $area);
+        return app(ImagerColorService::class)->getDominantColor($image, $quality, $colorValue, $area);
     }
 
     /**
@@ -79,7 +81,7 @@ class ImagerVariable
      */
     public function getColorPalette(Asset|string $image, int $colorCount = 8, int $quality = 10, string $colorValue = 'hex', ?array $area = null): ?array
     {
-        return Plugin::$plugin->color->getColorPalette($image, $colorCount, $quality, $colorValue, $area);
+        return app(ImagerColorService::class)->getColorPalette($image, $colorCount, $quality, $colorValue, $area);
     }
 
     /**
@@ -109,7 +111,7 @@ class ImagerVariable
      */
     public function getBrightness(array|string $color): float
     {
-        return Plugin::$plugin->color->getBrightness($color);
+        return app(ImagerColorService::class)->getBrightness($color);
     }
 
     /**
@@ -119,7 +121,7 @@ class ImagerVariable
      */
     public function getHue(array|string $color): float
     {
-        return Plugin::$plugin->color->getHue($color);
+        return app(ImagerColorService::class)->getHue($color);
     }
 
     /**
@@ -129,7 +131,7 @@ class ImagerVariable
      */
     public function getLightness(array|string $color): float
     {
-        return Plugin::$plugin->color->getLightness($color);
+        return app(ImagerColorService::class)->getLightness($color);
     }
 
     /**
@@ -139,7 +141,7 @@ class ImagerVariable
      */
     public function isBright(array|string $color, float $threshold = 127.5): bool
     {
-        return Plugin::$plugin->color->isBright($color, $threshold);
+        return app(ImagerColorService::class)->isBright($color, $threshold);
     }
 
     /**
@@ -149,7 +151,7 @@ class ImagerVariable
      */
     public function isLight(array|string $color, int $threshold = 50): bool
     {
-        return Plugin::$plugin->color->isLight($color, $threshold);
+        return app(ImagerColorService::class)->isLight($color, $threshold);
     }
 
     /**
@@ -159,7 +161,7 @@ class ImagerVariable
      */
     public function looksBright(array|string $color, float $threshold = 127.5): bool
     {
-        return Plugin::$plugin->color->looksBright($color, $threshold);
+        return app(ImagerColorService::class)->looksBright($color, $threshold);
     }
 
     /**
@@ -169,7 +171,7 @@ class ImagerVariable
      */
     public function getPercievedBrightness(array|string $color): float
     {
-        return Plugin::$plugin->color->getPercievedBrightness($color);
+        return app(ImagerColorService::class)->getPercievedBrightness($color);
     }
 
     /**
@@ -179,7 +181,7 @@ class ImagerVariable
      */
     public function getRelativeLuminance(array|string $color): float
     {
-        return Plugin::$plugin->color->getRelativeLuminance($color);
+        return app(ImagerColorService::class)->getRelativeLuminance($color);
     }
 
     /**
@@ -189,7 +191,7 @@ class ImagerVariable
      */
     public function getSaturation(array|string $color): float
     {
-        return Plugin::$plugin->color->getSaturation($color);
+        return app(ImagerColorService::class)->getSaturation($color);
     }
 
     /**
@@ -199,7 +201,7 @@ class ImagerVariable
      */
     public function getBrightnessDifference(array|string $color1, array|string $color2): float
     {
-        return Plugin::$plugin->color->getBrightnessDifference($color1, $color2);
+        return app(ImagerColorService::class)->getBrightnessDifference($color1, $color2);
     }
 
     /**
@@ -209,7 +211,7 @@ class ImagerVariable
      */
     public function getColorDifference(array|string $color1, array|string $color2): int
     {
-        return Plugin::$plugin->color->getColorDifference($color1, $color2);
+        return app(ImagerColorService::class)->getColorDifference($color1, $color2);
     }
 
     /**
@@ -219,7 +221,7 @@ class ImagerVariable
      */
     public function getContrastRatio(array|string $color1, array|string $color2): float
     {
-        return Plugin::$plugin->color->getContrastRatio($color1, $color2);
+        return app(ImagerColorService::class)->getContrastRatio($color1, $color2);
     }
 
     /**
@@ -275,7 +277,7 @@ class ImagerVariable
      */
     public function isAnimated(Asset|string $asset): bool
     {
-        return Plugin::$plugin->imagerx->isAnimated($asset);
+        return app(ImagerService::class)->isAnimated($asset);
     }
 
     /**
@@ -283,7 +285,7 @@ class ImagerVariable
      */
     public function imgixEnabled(): bool
     {
-        return Plugin::$plugin->getSettings()->transformer === 'imgix';
+        return app(Settings::class)->transformer === 'imgix';
     }
 
     /**
@@ -291,7 +293,7 @@ class ImagerVariable
      */
     public function transformer(): string
     {
-        return Plugin::$plugin->getSettings()->transformer;
+        return app(Settings::class)->transformer;
     }
 
     public function hasNamedTransform(string $name): bool

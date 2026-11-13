@@ -10,10 +10,11 @@
 
 namespace SpaceCatNinja\ImagerX;
 
-use craft\base\Model;
 use CraftCms\Cms\Asset\Elements\Asset;
+use CraftCms\Cms\Cms;
+use CraftCms\Cms\Plugin\PluginSettings;
 
-class Settings extends \CraftCms\Cms\Plugin\PluginSettings
+class Settings extends PluginSettings
 {
     public string $transformer = 'craft';
     public string $imagerSystemPath = '@webroot/imager/';
@@ -169,25 +170,11 @@ class Settings extends \CraftCms\Cms\Plugin\PluginSettings
     public ?array $transformerConfig = null;
 
 
-    /**
-     * Settings constructor.
-     *
-     * @param array $config
-     */
-    public function __construct($config = [])
-    {
-        parent::__construct($config);
-
-        if (!empty($config)) {
-            \Yii::configure($this, $config);
-        }
-
-        $this->init();
-    }
-
-    public function init(): void
+    public function __construct(array|object $config = [])
     {
         // Set default based on devMode. Overridable through config.
-        $this->suppressExceptions = !\Craft::$app->getConfig()->getGeneral()->devMode;
+        $this->suppressExceptions = !Cms::config()->devMode;
+
+        parent::__construct($config);
     }
 }

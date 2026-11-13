@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\ElementActions;
 
+use SpaceCatNinja\ImagerX\Services\ImagerService;
 use Craft;
 
 use craft\base\ElementAction;
@@ -50,7 +51,7 @@ class ClearTransformsElementAction extends ElementAction
                     continue;
                 }
 
-                Plugin::$plugin->imagerx->removeTransformsForAsset($asset);
+                app(ImagerService::class)->removeTransformsForAsset($asset);
             }
         } catch (Exception $exception) {
             $this->setMessage($exception->getMessage());

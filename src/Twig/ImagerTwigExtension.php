@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Twig;
 
+use SpaceCatNinja\ImagerX\Services\ImagerService;
 use SpaceCatNinja\ImagerX\ImagerX as Plugin;
 use Twig\Extension\AbstractExtension;
 
@@ -49,6 +50,6 @@ class ImagerTwigExtension extends AbstractExtension
      */
     public function srcsetFilter(?array $images, string $descriptor = 'w'): string
     {
-        return Plugin::$plugin->imagerx->srcset($images, $descriptor);
+        return app(ImagerService::class)->srcset($images, $descriptor);
     }
 }

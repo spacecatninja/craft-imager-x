@@ -2,7 +2,25 @@
 
 ## Unreleased
 
+> [!IMPORTANT]
+> Imager X 7 now uses Craft 6's native plugin APIs, and has breaking changes for plugins and modules that extend it. See [UPGRADE.md](UPGRADE.md).
+
+### Changed
+- Imager X now extends Craft 6's native plugin class.
+- Classes moved to the `SpaceCatNinja\ImagerX` namespace, and to Laravel-style folders.
+- Transformers, effects, optimizers, external storages and adapters are now registered with the `Transformers`, `Effects`, `Optimizers`, `ExternalStorages` and `Adapters` registries.
+- Imager X services are now resolved from the container, instead of being components on the plugin.
+- The console commands are now Artisan commands (`imager-x:generate`, `imager-x:clean`, `imager-x:clear-caches:all`, `imager-x:clear-caches:transforms-cache` and `imager-x:clear-caches:runtime-cache`). The Craft 5 names, like `php craft imager-x/generate`, still work.
+- The `cache/clear-transforms` and `cache/clear-remote-images` actions now return JSON.
+
+### Removed
+- Removed the `EVENT_REGISTER_TRANSFORMERS`, `EVENT_REGISTER_EFFECTS`, `EVENT_REGISTER_OPTIMIZERS`, `EVENT_REGISTER_EXTERNAL_STORAGES` and `EVENT_REGISTER_ADAPTERS` events, and their event classes.
+- Removed `ImagerX::$plugin`, and the service properties on the plugin class.
+- Removed `ImagerService::registerTransformer()`, `registerEffect()`, `registerOptimizer()`, `registerExternalStorage()` and `registerAdapter()`.
+- Removed the short option aliases of the console commands.
+
 ### Fixed
+- Fixed deprecation warnings on PHP 8.4+ for implicitly nullable parameters.
 - Fixed GraphQL support on Craft 6.0.0-beta.1, where querying any GraphQL schema threw an exception when Imager X was installed.
 
 ## 7.0.0-beta.1 - 2026-11-14

@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Jobs;
 
+use SpaceCatNinja\ImagerX\Services\GenerateService;
 use Craft;
 use CraftCms\Cms\Asset\Elements\Asset;
 use craft\queue\BaseJob;
@@ -66,7 +67,7 @@ class TransformJob extends BaseJob
             return;
         }
         
-        ImagerX::$plugin->generate->generateTransformsForAsset($asset, $this->transforms, $this->force);
+        app(GenerateService::class)->generateTransformsForAsset($asset, $this->transforms, $this->force);
     }
 
     // Protected Methods

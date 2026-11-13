@@ -9,12 +9,10 @@
  */
 
 /**
- * Imager en Translation
+ * Imager X en translation
  *
- * Returns an array with the string to be translated (as passed to `Craft::t('imager-x', '...')`) as
+ * Returns an array with the string to be translated (as passed to `t('...', category: 'imager-x')`, or the `|t('imager-x')` Twig filter) as
  * the key, and the translation as the value.
- *
- * http://www.yiiframework.com/doc-2.0/guide-tutorial-i18n.html
  *
  * @author    André Elvan
  * @package   Imager

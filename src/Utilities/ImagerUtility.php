@@ -58,7 +58,7 @@ class ImagerUtility extends Utility
      */
     public static function icon(): ?string
     {
-        return Craft::getAlias('@SpaceCatNinja/ImagerX/icon-generate-utility.svg');
+        return dirname(__DIR__, 2) . '/resources/icon-generate-utility.svg';
     }
 
     /**
@@ -159,7 +159,7 @@ class ImagerUtility extends Utility
                 'queueUrl' => UrlHelper::cpUrl('utilities/queue-manager'),
                 'caches' => $caches,
                 'debugInfo' => $debugInfo,
-                'isPro' => ImagerX::getInstance()?->is(ImagerX::EDITION_PRO),
+                'isPro' => app(ImagerX::class)->isPro(),
             ]
         );
     }
@@ -171,7 +171,7 @@ class ImagerUtility extends Utility
 
         $r[] = [
             'label' => 'Imager version & edition',
-            'value' => ImagerX::getInstance()->version . ' ' . mb_strtoupper(ImagerX::getInstance()->edition),
+            'value' => app(ImagerX::class)->version . ' ' . mb_strtoupper(app(ImagerX::class)->edition),
         ];
         $r[] = [
             'label' => 'Imager transformer',

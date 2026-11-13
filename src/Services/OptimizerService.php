@@ -10,6 +10,8 @@
 
 namespace SpaceCatNinja\ImagerX\Services;
 
+use SpaceCatNinja\ImagerX\Optimizers\Optimizers;
+use Illuminate\Container\Attributes\Singleton;
 use Craft;
 use craft\base\Component;
 
@@ -24,6 +26,7 @@ use SpaceCatNinja\ImagerX\Optimizers\ImagerOptimizeInterface;
  * @package   Imager
  * @since     3.0.0
  */
+#[Singleton]
 class OptimizerService extends Component
 {
     /**
@@ -43,7 +46,10 @@ class OptimizerService extends Component
 
         $jobCreated = false;
         foreach ($config->optimizers as $optimizer) {
-            if (isset(ImagerService::$optimizers[$optimizer])) {
+            /** @var class-string<ImagerOptimizeInterface>|null $optimizerClass */
+            $optimizerClass = app(Optimizers::class)->get($optimizer);
+
+            if ($optimizerClass !== null) {
                 $optimizerSettings = $config->optimizerConfig[$optimizer] ?? null;
 
                 if ($optimizerSettings) {
@@ -52,8 +58,6 @@ class OptimizerService extends Component
                             $this->createOptimizeJob($optimizer, $transformedImage->getPath(), $optimizerSettings);
                             $jobCreated = true;
                         } else {
-                            /** @var ImagerOptimizeInterface $optimizerClass */
-                            $optimizerClass = ImagerService::$optimizers[$optimizer];
                             $optimizerClass::optimize($transformedImage->getPath(), $optimizerSettings);
 
                             // Clear stat cache to make sure old file size is not cached

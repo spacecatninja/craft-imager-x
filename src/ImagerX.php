@@ -12,15 +12,13 @@ namespace SpaceCatNinja\ImagerX;
 
 use Craft;
 use craft\base\Element;
-use craft\base\Model;
-use craft\base\Plugin;
-use craft\console\Application as ConsoleApplication;
+use CraftCms\Cms\Plugin\Plugin;
+use CraftCms\Cms\Plugin\PluginSettings;
 use CraftCms\Cms\Asset\Elements\Asset;
 use craft\events\DefineAssetThumbUrlEvent;
 use craft\events\DefineAssetUrlEvent;
 use craft\events\DefineGqlTypeFieldsEvent;
 use craft\events\ElementEvent;
-use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterElementActionsEvent;
 use craft\events\RegisterGqlDirectivesEvent;
 use craft\events\RegisterGqlQueriesEvent;
@@ -31,50 +29,18 @@ use craft\models\ImageTransform;
 use craft\services\Assets;
 use craft\services\Elements;
 use craft\services\Gql;
-use craft\services\Plugins;
-use craft\services\Utilities;
 use craft\web\twig\variables\CraftVariable;
 use GraphQL\Type\Definition\Type;
+use Illuminate\Support\Facades\Config;
 
-use SpaceCatNinja\ImagerX\Effects\AdaptiveBlurEffect;
-use SpaceCatNinja\ImagerX\Effects\AdaptiveSharpenEffect;
-use SpaceCatNinja\ImagerX\Effects\BlurEffect;
-use SpaceCatNinja\ImagerX\Effects\BrightnessEffect;
-use SpaceCatNinja\ImagerX\Effects\ClutEffect;
-use SpaceCatNinja\ImagerX\Effects\ColorBlendEffect;
-use SpaceCatNinja\ImagerX\Effects\ColorizeEffect;
-use SpaceCatNinja\ImagerX\Effects\ContrastEffect;
-use SpaceCatNinja\ImagerX\Effects\ContrastStretchEffect;
-use SpaceCatNinja\ImagerX\Effects\DespeckleEffect;
-use SpaceCatNinja\ImagerX\Effects\EnhanceEffect;
-use SpaceCatNinja\ImagerX\Effects\EqualizeEffect;
-use SpaceCatNinja\ImagerX\Effects\FloodFillPaintEffect;
-use SpaceCatNinja\ImagerX\Effects\GammaEffect;
-use SpaceCatNinja\ImagerX\Effects\GaussianBlurEffect;
-use SpaceCatNinja\ImagerX\Effects\GreyscaleEffect;
-use SpaceCatNinja\ImagerX\Effects\LevelsEffect;
-use SpaceCatNinja\ImagerX\Effects\ModulateEffect;
-use SpaceCatNinja\ImagerX\Effects\MotionBlurEffect;
-use SpaceCatNinja\ImagerX\Effects\NegativeEffect;
-use SpaceCatNinja\ImagerX\Effects\NormalizeEffect;
-use SpaceCatNinja\ImagerX\Effects\OilPaintEffect;
-use SpaceCatNinja\ImagerX\Effects\OpacityEffect;
-use SpaceCatNinja\ImagerX\Effects\PosterizeEffect;
-use SpaceCatNinja\ImagerX\Effects\QuantizeEffect;
-use SpaceCatNinja\ImagerX\Effects\RadialBlurEffect;
-use SpaceCatNinja\ImagerX\Effects\SepiaEffect;
-use SpaceCatNinja\ImagerX\Effects\SharpenEffect;
-use SpaceCatNinja\ImagerX\Effects\TintEffect;
-use SpaceCatNinja\ImagerX\Effects\TransparentPaintEffect;
-use SpaceCatNinja\ImagerX\Effects\UnsharpMaskEffect;
+use SpaceCatNinja\ImagerX\Console\Commands\CleanCommand;
+use SpaceCatNinja\ImagerX\Console\Commands\ClearCachesCommand;
+use SpaceCatNinja\ImagerX\Console\Commands\ClearRuntimeCacheCommand;
+use SpaceCatNinja\ImagerX\Console\Commands\ClearTransformsCacheCommand;
+use SpaceCatNinja\ImagerX\Console\Commands\GenerateCommand;
 
 use SpaceCatNinja\ImagerX\ElementActions\ClearTransformsElementAction;
 use SpaceCatNinja\ImagerX\ElementActions\GenerateTransformsAction;
-use SpaceCatNinja\ImagerX\Events\RegisterAdaptersEvent;
-use SpaceCatNinja\ImagerX\Events\RegisterEffectsEvent;
-use SpaceCatNinja\ImagerX\Events\RegisterExternalStoragesEvent;
-use SpaceCatNinja\ImagerX\Events\RegisterOptimizersEvent;
-use SpaceCatNinja\ImagerX\Events\RegisterTransformersEvent;
 use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 use SpaceCatNinja\ImagerX\Gql\Directives\ImagerSrcset;
 use SpaceCatNinja\ImagerX\Gql\Directives\ImagerTransform;
@@ -84,24 +50,11 @@ use SpaceCatNinja\ImagerX\Gql\Resolvers\ImagerResolver;
 use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
 use SpaceCatNinja\ImagerX\Support\VersionHelpers;
 use SpaceCatNinja\ImagerX\Data\GenerateSettings;
-use SpaceCatNinja\ImagerX\Settings;
 use SpaceCatNinja\ImagerX\Data\TransformedImageInterface;
 
-use SpaceCatNinja\ImagerX\Optimizers\GifsicleOptimizer;
-use SpaceCatNinja\ImagerX\Optimizers\JpegoptimOptimizer;
-use SpaceCatNinja\ImagerX\Optimizers\JpegtranOptimizer;
-use SpaceCatNinja\ImagerX\Optimizers\MozjpegOptimizer;
-use SpaceCatNinja\ImagerX\Optimizers\OptipngOptimizer;
-use SpaceCatNinja\ImagerX\Optimizers\PngquantOptimizer;
-
 use SpaceCatNinja\ImagerX\Services\GenerateService;
-use SpaceCatNinja\ImagerX\Services\ImagerColorService;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
-use SpaceCatNinja\ImagerX\Services\OptimizerService;
-use SpaceCatNinja\ImagerX\Services\PlaceholderService;
-use SpaceCatNinja\ImagerX\Services\StorageService;
 
-use SpaceCatNinja\ImagerX\Transformers\CraftTransformer;
 use SpaceCatNinja\ImagerX\Twig\ImagerTwigExtension;
 use SpaceCatNinja\ImagerX\Utilities\ImagerUtility;
 use SpaceCatNinja\ImagerX\Twig\ImagerVariable;
@@ -109,50 +62,17 @@ use SpaceCatNinja\ImagerX\Twig\ImagerVariable;
 use yii\base\Event;
 
 /**
- * Class Imager
+ * Imager X
  *
  * @author    André Elvan
  * @package   Imager X
  * @since     2.0.0
  *
- * @property  ImagerService      $imager
- * @property  ImagerService      $imagerx
- * @property  ImagerColorService $color
- * @property  PlaceholderService $placeholder
- * @property  GenerateService    $generate
- * @property  StorageService     $storage
- * @property  OptimizerService   $optimizer
+ * @method Settings getSettings()
  */
 class ImagerX extends Plugin
 {
-    // Events
-    // =========================================================================
-    /**
-     * @var string
-     */
-    public const EVENT_REGISTER_TRANSFORMERS = 'imagerxRegisterTransformers';
-
-    /**
-     * @var string
-     */
-    public const EVENT_REGISTER_EXTERNAL_STORAGES = 'imagerxRegisterExternalStorages';
-
-    /**
-     * @var string
-     */
-    public const EVENT_REGISTER_EFFECTS = 'imagerxRegisterEffects';
-
-    /**
-     * @var string
-     */
-    public const EVENT_REGISTER_OPTIMIZERS = 'imagerxRegisterOptimizers';
-
-    /**
-     * @var string
-     */
-    public const EVENT_REGISTER_ADAPTERS = 'imagerxRegisterAdapters';
-
-    // Static Properties
+    // Editions
     // =========================================================================
     /**
      * @var string
@@ -164,13 +84,20 @@ class ImagerX extends Plugin
      */
     public const EDITION_PRO = 'pro';
 
-    /**
-     * Static property that is an instance of this plugin class so that it can be accessed via
-     * ImagerX::$plugin
-     *
-     * @var ImagerX
-     */
-    public static ImagerX $plugin;
+    // Properties
+    // =========================================================================
+
+    protected array $commands = [
+        CleanCommand::class,
+        GenerateCommand::class,
+        ClearCachesCommand::class,
+        ClearTransformsCacheCommand::class,
+        ClearRuntimeCacheCommand::class,
+    ];
+
+    protected array $utilities = [
+        ImagerUtility::class,
+    ];
 
     // Public Methods
     // =========================================================================
@@ -183,23 +110,25 @@ class ImagerX extends Plugin
         ];
     }
 
-    public function init(): void
+    /**
+     * Returns whether the Pro edition is active.
+     */
+    public function isPro(): bool
     {
-        parent::init();
+        return $this->is(self::EDITION_PRO);
+    }
 
-        self::$plugin = $this;
+    #[\Override]
+    public function register(): void
+    {
+        parent::register();
 
-        // Register services
-        $this->setComponents([
-            'imager' => ImagerService::class,
-            'imagerx' => ImagerService::class,
-            'placeholder' => PlaceholderService::class,
-            'color' => ImagerColorService::class,
-            'generate' => GenerateService::class,
-            'storage' => StorageService::class,
-            'optimizer' => OptimizerService::class,
-        ]);
+        // Bound here rather than in boot(), because Craft loads the plugin's routes before boot() runs.
+        $this->app->singleton(Settings::class, fn() => $this->getSettings());
+    }
 
+    public function boot(): void
+    {
         // Load additional config files
         $this->loadAdditionalConfigs();
 
@@ -219,19 +148,12 @@ class ImagerX extends Plugin
             }
         );
 
-        // Register utility
-        Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITIES,
-            static function(RegisterComponentTypesEvent $event) {
-                $event->types[] = ImagerUtility::class;
-            }
-        );
-
         // Event listener for clearing caches when an asset is replaced
         Event::on(Assets::class, Assets::EVENT_AFTER_REPLACE_ASSET,
             static function(ReplaceAssetEvent $event) {
                 // Check if the asset is an image before proceeding
                 if ($event->asset->kind === 'image') {
-                    ImagerX::$plugin->imagerx->removeTransformsForAsset($event->asset);
+                    app(ImagerService::class)->removeTransformsForAsset($event->asset);
                 }
             }
         );
@@ -252,36 +174,12 @@ class ImagerX extends Plugin
         if ($config->removeTransformsOnAssetFileops) {
             $this->registerRemoveTransformsListeners();
         }
-
-        Craft::$app->onInit(function() {
-            // Register transformers
-            $this->registerTransformers();
-
-            // Register effects
-            $this->registerEffects();
-
-            // Register optimizers
-            $this->registerOptimizers();
-
-            // Register external storage options
-            $this->registerExternalStorages();
-
-            // Register adapters
-            $this->registerAdapters();
-        });
-
-        // Register console commands
-        if (Craft::$app instanceof ConsoleApplication) {
-            $this->controllerNamespace = 'SpaceCatNinja\ImagerX\Console\Controllers';
-        } else {
-            $this->controllerNamespace = 'SpaceCatNinja\ImagerX\Http\Controllers';
-        }
     }
 
     /**
      * @inheritdoc
      */
-    protected function createSettingsModel(): ?\CraftCms\Cms\Plugin\PluginSettings
+    protected static function createSettings(): ?PluginSettings
     {
         return new Settings();
     }
@@ -292,14 +190,14 @@ class ImagerX extends Plugin
     private function loadAdditionalConfigs(): void
     {
         // Named transforms
-        $transformsConfig = Craft::$app->config->getConfigFromFile('imager-x-transforms');
+        $transformsConfig = Config::get('craft.imager-x-transforms', []);
 
         foreach ($transformsConfig as $transformname => $transformConfig) {
             ImagerService::registerNamedTransform($transformname, $transformConfig);
         }
 
         // Generate setup
-        $generateConfig = Craft::$app->config->getConfigFromFile('imager-x-generate');
+        $generateConfig = Config::get('craft.imager-x-generate', []);
         ImagerService::$generateConfig = new GenerateSettings($generateConfig);
     }
 
@@ -325,7 +223,7 @@ class ImagerX extends Plugin
 
                 $event->actions[] = ClearTransformsElementAction::class;
 
-                if (ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
+                if (app(self::class)->isPro()) {
                     // If any volume transforms were configured, add generate transforms element action
                     $generateVolumeConfig = ImagerService::$generateConfig['volumes'] ?? null;
 
@@ -400,7 +298,7 @@ class ImagerX extends Plugin
                                 $event->sender->setTransform(null);
 
                                 // Do the transform
-                                $transformedImage = ImagerX::$plugin->imagerx->transformImage($event->sender, $transform);
+                                $transformedImage = app(ImagerService::class)->transformImage($event->sender, $transform);
 
                                 if ($transformedImage !== null) {
                                     $event->url = $transformedImage->getUrl();
@@ -428,7 +326,7 @@ class ImagerX extends Plugin
 
                         try {
                             /** @var TransformedImageInterface $transformedImage */
-                            $transformedImage = ImagerX::$plugin->imagerx->transformImage($event->asset, ['width' => $event->width, 'height' => $event->height, 'mode' => 'fit']);
+                            $transformedImage = app(ImagerService::class)->transformImage($event->asset, ['width' => $event->width, 'height' => $event->height, 'mode' => 'fit']);
 
                             if ($transformedImage !== null) {
                                 $event->url = $transformedImage->getUrl();
@@ -459,7 +357,7 @@ class ImagerX extends Plugin
      */
     private function registerGraphQL(): void
     {
-        if (self::getInstance()?->is(self::EDITION_PRO)) {
+        if ($this->isPro()) {
             // Register types
             Event::on(
                 Gql::class,
@@ -528,7 +426,7 @@ class ImagerX extends Plugin
      */
     private function registerGenerateListeners(): void
     {
-        if (self::getInstance()?->is(self::EDITION_PRO)) {
+        if ($this->isPro()) {
             if (ImagerService::$generateConfig === null) {
                 return;
             }
@@ -547,8 +445,8 @@ class ImagerX extends Plugin
                     }
 
                     // Volume based generation is site agnostic, so skip propagation saves in multi-site installs (see issue #307)
-                    if (!$element->propagating && ImagerX::$plugin->generate->shouldGenerateByVolumes($element)) {
-                        ImagerX::$plugin->generate->processAssetByVolumes($element);
+                    if (!$element->propagating && app(GenerateService::class)->shouldGenerateByVolumes($element)) {
+                        app(GenerateService::class)->processAssetByVolumes($element);
                     }
 
                     if ($element->getIsRevision()) {
@@ -559,12 +457,12 @@ class ImagerX extends Plugin
                         return;
                     }
 
-                    if (ImagerX::$plugin->generate->shouldGenerateByElements($element)) {
-                        ImagerX::$plugin->generate->processElementByElements($element);
+                    if (app(GenerateService::class)->shouldGenerateByElements($element)) {
+                        app(GenerateService::class)->processElementByElements($element);
                     }
 
-                    if (ImagerX::$plugin->generate->shouldGenerateByFields($element)) {
-                        ImagerX::$plugin->generate->processElementByFields($element);
+                    if (app(GenerateService::class)->shouldGenerateByFields($element)) {
+                        app(GenerateService::class)->processElementByFields($element);
                     }
                 });
         }
@@ -581,7 +479,7 @@ class ImagerX extends Plugin
                     /** @var Asset $asset */
                     $asset = $event->element;
 
-                    ImagerX::$plugin->imagerx->removeTransformsForAsset($asset);
+                    app(ImagerService::class)->removeTransformsForAsset($asset);
                 }
             }
         );
@@ -602,150 +500,9 @@ class ImagerX extends Plugin
                     || $element->newLocation !== null;
 
                 if ($isRelocation) {
-                    ImagerX::$plugin->imagerx->removeTransformsForAsset($element);
+                    app(ImagerService::class)->removeTransformsForAsset($element);
                 }
             }
         );
     }
-
-    /**
-     * Register built-in transformers
-     */
-    private function registerTransformers(): void
-    {
-        if (self::getInstance()?->is(self::EDITION_PRO)) {
-            $data = [
-                'craft' => CraftTransformer::class,
-            ];
-
-            $event = new RegisterTransformersEvent([
-                'transformers' => $data,
-            ]);
-
-            $this->trigger(self::EVENT_REGISTER_TRANSFORMERS, $event);
-
-            foreach ($event->transformers as $handle => $class) {
-                ImagerService::registerTransformer($handle, $class);
-            }
-        } else {
-            ImagerService::registerTransformer('craft', CraftTransformer::class);
-        }
-    }
-
-    /**
-     * Register effects
-     */
-    private function registerEffects(): void
-    {
-        $data = [
-            // Both for GD and Imagick
-            'grayscale' => GreyscaleEffect::class,
-            'greyscale' => GreyscaleEffect::class,
-            'negative' => NegativeEffect::class,
-            'blur' => BlurEffect::class,
-            'sharpen' => SharpenEffect::class,
-            'gamma' => GammaEffect::class,
-            'colorize' => ColorizeEffect::class,
-            'brightness' => BrightnessEffect::class,
-
-            // Imagick only
-            'colorblend' => ColorBlendEffect::class,
-            'sepia' => SepiaEffect::class,
-            'tint' => TintEffect::class,
-            'contrast' => ContrastEffect::class,
-            'modulate' => ModulateEffect::class,
-            'normalize' => NormalizeEffect::class,
-            'contraststretch' => ContrastStretchEffect::class,
-            'posterize' => PosterizeEffect::class,
-            'unsharpmask' => UnsharpMaskEffect::class,
-            'clut' => ClutEffect::class,
-            'levels' => LevelsEffect::class,
-            'quantize' => QuantizeEffect::class,
-            'gaussianblur' => GaussianBlurEffect::class,
-            'motionblur' => MotionBlurEffect::class,
-            'radialblur' => RadialBlurEffect::class,
-            'oilpaint' => OilPaintEffect::class,
-            'adaptiveblur' => AdaptiveBlurEffect::class,
-            'adaptivesharpen' => AdaptiveSharpenEffect::class,
-            'despeckle' => DespeckleEffect::class,
-            'enhance' => EnhanceEffect::class,
-            'equalize' => EqualizeEffect::class,
-            'opacity' => OpacityEffect::class,
-            'floodfillpaint' => FloodFillPaintEffect::class,
-            'transparentpaint' => TransparentPaintEffect::class,
-        ];
-
-        $event = new RegisterEffectsEvent([
-            'effects' => $data,
-        ]);
-
-        $this->trigger(self::EVENT_REGISTER_EFFECTS, $event);
-
-        foreach ($event->effects as $handle => $class) {
-            ImagerService::registerEffect($handle, $class);
-        }
-    }
-
-    /**
-     * Register optimizers
-     */
-    private function registerOptimizers(): void
-    {
-        $data = [
-            'jpegoptim' => JpegoptimOptimizer::class,
-            'jpegtran' => JpegtranOptimizer::class,
-            'mozjpeg' => MozjpegOptimizer::class,
-            'optipng' => OptipngOptimizer::class,
-            'pngquant' => PngquantOptimizer::class,
-            'gifsicle' => GifsicleOptimizer::class,
-        ];
-
-        $event = new RegisterOptimizersEvent([
-            'optimizers' => $data,
-        ]);
-
-        $this->trigger(self::EVENT_REGISTER_OPTIMIZERS, $event);
-
-        foreach ($event->optimizers as $handle => $class) {
-            ImagerService::registerOptimizer($handle, $class);
-        }
-    }
-
-    /**
-     * Register external storage options
-     */
-    private function registerExternalStorages(): void
-    {
-        if (self::getInstance()?->is(self::EDITION_PRO)) {
-            $event = new RegisterExternalStoragesEvent([
-                'storages' => [],
-            ]);
-
-            $this->trigger(self::EVENT_REGISTER_EXTERNAL_STORAGES, $event);
-
-            foreach ($event->storages as $handle => $class) {
-                ImagerService::registerExternalStorage($handle, $class);
-            }
-        }
-    }
-
-    /**
-     * Register adapters
-     */
-    private function registerAdapters(): void
-    {
-        $data = [];
-
-        $event = new RegisterAdaptersEvent([
-            'adapters' => $data,
-        ]);
-
-        $this->trigger(self::EVENT_REGISTER_ADAPTERS, $event);
-
-        foreach ($event->adapters as $handle => $class) {
-            ImagerService::registerAdapter($handle, $class);
-        }
-    }
-
-
 }

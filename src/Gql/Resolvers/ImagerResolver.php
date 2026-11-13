@@ -108,7 +108,7 @@ class ImagerResolver extends Resolver
 
         if ($asset !== null) {
             try {
-                $transformedImages = ImagerX::$plugin->imager->transformImage($asset, $transform);
+                $transformedImages = app(ImagerService::class)->transformImage($asset, $transform);
                 return self::prepResults($transformedImages);
             } catch (ImagerException $imagerException) {
                 Craft::error('An error occured when transforming asset in GraphQL query: ' . $imagerException->getMessage(), __METHOD__);

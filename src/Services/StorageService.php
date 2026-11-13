@@ -10,6 +10,8 @@
 
 namespace SpaceCatNinja\ImagerX\Services;
 
+use SpaceCatNinja\ImagerX\ExternalStorage\ExternalStorages;
+use Illuminate\Container\Attributes\Singleton;
 use Craft;
 use craft\base\Component;
 
@@ -24,6 +26,7 @@ use SpaceCatNinja\ImagerX\ImagerX;
  * @package   Imager
  * @since     3.0.0
  */
+#[Singleton]
 class StorageService extends Component
 {
     /**
@@ -43,12 +46,13 @@ class StorageService extends Component
         $uri = str_replace(realpath($config->imagerSystemPath), '', realpath($path));
 
         foreach ($config->storages as $storage) {
-            if (isset(ImagerService::$storage[$storage])) {
+            /** @var class-string<ImagerStorageInterface>|null $storageClass */
+            $storageClass = app(ImagerX::class)->isPro() ? app(ExternalStorages::class)->get($storage) : null;
+
+            if ($storageClass !== null) {
                 $storageSettings = $config->storageConfig[$storage] ?? null;
 
                 if ($storageSettings) {
-                    /** @var ImagerStorageInterface $storageClass */
-                    $storageClass = ImagerService::$storage[$storage];
                     $result = $storageClass::upload($path, $uri, $isFinalVersion, $storageSettings);
 
                     if (!$result) {
@@ -66,7 +70,7 @@ class StorageService extends Component
             } else {
                 $msg = 'Could not find a registered storage with handle "' . $storage . '".';
                 
-                if (!ImagerX::getInstance()?->is(ImagerX::EDITION_PRO)) {
+                if (!app(ImagerX::class)->isPro()) {
                     $msg .= ' External storages are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
                 }
                 

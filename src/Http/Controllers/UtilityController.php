@@ -8,163 +8,127 @@
  * @copyright Copyright (c) 2022 André Elvan
  */
 
-
 namespace SpaceCatNinja\ImagerX\Http\Controllers;
 
-use Craft;
-use craft\web\Controller;
+use CraftCms\Cms\Support\Facades\Path;
+use CraftCms\Cms\Utility\Utilities;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use SpaceCatNinja\ImagerX\Services\GenerateService;
+use SpaceCatNinja\ImagerX\Services\ImagerService;
 use SpaceCatNinja\ImagerX\Support\FileHelper;
 use SpaceCatNinja\ImagerX\Support\FormatHelper;
-use SpaceCatNinja\ImagerX\ImagerX as Plugin;
-
-use SpaceCatNinja\ImagerX\Services\ImagerService;
 use SpaceCatNinja\ImagerX\Utilities\ImagerUtility;
-use yii\web\BadRequestHttpException;
-use yii\web\ForbiddenHttpException;
-use yii\web\Response;
+
+use function CraftCms\Cms\t;
 
 /**
- * Class CacheController
- *
- * @package SpaceCatNinja\ImagerX\Http\Controllers
+ * Actions for the Imager X utility. They change state, and are only for users that have access to the utility.
  */
-class UtilityController extends Controller
+readonly class UtilityController
 {
-    // Protected Properties
-    // =========================================================================
-
-    protected int|bool|array $allowAnonymous = false;
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritdoc
-     *
-     * @throws BadRequestHttpException
-     * @throws ForbiddenHttpException
-     */
-    public function beforeAction($action): bool
+    public function __construct(Utilities $utilities)
     {
-        if (!parent::beforeAction($action)) {
-            return false;
-        }
-
-        // The utility actions change state, and are only for users that have access to the utility
-        $this->requirePostRequest();
-        $this->requirePermission('utility:'.ImagerUtility::id());
-
-        return true;
+        abort_unless($utilities->checkAuthorization(ImagerUtility::class), 403, 'User is not authorized to perform this action.');
     }
 
     /**
-     * Controller action to generate transforms from utility
+     * Generates transforms from the utility.
      */
-    public function actionGenerateTransforms(): Response
+    public function generateTransforms(Request $request, GenerateService $generate): JsonResponse
     {
-        $request = Craft::$app->getRequest();
-        $volumes = $request->getParam('volumes');
-        $useConfiguredTransforms = $request->getParam('useConfiguredTransforms') === '1';
-        $namedTransforms = $request->getParam('namedTransforms');
+        $volumes = $request->input('volumes');
+        $useConfiguredTransforms = $request->input('useConfiguredTransforms') === '1';
+        $namedTransforms = $request->input('namedTransforms');
 
         // Only named transforms that are configured for the site can be generated from the utility
         $namedTransforms = \is_array($namedTransforms) ? array_values(array_filter($namedTransforms, static fn($handle) => \is_string($handle) && isset(ImagerService::$namedTransforms[$handle]))) : [];
-        
-        $hasErrors = false;
+
         $errors = [];
+
         if (empty($volumes) || !is_array($volumes)) {
-            $hasErrors = true;
-            $errors[] = Craft::t('imager-x', 'No volumes selected.');
+            $errors[] = t('No volumes selected.', category: 'imager-x');
         }
-        
+
         if (!$useConfiguredTransforms && empty($namedTransforms)) {
-            $hasErrors = true;
-            $errors[] = Craft::t('imager-x', 'No transforms selected.');
+            $errors[] = t('No transforms selected.', category: 'imager-x');
         }
-        
-        if ($hasErrors) {
-            return $this->asJson([
+
+        if (!empty($errors)) {
+            return response()->json([
                 'success' => false,
                 'errors' => $errors,
             ]);
         }
-        
+
         try {
-            Plugin::$plugin->generate->generateByUtility($volumes, $useConfiguredTransforms, $useConfiguredTransforms ? [] : $namedTransforms);
+            $generate->generateByUtility($volumes, $useConfiguredTransforms, $useConfiguredTransforms ? [] : $namedTransforms);
         } catch (\Throwable $throwable) {
-            Craft::error('An error occured when trying to generate transform jobs from utility: ' . $throwable->getMessage(), __METHOD__);
-            
-            return $this->asJson([
+            Log::error('An error occured when trying to generate transform jobs from utility: ' . $throwable->getMessage());
+
+            return response()->json([
                 'success' => false,
                 'errors' => [
-                    Craft::t('imager-x', 'An error occurred when trying to generate transform jobs. Please check the logs for details.'),
+                    t('An error occurred when trying to generate transform jobs. Please check the logs for details.', category: 'imager-x'),
                 ],
             ]);
         }
 
-        return $this->asJson([
+        return response()->json([
             'success' => true,
         ]);
     }
-    
+
     /**
-     * Controller action to clear caches from utility.
+     * Clears caches from the utility.
      */
-    public function actionClearCache(): Response
+    public function clearCache(Request $request, ImagerService $imager): JsonResponse
     {
-        $request = Craft::$app->getRequest();
-        $cacheClearType = $request->getParam('cacheClearType', '');
-        
-        if (!in_array($cacheClearType, ['all', 'transforms', 'runtime'])) {
-            return $this->asJson([
+        $cacheClearType = $request->input('cacheClearType', '');
+
+        if (!in_array($cacheClearType, ['all', 'transforms', 'runtime'], true)) {
+            return response()->json([
                 'success' => false,
                 'errors' => ['Unknown cache clear type.'],
             ]);
         }
-        
+
         if ($cacheClearType === 'all' || $cacheClearType === 'transforms') {
-            Plugin::$plugin->imagerx->deleteImageTransformCaches();
+            $imager->deleteImageTransformCaches();
         }
-        
+
         if ($cacheClearType === 'all' || $cacheClearType === 'runtime') {
-            Plugin::$plugin->imagerx->deleteRemoteImageCaches();
+            $imager->deleteRemoteImageCaches();
         }
-        
-        $cacheInfo = [];
+
         $transformsCachePath = FileHelper::normalizePath(ImagerService::getConfig()->imagerSystemPath);
-        $runtimeCachePath = FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/');
+        $runtimeCachePath = FileHelper::normalizePath(Path::runtime() . '/imager/');
 
-        try {
-            $transformsCacheCount = count(FileHelper::filesInPath($transformsCachePath));
-            $transformsCacheSize = FormatHelper::formatBytes(FileHelper::pathSize($transformsCachePath), 'm', 1) . ' MB';
-        } catch (\Throwable) {
-            $transformsCacheCount = '-';
-            $transformsCacheSize = '-';
-        }
-        
-        $cacheInfo[] = [
-            'handle' => 'transforms',
-            'fileCount' => $transformsCacheCount,
-            'size' => $transformsCacheSize,
-        ];
-        
-        try {
-            $runtimeCacheCount = count(FileHelper::filesInPath($runtimeCachePath));
-            $runtimeCacheSize = FormatHelper::formatBytes(FileHelper::pathSize($runtimeCachePath), 'm', 1) . ' MB';
-        } catch (\Throwable) {
-            $runtimeCacheCount = '-';
-            $runtimeCacheSize = '-';
-        }
-        
-        $cacheInfo[] = [
-            'handle' => 'runtime',
-            'fileCount' => $runtimeCacheCount,
-            'size' => $runtimeCacheSize,
-        ];
-
-        return $this->asJson([
+        return response()->json([
             'success' => true,
-            'cacheInfo' => $cacheInfo
+            'cacheInfo' => [
+                ['handle' => 'transforms', ...$this->cacheInfo($transformsCachePath)],
+                ['handle' => 'runtime', ...$this->cacheInfo($runtimeCachePath)],
+            ],
         ]);
+    }
+
+    /**
+     * @return array{fileCount: int|string, size: string}
+     */
+    private function cacheInfo(string $path): array
+    {
+        try {
+            return [
+                'fileCount' => count(FileHelper::filesInPath($path)),
+                'size' => FormatHelper::formatBytes(FileHelper::pathSize($path), 'm', 1) . ' MB',
+            ];
+        } catch (\Throwable) {
+            return [
+                'fileCount' => '-',
+                'size' => '-',
+            ];
+        }
     }
 }
