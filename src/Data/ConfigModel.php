@@ -1,0 +1,132 @@
+<?php
+/**
+ * Imager X plugin for Craft CMS
+ *
+ * Ninja powered image transforms.
+ *
+ * @link      https://www.spacecat.ninja
+ * @copyright Copyright (c) 2022 André Elvan
+ */
+
+namespace SpaceCatNinja\ImagerX\Data;
+
+use SpaceCatNinja\ImagerX\Settings;
+use craft\base\Model;
+
+use craft\helpers\App;
+use craft\helpers\ConfigHelper;
+use craft\helpers\FileHelper;
+use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
+use SpaceCatNinja\ImagerX\Services\ImagerService;
+
+class ConfigModel extends Settings
+{
+    /**
+     * @var string
+     */
+    private string $configOverrideString = '';
+
+    /**
+     * TransformSettings constructor.
+     *
+     * @param Settings|Model $settings
+     * @param array|null     $overrides
+     */
+    public function __construct($settings, array $overrides = null, array $config = [])
+    {
+        parent::__construct($config);
+
+        // Reset model to get overrides from config file
+        foreach ($settings as $key => $value) {
+            $this->$key = $value;
+        }
+        
+        // Deprecations
+        if ($this->imgixProfile !== null || $this->imgixApiKey !== null || $this->imgixEnableAutoPurging !== null || $this->imgixEnablePurgeElementAction !== null || $this->imgixConfig !== null) {
+            \Craft::$app->deprecator->log(__METHOD__, 'Support for Imgix has been refactored into it\'s own plugin, `spacecatninja/imager-x-imgix-transformer`. Please install it and migrate your Imgix configuration to `config/imager-x-imgix-transformer.php`, see [documentation](https://github.com/spacecatninja/craft-imager-x-imgix-transformer) for more details.');
+        }
+        
+        if (isset($this->optimizerConfig['tinypng'])) {
+            \Craft::$app->deprecator->log(__METHOD__, 'Config key `tinypng` has been renamed to `tinify`. Please update your config.');
+        }
+        
+        // Apply transform overrides
+        $excludedConfigOverrideProperties = ['fillTransforms', 'fillInterval', 'fillAttribute', 'filenamePattern', 'transformer', 'optimizeType', 'safeFileFormats'];
+
+        if ($overrides !== null) {
+            foreach ($overrides as $key => $value) {
+                $this->$key = $value;
+                if (!\in_array($key, $excludedConfigOverrideProperties, true)) {
+                    $this->addToOverrideFilestring($key, $value);
+                }
+            }
+        }
+
+        // Normalize cache durations. This has to happen after the transform overrides have been
+        // applied, so that the override filestring is built from the raw value and transform
+        // filenames stay the same.
+        $durations = ['cacheDuration', 'cacheDurationRemoteFiles', 'cacheDurationExternalStorage', 'cacheDurationNonOptimized'];
+
+        foreach ($durations as $duration) {
+            $normalizedDuration = ImagerHelpers::normalizeCacheDuration($this->{$duration});
+
+            if ($normalizedDuration === null) {
+                \Craft::error(sprintf('Invalid value for config setting `%s`: %s. Expected a number of seconds, `false`, or a duration string supported by PHP\'s `DateInterval`, eg. `P30D`. Treating it as `false`.', $duration, ImagerHelpers::cacheDurationToString($this->{$duration})), __METHOD__);
+                $normalizedDuration = false;
+            }
+
+            $this->{$duration} = $normalizedDuration;
+        }
+
+        // Prep position value
+        if (isset(ImagerService::$craftPositionTranslate[(string)$this->position])) {
+            $this->position = ImagerService::$craftPositionTranslate[(string)$this->position];
+        }
+
+        $this->position = str_replace('%', '', $this->position);
+
+        // Replace localized settings
+        $localizables = ['imagerUrl'];
+        
+        foreach ($localizables as $localizable) {
+            $this->{$localizable} = ConfigHelper::localizedValue($this->{$localizable});
+        }
+        
+        // Replace aliases
+        $parseables = ['imagerSystemPath', 'imagerUrl'];
+
+        foreach ($parseables as $parseable) {
+            $this->{$parseable} = App::parseEnv($this->{$parseable});
+        }
+        // Normalize imager system path
+        $this->imagerSystemPath = FileHelper::normalizePath($this->imagerSystemPath);
+    }
+
+    /**
+     * Get setting by key. If there is an override in transform, that is returned instead of the value in the model.
+     *
+     * @param array|null $transform
+     *
+     */
+    public function getSetting(string $key, array $transform = null): mixed
+    {
+        return $transform[$key] ?? $this[$key];
+    }
+
+    /**
+     * Returns config override string for this config model
+     */
+    public function getConfigOverrideString(): string
+    {
+        return $this->configOverrideString;
+    }
+
+    /**
+     * Creates additional file string based on config overrides that is appended to filename
+     */
+    private function addToOverrideFilestring(string $key, mixed $value): void
+    {
+        $r = (ImagerService::$transformKeyTranslate[$key] ?? $key) . (\is_array($value) ? md5(implode('-', $value)) : $value);
+        $this->configOverrideString .= '_' . str_replace(['%','/'], '', str_replace([' ', '.'], '-', $r));
+    }
+}

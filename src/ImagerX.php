@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2022 André Elvan
  */
 
-namespace spacecatninja\imagerx;
+namespace SpaceCatNinja\ImagerX;
 
 use Craft;
 use craft\base\Element;
@@ -36,75 +36,75 @@ use craft\services\Utilities;
 use craft\web\twig\variables\CraftVariable;
 use GraphQL\Type\Definition\Type;
 
-use spacecatninja\imagerx\effects\AdaptiveBlurEffect;
-use spacecatninja\imagerx\effects\AdaptiveSharpenEffect;
-use spacecatninja\imagerx\effects\BlurEffect;
-use spacecatninja\imagerx\effects\BrightnessEffect;
-use spacecatninja\imagerx\effects\ClutEffect;
-use spacecatninja\imagerx\effects\ColorBlendEffect;
-use spacecatninja\imagerx\effects\ColorizeEffect;
-use spacecatninja\imagerx\effects\ContrastEffect;
-use spacecatninja\imagerx\effects\ContrastStretchEffect;
-use spacecatninja\imagerx\effects\DespeckleEffect;
-use spacecatninja\imagerx\effects\EnhanceEffect;
-use spacecatninja\imagerx\effects\EqualizeEffect;
-use spacecatninja\imagerx\effects\FloodFillPaintEffect;
-use spacecatninja\imagerx\effects\GammaEffect;
-use spacecatninja\imagerx\effects\GaussianBlurEffect;
-use spacecatninja\imagerx\effects\GreyscaleEffect;
-use spacecatninja\imagerx\effects\LevelsEffect;
-use spacecatninja\imagerx\effects\ModulateEffect;
-use spacecatninja\imagerx\effects\MotionBlurEffect;
-use spacecatninja\imagerx\effects\NegativeEffect;
-use spacecatninja\imagerx\effects\NormalizeEffect;
-use spacecatninja\imagerx\effects\OilPaintEffect;
-use spacecatninja\imagerx\effects\OpacityEffect;
-use spacecatninja\imagerx\effects\PosterizeEffect;
-use spacecatninja\imagerx\effects\QuantizeEffect;
-use spacecatninja\imagerx\effects\RadialBlurEffect;
-use spacecatninja\imagerx\effects\SepiaEffect;
-use spacecatninja\imagerx\effects\SharpenEffect;
-use spacecatninja\imagerx\effects\TintEffect;
-use spacecatninja\imagerx\effects\TransparentPaintEffect;
-use spacecatninja\imagerx\effects\UnsharpMaskEffect;
+use SpaceCatNinja\ImagerX\Effects\AdaptiveBlurEffect;
+use SpaceCatNinja\ImagerX\Effects\AdaptiveSharpenEffect;
+use SpaceCatNinja\ImagerX\Effects\BlurEffect;
+use SpaceCatNinja\ImagerX\Effects\BrightnessEffect;
+use SpaceCatNinja\ImagerX\Effects\ClutEffect;
+use SpaceCatNinja\ImagerX\Effects\ColorBlendEffect;
+use SpaceCatNinja\ImagerX\Effects\ColorizeEffect;
+use SpaceCatNinja\ImagerX\Effects\ContrastEffect;
+use SpaceCatNinja\ImagerX\Effects\ContrastStretchEffect;
+use SpaceCatNinja\ImagerX\Effects\DespeckleEffect;
+use SpaceCatNinja\ImagerX\Effects\EnhanceEffect;
+use SpaceCatNinja\ImagerX\Effects\EqualizeEffect;
+use SpaceCatNinja\ImagerX\Effects\FloodFillPaintEffect;
+use SpaceCatNinja\ImagerX\Effects\GammaEffect;
+use SpaceCatNinja\ImagerX\Effects\GaussianBlurEffect;
+use SpaceCatNinja\ImagerX\Effects\GreyscaleEffect;
+use SpaceCatNinja\ImagerX\Effects\LevelsEffect;
+use SpaceCatNinja\ImagerX\Effects\ModulateEffect;
+use SpaceCatNinja\ImagerX\Effects\MotionBlurEffect;
+use SpaceCatNinja\ImagerX\Effects\NegativeEffect;
+use SpaceCatNinja\ImagerX\Effects\NormalizeEffect;
+use SpaceCatNinja\ImagerX\Effects\OilPaintEffect;
+use SpaceCatNinja\ImagerX\Effects\OpacityEffect;
+use SpaceCatNinja\ImagerX\Effects\PosterizeEffect;
+use SpaceCatNinja\ImagerX\Effects\QuantizeEffect;
+use SpaceCatNinja\ImagerX\Effects\RadialBlurEffect;
+use SpaceCatNinja\ImagerX\Effects\SepiaEffect;
+use SpaceCatNinja\ImagerX\Effects\SharpenEffect;
+use SpaceCatNinja\ImagerX\Effects\TintEffect;
+use SpaceCatNinja\ImagerX\Effects\TransparentPaintEffect;
+use SpaceCatNinja\ImagerX\Effects\UnsharpMaskEffect;
 
-use spacecatninja\imagerx\elementactions\ClearTransformsElementAction;
-use spacecatninja\imagerx\elementactions\GenerateTransformsAction;
-use spacecatninja\imagerx\events\RegisterAdaptersEvent;
-use spacecatninja\imagerx\events\RegisterEffectsEvent;
-use spacecatninja\imagerx\events\RegisterExternalStoragesEvent;
-use spacecatninja\imagerx\events\RegisterOptimizersEvent;
-use spacecatninja\imagerx\events\RegisterTransformersEvent;
-use spacecatninja\imagerx\exceptions\ImagerException;
-use spacecatninja\imagerx\gql\directives\ImagerSrcset;
-use spacecatninja\imagerx\gql\directives\ImagerTransform;
-use spacecatninja\imagerx\gql\interfaces\ImagerTransformedImageInterface;
-use spacecatninja\imagerx\gql\queries\ImagerQuery;
-use spacecatninja\imagerx\gql\resolvers\ImagerResolver;
-use spacecatninja\imagerx\helpers\ImagerHelpers;
-use spacecatninja\imagerx\helpers\VersionHelpers;
-use spacecatninja\imagerx\models\GenerateSettings;
-use spacecatninja\imagerx\models\Settings;
-use spacecatninja\imagerx\models\TransformedImageInterface;
+use SpaceCatNinja\ImagerX\ElementActions\ClearTransformsElementAction;
+use SpaceCatNinja\ImagerX\ElementActions\GenerateTransformsAction;
+use SpaceCatNinja\ImagerX\Events\RegisterAdaptersEvent;
+use SpaceCatNinja\ImagerX\Events\RegisterEffectsEvent;
+use SpaceCatNinja\ImagerX\Events\RegisterExternalStoragesEvent;
+use SpaceCatNinja\ImagerX\Events\RegisterOptimizersEvent;
+use SpaceCatNinja\ImagerX\Events\RegisterTransformersEvent;
+use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
+use SpaceCatNinja\ImagerX\Gql\Directives\ImagerSrcset;
+use SpaceCatNinja\ImagerX\Gql\Directives\ImagerTransform;
+use SpaceCatNinja\ImagerX\Gql\Interfaces\ImagerTransformedImageInterface;
+use SpaceCatNinja\ImagerX\Gql\Queries\ImagerQuery;
+use SpaceCatNinja\ImagerX\Gql\Resolvers\ImagerResolver;
+use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
+use SpaceCatNinja\ImagerX\Support\VersionHelpers;
+use SpaceCatNinja\ImagerX\Data\GenerateSettings;
+use SpaceCatNinja\ImagerX\Settings;
+use SpaceCatNinja\ImagerX\Data\TransformedImageInterface;
 
-use spacecatninja\imagerx\optimizers\GifsicleOptimizer;
-use spacecatninja\imagerx\optimizers\JpegoptimOptimizer;
-use spacecatninja\imagerx\optimizers\JpegtranOptimizer;
-use spacecatninja\imagerx\optimizers\MozjpegOptimizer;
-use spacecatninja\imagerx\optimizers\OptipngOptimizer;
-use spacecatninja\imagerx\optimizers\PngquantOptimizer;
+use SpaceCatNinja\ImagerX\Optimizers\GifsicleOptimizer;
+use SpaceCatNinja\ImagerX\Optimizers\JpegoptimOptimizer;
+use SpaceCatNinja\ImagerX\Optimizers\JpegtranOptimizer;
+use SpaceCatNinja\ImagerX\Optimizers\MozjpegOptimizer;
+use SpaceCatNinja\ImagerX\Optimizers\OptipngOptimizer;
+use SpaceCatNinja\ImagerX\Optimizers\PngquantOptimizer;
 
-use spacecatninja\imagerx\services\GenerateService;
-use spacecatninja\imagerx\services\ImagerColorService;
-use spacecatninja\imagerx\services\ImagerService;
-use spacecatninja\imagerx\services\OptimizerService;
-use spacecatninja\imagerx\services\PlaceholderService;
-use spacecatninja\imagerx\services\StorageService;
+use SpaceCatNinja\ImagerX\Services\GenerateService;
+use SpaceCatNinja\ImagerX\Services\ImagerColorService;
+use SpaceCatNinja\ImagerX\Services\ImagerService;
+use SpaceCatNinja\ImagerX\Services\OptimizerService;
+use SpaceCatNinja\ImagerX\Services\PlaceholderService;
+use SpaceCatNinja\ImagerX\Services\StorageService;
 
-use spacecatninja\imagerx\transformers\CraftTransformer;
-use spacecatninja\imagerx\twigextensions\ImagerTwigExtension;
-use spacecatninja\imagerx\utilities\ImagerUtility;
-use spacecatninja\imagerx\variables\ImagerVariable;
+use SpaceCatNinja\ImagerX\Transformers\CraftTransformer;
+use SpaceCatNinja\ImagerX\Twig\ImagerTwigExtension;
+use SpaceCatNinja\ImagerX\Utilities\ImagerUtility;
+use SpaceCatNinja\ImagerX\Twig\ImagerVariable;
 
 use yii\base\Event;
 
@@ -272,7 +272,9 @@ class ImagerX extends Plugin
 
         // Register console commands
         if (Craft::$app instanceof ConsoleApplication) {
-            $this->controllerNamespace = 'spacecatninja\imagerx\console\controllers';
+            $this->controllerNamespace = 'SpaceCatNinja\ImagerX\Console\Controllers';
+        } else {
+            $this->controllerNamespace = 'SpaceCatNinja\ImagerX\Http\Controllers';
         }
     }
 
