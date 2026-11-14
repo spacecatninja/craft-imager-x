@@ -11,7 +11,7 @@
 - Transformers, effects, optimizers, external storages and adapters are now registered with the `Transformers`, `Effects`, `Optimizers`, `ExternalStorages` and `Adapters` registries.
 - Imager X services are now resolved from the container, instead of being components on the plugin.
 - The console commands are now Artisan commands (`imager-x:generate`, `imager-x:clean`, `imager-x:clear-caches:all`, `imager-x:clear-caches:transforms-cache` and `imager-x:clear-caches:runtime-cache`). The Craft 5 names, like `php craft imager-x/generate`, still work.
-- The `cache/clear-transforms` and `cache/clear-remote-images` actions now return JSON.
+- The `cache/clear-transforms` and `cache/clear-remote-images` actions now return JSON, and are limited to 10 requests per minute per IP address.
 
 ### Removed
 - Removed the `EVENT_REGISTER_TRANSFORMERS`, `EVENT_REGISTER_EFFECTS`, `EVENT_REGISTER_OPTIMIZERS`, `EVENT_REGISTER_EXTERNAL_STORAGES` and `EVENT_REGISTER_ADAPTERS` events, and their event classes.
@@ -20,6 +20,7 @@
 - Removed the short option aliases of the console commands.
 
 ### Fixed
+- Fixed the `cache/clear-transforms` and `cache/clear-remote-images` actions requiring a logged-in user. They are authenticated with the `clearKey` config setting.
 - Fixed deprecation warnings on PHP 8.4+ for implicitly nullable parameters.
 - Fixed GraphQL support on Craft 6.0.0-beta.1, where querying any GraphQL schema threw an exception when Imager X was installed.
 

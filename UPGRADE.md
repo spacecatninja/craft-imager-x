@@ -117,10 +117,10 @@ The settings themselves are unchanged. Plugins and modules that read the setting
 
 ### Routes and action URLs
 
-The action URLs are unchanged, and all of them require a logged-in user:
+The action URLs are unchanged:
 
-- `actions/imager-x/cache/clear-transforms?key=...` and `actions/imager-x/cache/clear-remote-images?key=...` now return `{"success": true}` as JSON.
-- `actions/imager-x/utility/generate-transforms` and `actions/imager-x/utility/clear-cache` are used by the Imager X utility. They require `POST` and access to the utility.
+- `actions/imager-x/cache/clear-transforms?key=...` and `actions/imager-x/cache/clear-remote-images?key=...` no longer require a logged-in user, as documented: the `clearKey` config setting authenticates them. They return `{"success": true}` as JSON, are limited to 10 requests per minute per IP address, and are disabled when `clearKey` is empty. Make sure your `clearKey` is a long, random value. The control panel versions of these URLs (`admin/actions/imager-x/...`) still require a login.
+- `actions/imager-x/utility/generate-transforms` and `actions/imager-x/utility/clear-cache` are used by the Imager X utility. They require `POST`, a logged-in user, and access to the utility.
 
 ### Classes and namespaces
 

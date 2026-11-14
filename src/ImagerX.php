@@ -31,7 +31,12 @@ use craft\services\Elements;
 use craft\services\Gql;
 use craft\web\twig\variables\CraftVariable;
 use GraphQL\Type\Definition\Type;
+use CraftCms\Cms\Route\Routes;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\RateLimiter;
 
 use SpaceCatNinja\ImagerX\Console\Commands\CleanCommand;
 use SpaceCatNinja\ImagerX\Console\Commands\ClearCachesCommand;
@@ -84,6 +89,11 @@ class ImagerX extends Plugin
      */
     public const EDITION_PRO = 'pro';
 
+    /**
+     * @var string The rate limiter for the cache clearing action URLs.
+     */
+    public const CLEAR_CACHE_RATE_LIMITER = 'imager-x-clear-cache';
+
     // Properties
     // =========================================================================
 
@@ -125,10 +135,19 @@ class ImagerX extends Plugin
 
         // Bound here rather than in boot(), because Craft loads the plugin's routes before boot() runs.
         $this->app->singleton(Settings::class, fn() => $this->getSettings());
+
+        // The cache clearing action URLs are anonymous and authenticated with the `clearKey` setting
+        RateLimiter::for(self::CLEAR_CACHE_RATE_LIMITER, static fn(Request $request) => Limit::perMinute(10)->by($request->ip()));
     }
 
-    public function boot(): void
+    public function boot(Routes $routes): void
     {
+        // The `clearKey` authenticates the cache clearing action URLs, not a session, so they don't need CSRF protection
+        PreventRequestForgery::except([
+            $routes->actionTriggerUriPrefix() . "/$this->handle/cache/clear-transforms",
+            $routes->actionTriggerUriPrefix() . "/$this->handle/cache/clear-remote-images",
+        ]);
+
         // Load additional config files
         $this->loadAdditionalConfigs();
 
