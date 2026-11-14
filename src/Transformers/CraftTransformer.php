@@ -68,7 +68,7 @@ class CraftTransformer implements TransformerInterface
     /**
      * Main transform method
      *
-     * @throws ImagerException|Exception
+     * @throws ImagerException
      */
     public function transform(Asset|ImagerAdapterInterface|string $image, array $transforms): ?array
     {
@@ -108,7 +108,7 @@ class CraftTransformer implements TransformerInterface
     /**
      * Gets one transformed image based on source image and transform
      *
-     * @throws ImagerException|Exception
+     * @throws ImagerException
      */
     private function getTransformedImage(LocalSourceImageModel $sourceModel, array $transform): ?LocalTransformedImageModel
     {
@@ -353,7 +353,7 @@ class CraftTransformer implements TransformerInterface
     }
 
     /**
-     * @throws Exception
+     * @throws \Throwable
      * @throws ImagerException
      */
     private function saveWithCustomEncoder(array $encoder, ImagickImage|ImageInterface|GdImage $imageInstance, string $path, string $sourceExtension, array $transform): void
@@ -408,7 +408,7 @@ class CraftTransformer implements TransformerInterface
      * Save temporary file and return filename
      *
      * @throws ImagerException
-     * @throws Exception
+     * @throws \Throwable
      */
     private function saveTemporaryFile(ImagickImage|ImageInterface|GdImage $imageInstance, string $sourceExtension): string
     {

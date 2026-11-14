@@ -16,6 +16,7 @@ use CraftCms\Cms\Asset\Folders;
 use CraftCms\Cms\Asset\Volumes;
 use CraftCms\Cms\Console\CraftCommand;
 use CraftCms\Cms\Database\Table;
+use CraftCms\Cms\Element\Queries\AssetQuery;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use SpaceCatNinja\ImagerX\Console\Concerns\ParsesBooleanOptions;
@@ -163,6 +164,7 @@ class GenerateCommand extends Command
 
         $this->info(sprintf('> Volume `%s`', $volume->handle));
 
+        /** @var AssetQuery $query */
         $query = Asset::find()
             ->volume($volume)
             ->kind('image')

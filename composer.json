@@ -29,7 +29,6 @@
         "php": "^8.5",
         "craftcms/cms": "^6.0.0-alpha",
         "imagine/imagine": "^1.5.0",
-        "craftcms/yii2-adapter": "^6.0.0-alpha",
         "mikehaertl/php-shellcommand": "^1.2",
         "ksubileau/color-thief-php": "^2.0",
         "ssnepenthe/color-utils": "~0.4",
@@ -37,7 +36,7 @@
     },
     "autoload": {
         "psr-4": {
-          "SpaceCatNinja\\ImagerX\\": "src/"
+            "SpaceCatNinja\\ImagerX\\": "src/"
         }
     },
     "extra": {
@@ -45,9 +44,7 @@
         "handle": "imager-x",
         "schemaVersion": "4.0.0",
         "hasCpSettings": false,
-        "hasCpSection": false,
         "changelogUrl": "https://raw.githubusercontent.com/spacecatninja/craft-imager-x/master/CHANGELOG.md",
-        "components": {},
         "class": "SpaceCatNinja\\ImagerX\\ImagerX"
     }
 }

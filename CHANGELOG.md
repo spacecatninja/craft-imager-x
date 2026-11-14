@@ -6,6 +6,7 @@
 > Imager X 7 now uses Craft 6's native plugin APIs, and has breaking changes for plugins and modules that extend it. See [UPGRADE.md](UPGRADE.md).
 
 ### Changed
+- Imager X no longer requires the Yii 2 adapter (`craftcms/yii2-adapter`).
 - Imager X now extends Craft 6's native plugin class.
 - Classes moved to the `SpaceCatNinja\ImagerX` namespace, and to Laravel-style folders.
 - Transformers, effects, optimizers, external storages and adapters are now registered with the `Transformers`, `Effects`, `Optimizers`, `ExternalStorages` and `Adapters` registries.

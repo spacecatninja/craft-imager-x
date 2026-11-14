@@ -8,6 +8,7 @@ Templates that only use `craft.imagerx` / `craft.imager` and the `srcset` filter
 
 - Craft CMS 6.0.0 or later
 - PHP 8.5 or later
+- Imager X no longer needs the Yii 2 adapter (`craftcms/yii2-adapter`). The 7.0.0 alpha and beta releases required it. If nothing else in your project needs it, you can remove it.
 
 ## Upgrade steps
 
