@@ -1,9 +1,13 @@
 # Imager X Changelog
 
-## Unreleased
+## 7.0.0-beta.2 - 2026-11-14
 
 > [!IMPORTANT]
 > Imager X 7 now uses Craft 6's native plugin APIs, and has breaking changes for plugins and modules that extend it. See [UPGRADE.md](UPGRADE.md).
+
+### Added
+- Added `ImagerX::isPro()`.
+- Added the `NamedTransforms` service, which plugins and modules can register named transforms with.
 
 ### Changed
 - Imager X no longer requires the Yii 2 adapter (`craftcms/yii2-adapter`).
@@ -18,6 +22,7 @@
 - Named transforms are now held by the `NamedTransforms` service, and the generate config is bound in the container as `GenerateSettings`.
 - When `useForCpThumbs` is enabled, control panel thumbnails now use the transform mode Craft asks for, instead of always `fit`.
 - `craft\elements\Entry`, `Asset`, `User` and `Address` used as `elementType` in `imager-x-generate.php` are mapped to the Craft 6 classes, and log a deprecation warning.
+- `ImagerException` now extends PHP's `Exception`, instead of `yii\base\Exception`.
 - Imager X now logs with Laravel's logger, and translates with Craft 6's `t()` function.
 - Cached dominant colors, color palettes and blurhashes are now invalidated together with Craft's caches for the asset.
 - The Imager X utility's script and styles are now published to `public/vendor/spacecatninja/imager-x/utility/` when Composer installs or updates the plugin, instead of with a Yii asset bundle.
@@ -32,7 +37,6 @@
 - Removed the short option aliases of the console commands.
 - Removed `TransformImageEvent`.
 - Removed `ImagerService::$transformConfig`, `$generateConfig`, `$namedTransforms`, `$processingNamedTransform`, `$remoteImageSessionCache` and `registerNamedTransform()`.
-- `ImagerException` now extends PHP's `Exception`, instead of `yii\base\Exception`.
 
 ### Fixed
 - Fixed transforms failing with a “Target folder … is not writeable” error for up to two minutes after the transforms cache was cleared by another process, like the console command or the Imager X utility.
