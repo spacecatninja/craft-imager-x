@@ -10,11 +10,14 @@
 
 namespace SpaceCatNinja\ImagerX\Data;
 
-use Craft;
 use SpaceCatNinja\ImagerX\Support\FileHelper;
 use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
+use CraftCms\Cms\Support\File;
+use Illuminate\Support\Facades\Log;
+
+use function CraftCms\Cms\t;
 
 /**
  * LocalTargetImageModel
@@ -58,18 +61,18 @@ class LocalTargetImageModel
 
         // The transform path is derived from the image reference, make sure the target never leaves the
         // imager system path. Checked before the filename is created, since that may download the source.
-        $this->path = FileHelper::normalizePath($config->imagerSystemPath.'/'.$source->transformPath);
+        $this->path = File::normalizePath($config->imagerSystemPath.'/'.$source->transformPath);
         $this->assertWithinBase($this->path, $config->imagerSystemPath);
 
         $this->filename = $this->createTargetFilename($source, $transform);
 
         if ($this->filename === '') {
-            throw new ImagerException(Craft::t('imager-x', 'Could not create a filename for the transformed image.'));
+            throw new ImagerException(t('Could not create a filename for the transformed image.', category: 'imager-x'));
         }
 
         $this->assertWithinBase($this->getFilePath(), $this->path);
 
-        $this->url = ImagerHelpers::stripTrailingSlash($config->imagerUrl).FileHelper::normalizePath($source->transformPath.'/'.$this->filename, '/');
+        $this->url = ImagerHelpers::stripTrailingSlash($config->imagerUrl).File::normalizePath($source->transformPath.'/'.$this->filename, '/');
     }
 
     /**
@@ -77,7 +80,7 @@ class LocalTargetImageModel
      */
     public function getFilePath(): string
     {
-        return FileHelper::normalizePath($this->path.'/'.$this->filename);
+        return File::normalizePath($this->path.'/'.$this->filename);
     }
 
     /**
@@ -105,8 +108,8 @@ class LocalTargetImageModel
     private function assertWithinBase(string $path, string $base): void
     {
         if (!FileHelper::isWithinBase($path, $base)) {
-            $msg = Craft::t('imager-x', 'Refusing to resolve an image path outside of the allowed base directory.');
-            Craft::error($msg.' Path: "'.FileHelper::normalizePath($path).'", base: "'.FileHelper::normalizePath($base).'".', __METHOD__);
+            $msg = t('Refusing to resolve an image path outside of the allowed base directory.', category: 'imager-x');
+            Log::error($msg.' Path: "'.File::normalizePath($path).'", base: "'.File::normalizePath($base).'".');
             throw new ImagerException($msg);
         }
     }
@@ -138,8 +141,8 @@ class LocalTargetImageModel
             // The format is used as the file extension, only allow formats that we can save to. An empty
             // format is ignored, and the extension is detected from the file below.
             if ($extension !== '' && (!\is_string($extension) || !self::isSafeTargetExtension($extension))) {
-                $msg = Craft::t('imager-x', 'Format “{format}” is not a supported transform format.', ['format' => \is_string($extension) ? $extension : \gettype($extension)]);
-                Craft::error($msg, __METHOD__);
+                $msg = t('Format “{format}” is not a supported transform format.', ['format' => \is_string($extension) ? $extension : \gettype($extension)], 'imager-x');
+                Log::error($msg);
                 throw new ImagerException($msg);
             }
         }
@@ -148,7 +151,7 @@ class LocalTargetImageModel
             $source->getLocalCopy();
 
             try {
-                $extension = FileHelper::getExtensionByMimeType(FileHelper::getMimeType($source->path.'/'.$source->filename) ?? '') ?? '';
+                $extension = File::getExtensionByMimeType(File::getMimeType($source->path.'/'.$source->filename) ?? '') ?? '';
             } catch (\Throwable) {
                 // just continue, we can handle it
             }

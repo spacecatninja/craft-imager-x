@@ -11,7 +11,7 @@
 namespace SpaceCatNinja\ImagerX;
 
 use Craft;
-use craft\base\Element;
+use CraftCms\Cms\Element\Element;
 use CraftCms\Cms\Plugin\Plugin;
 use CraftCms\Cms\Plugin\PluginSettings;
 use CraftCms\Cms\Asset\Elements\Asset;
@@ -65,6 +65,7 @@ use SpaceCatNinja\ImagerX\Utilities\ImagerUtility;
 use SpaceCatNinja\ImagerX\Twig\ImagerVariable;
 
 use yii\base\Event;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Imager X
@@ -302,7 +303,7 @@ class ImagerX extends Plugin
                                     $transform = ImagerHelpers::normalizeAssetTransformToObject($assetTransform);
                                     $isNativeTransform = true;
                                 } else {
-                                    Craft::error('Unknown asset transform handle supplied to native transform', __METHOD__);
+                                    Log::error('Unknown asset transform handle supplied to native transform');
                                     $transform = [];
                                 }
                             }
@@ -382,10 +383,7 @@ class ImagerX extends Plugin
                 Gql::class,
                 Gql::EVENT_REGISTER_GQL_TYPES,
                 static function(RegisterGqlTypesEvent $event) {
-                    Craft::debug(
-                        'Gql::EVENT_REGISTER_GQL_TYPES',
-                        __METHOD__
-                    );
+                    Log::debug('Gql::EVENT_REGISTER_GQL_TYPES');
                     $event->types[] = ImagerTransformedImageInterface::class;
                 }
             );

@@ -13,10 +13,7 @@ namespace SpaceCatNinja\ImagerX\Utilities;
 use Craft;
 
 use CraftCms\Cms\Asset\Elements\Asset;
-use craft\helpers\App;
-use craft\helpers\Html;
 use craft\helpers\Template;
-use craft\helpers\UrlHelper;
 use CraftCms\Cms\Utility\Utility;
 use SpaceCatNinja\ImagerX\AssetBundles\ImagerUtilityAssets;
 use SpaceCatNinja\ImagerX\Support\FileHelper;
@@ -24,7 +21,12 @@ use SpaceCatNinja\ImagerX\Support\FormatHelper;
 use SpaceCatNinja\ImagerX\ImagerX;
 use SpaceCatNinja\ImagerX\Settings;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
-use yii\base\InvalidConfigException;
+use CraftCms\Cms\Support\Facades\Path;
+use CraftCms\Cms\Support\File;
+use CraftCms\Cms\Support\PHP;
+use CraftCms\Cms\Support\Url;
+
+use function CraftCms\Cms\t;
 
 /**
  * @author    SPACECATNINJA
@@ -41,7 +43,7 @@ class ImagerUtility extends Utility
      */
     public static function displayName(): string
     {
-        return Craft::t('imager-x', 'Imager X');
+        return t('Imager X', category: 'imager-x');
     }
 
     /**
@@ -70,8 +72,8 @@ class ImagerUtility extends Utility
 
         // Get cache paths
         $caches = [];
-        $transformsCachePath = FileHelper::normalizePath($config->imagerSystemPath);
-        $runtimeCachePath = FileHelper::normalizePath(Craft::$app->getPath()->getRuntimePath() . '/imager/');
+        $transformsCachePath = File::normalizePath($config->imagerSystemPath);
+        $runtimeCachePath = File::normalizePath(Path::runtime() . '/imager/');
 
         try {
             $transformsCacheCount = count(FileHelper::filesInPath($transformsCachePath));
@@ -118,7 +120,7 @@ class ImagerUtility extends Utility
                 ->count();
 
             $volumeOptions[] = [
-                'label' => Template::raw(Html::encode($volume->name) . sprintf(' <span class="imager-utility__muted">(%s images)</span>', $assetsCount)),
+                'label' => Template::raw(e($volume->name) . sprintf(' <span class="imager-utility__muted">(%s images)</span>', $assetsCount)),
                 'value' => $volume->id,
             ];
         }
@@ -134,7 +136,7 @@ class ImagerUtility extends Utility
             }
 
             $namedTransformsOptions[] = [
-                'label' => Html::encode($namedTransformValue['displayName'] ?? $namedTransformKey),
+                'label' => e($namedTransformValue['displayName'] ?? $namedTransformKey),
                 'value' => $namedTransformKey,
             ];
         }
@@ -145,8 +147,8 @@ class ImagerUtility extends Utility
         // Register asset bundle
         try {
             Craft::$app->getView()->registerAssetBundle(ImagerUtilityAssets::class);
-        } catch (InvalidConfigException) {
-            return Craft::t('imager-x', 'Could not load asset bundle');
+        } catch (\Throwable) {
+            return t('Could not load asset bundle', category: 'imager-x');
         }
 
         // Render template
@@ -156,7 +158,7 @@ class ImagerUtility extends Utility
                 'volumeOptions' => $volumeOptions,
                 'namedTransformsOptions' => $namedTransformsOptions,
                 'showDisplayNameInfo' => $hasTransformWithoutDisplayName,
-                'queueUrl' => UrlHelper::cpUrl('utilities/queue-manager'),
+                'queueUrl' => Url::cpUrl('utilities/queue-manager'),
                 'caches' => $caches,
                 'debugInfo' => $debugInfo,
                 'isPro' => app(ImagerX::class)->isPro(),
@@ -183,7 +185,7 @@ class ImagerUtility extends Utility
         ];
         $r[] = [
             'label' => 'PHP version',
-            'value' => App::phpVersion(),
+            'value' => PHP::version(),
         ];
 
         $imagesService = Craft::$app->getImages();

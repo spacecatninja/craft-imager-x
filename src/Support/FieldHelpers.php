@@ -10,11 +10,13 @@
 
 namespace SpaceCatNinja\ImagerX\Support;
 
-use Craft;
-use craft\base\Element;
+use CraftCms\Cms\Element\Element;
 
-use craft\base\ElementInterface;
-use craft\elements\db\EntryQuery;
+use CraftCms\Cms\Element\Contracts\ElementInterface;
+use CraftCms\Cms\Element\Queries\EntryQuery;
+use Illuminate\Support\Facades\Log;
+
+use function CraftCms\Cms\t;
 
 class FieldHelpers
 {
@@ -85,20 +87,20 @@ class FieldHelpers
      */
     protected static function getFieldHandleSegments(string $handle): array
     {
-        $msg = Craft::t('imager-x', 'Invalid field format handle for “{handle}“. Either use a single string for fields directly on the element, or a string with the format “contentBlockField.myField“ or “myMatrixField:myMatrixEntryType.myField“.', ['handle' => $handle]);
+        $msg = t('Invalid field format handle for “{handle}“. Either use a single string for fields directly on the element, or a string with the format “contentBlockField.myField“ or “myMatrixField:myMatrixEntryType.myField“.', ['handle' => $handle], 'imager-x');
         
         if (str_contains($handle, ':')) {
             $segments = preg_split('#(\:|\.)#', $handle);
 
             if (!is_array($segments) || count($segments) !== 3) {
-                Craft::error($msg, __METHOD__);
+                Log::error($msg);
                 return [];
             }
         } else {
             $segments = preg_split('#(\.)#', $handle);
 
             if (!is_array($segments) || count($segments) !== 2) {
-                Craft::error($msg, __METHOD__);
+                Log::error($msg);
                 return [];
             }
         }

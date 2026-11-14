@@ -18,6 +18,9 @@ use craft\base\Component;
 use SpaceCatNinja\ImagerX\Jobs\OptimizeJob;
 use SpaceCatNinja\ImagerX\Data\TransformedImageInterface;
 use SpaceCatNinja\ImagerX\Optimizers\ImagerOptimizeInterface;
+use Illuminate\Support\Facades\Log;
+
+use function CraftCms\Cms\t;
 
 /**
  * StorageService Service
@@ -65,10 +68,10 @@ class OptimizerService extends Component
                         }
                     }
                 } else {
-                    Craft::error('Could not find settings for optimizer "' . $optimizer . '"', __METHOD__);
+                    Log::error('Could not find settings for optimizer "' . $optimizer . '"');
                 }
             } else {
-                Craft::error('Could not find a registered optimizer with handle "' . $optimizer . '"', __METHOD__);
+                Log::error('Could not find a registered optimizer with handle "' . $optimizer . '"');
             }
         }
 
@@ -93,12 +96,12 @@ class OptimizerService extends Component
         $queue = Craft::$app->getQueue();
 
         $jobId = $queue->push(new OptimizeJob([
-            'description' => Craft::t('imager-x', 'Optimizing images (' . $handle . ')'),
+            'description' => t('Optimizing images (' . $handle . ')', category: 'imager-x'),
             'optimizer' => $handle,
             'optimizerSettings' => $settings,
             'filePath' => $filePath,
         ]));
 
-        Craft::info('Created optimize job for ' . $handle . ' (job id is ' . $jobId . ')', __METHOD__);
+        Log::info('Created optimize job for ' . $handle . ' (job id is ' . $jobId . ')');
     }
 }

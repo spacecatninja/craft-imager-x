@@ -14,11 +14,13 @@ use SpaceCatNinja\ImagerX\Services\GenerateService;
 use Craft;
 use craft\base\ElementAction;
 use CraftCms\Cms\Asset\Elements\Asset;
-use craft\elements\db\AssetQuery;
-use craft\elements\db\ElementQueryInterface;
+use CraftCms\Cms\Element\Queries\AssetQuery;
+use CraftCms\Cms\Element\Queries\Contracts\ElementQueryInterface;
 use SpaceCatNinja\ImagerX\ImagerX;
 
 use SpaceCatNinja\ImagerX\Services\ImagerService;
+
+use function CraftCms\Cms\t;
 
 /**
  *
@@ -31,7 +33,7 @@ class GenerateTransformsAction extends ElementAction
      */
     public function getTriggerLabel(): string
     {
-        return Craft::t('imager-x', 'Generate transforms');
+        return t('Generate transforms', category: 'imager-x');
     }
 
     /**
@@ -42,7 +44,7 @@ class GenerateTransformsAction extends ElementAction
     public function performAction(ElementQueryInterface $query): bool
     {
         if (!($query instanceof AssetQuery)) {
-            $this->setMessage(Craft::t('imager-x', 'Invalid query, this action only works on assets'));
+            $this->setMessage(t('Invalid query, this action only works on assets', category: 'imager-x'));
             return false;
         }
         
@@ -57,14 +59,14 @@ class GenerateTransformsAction extends ElementAction
         );
 
         if (empty($assetsToGenerate)) {
-            $this->setMessage(Craft::t('imager-x', 'No images to transform'));
+            $this->setMessage(t('No images to transform', category: 'imager-x'));
             return true;
         }
 
         $generateConfig = ImagerService::$generateConfig['volumes'] ?? null;
         
         if (empty($generateConfig)) {
-            $this->setMessage(Craft::t('imager-x', 'No generate transforms configured'));
+            $this->setMessage(t('No generate transforms configured', category: 'imager-x'));
             return false;
         }
         
@@ -84,7 +86,7 @@ class GenerateTransformsAction extends ElementAction
             return false;
         }
 
-        $this->setMessage(Craft::t('imager-x', 'Generating asset transforms...'));
+        $this->setMessage(t('Generating asset transforms...', category: 'imager-x'));
         return true;
     }
 }

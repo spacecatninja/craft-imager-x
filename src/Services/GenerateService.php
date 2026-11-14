@@ -13,12 +13,12 @@ namespace SpaceCatNinja\ImagerX\Services;
 use Illuminate\Container\Attributes\Singleton;
 use Craft;
 use craft\base\Component;
-use craft\base\Element;
-use craft\base\ElementInterface;
+use CraftCms\Cms\Element\Element;
+use CraftCms\Cms\Element\Contracts\ElementInterface;
 use craft\db\Query;
 use CraftCms\Cms\Asset\Elements\Asset;
-use craft\elements\db\ElementQuery;
-use craft\models\Volume;
+use CraftCms\Cms\Element\Queries\ElementQuery;
+use CraftCms\Cms\Asset\Data\Volume;
 
 use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 use SpaceCatNinja\ImagerX\Support\FieldHelpers;
@@ -26,7 +26,10 @@ use SpaceCatNinja\ImagerX\Support\TransformHelpers;
 use SpaceCatNinja\ImagerX\ImagerX;
 use SpaceCatNinja\ImagerX\Jobs\TransformJob;
 
-use yii\base\InvalidConfigException;
+use CraftCms\Cms\Support\Typecast;
+use Illuminate\Support\Facades\Log;
+
+use function CraftCms\Cms\t;
 
 /**
  * GenerateService Service
@@ -54,7 +57,7 @@ class GenerateService extends Component
             $volume = Craft::$app->volumes->getVolumeById($volumeId);
 
             if (!$volume) {
-                Craft::error(sprintf('Couldn\'t find volume with ID %s.', $volumeId), __METHOD__);
+                Log::error(sprintf('Couldn\'t find volume with ID %s.', $volumeId));
                 continue;
             }
 
@@ -63,7 +66,7 @@ class GenerateService extends Component
             }
 
             if (empty($transforms)) {
-                Craft::error(sprintf('Couldn\'t find any transforms for volume with ID %s.', $volumeId), __METHOD__);
+                Log::error(sprintf('Couldn\'t find any transforms for volume with ID %s.', $volumeId));
                 continue;
             }
 
@@ -96,7 +99,7 @@ class GenerateService extends Component
         /** @var Volume $volume */
         try {
             $volume = $asset->getVolume();
-        } catch (InvalidConfigException) {
+        } catch (\Throwable) {
             return;
         }
 
@@ -158,7 +161,7 @@ class GenerateService extends Component
                         $criteria['siteId'] = $element->siteId;
                     }
 
-                    Craft::configure($query, $criteria);
+                    Typecast::configure($query, $criteria);
 
                     if ($query->count() === 0) {
                         continue;
@@ -301,14 +304,14 @@ class GenerateService extends Component
         $jobKey = $asset->id.':'.md5(json_encode($transforms)).':'.($force ? '1' : '0');
 
         if (isset(self::$queuedTransformJobs[$jobKey])) {
-            Craft::info('Skipped duplicate transform job for asset with id '.$asset->id, __METHOD__);
+            Log::info('Skipped duplicate transform job for asset with id '.$asset->id);
             return;
         }
 
         $queue = Craft::$app->getQueue();
 
         $jobId = $queue->push(new TransformJob([
-            'description' => Craft::t('imager-x', 'Generating transforms for asset "' . $asset->filename . '" (ID ' . $asset->id . ')'),
+            'description' => t('Generating transforms for asset "' . $asset->filename . '" (ID ' . $asset->id . ')', category: 'imager-x'),
             'assetId' => $asset->id,
             'transforms' => $transforms,
             'force' => $force,
@@ -316,7 +319,7 @@ class GenerateService extends Component
 
         self::$queuedTransformJobs[$jobKey] = true;
 
-        Craft::info('Created transform job for asset with id ' . $asset->id . ' (job id is ' . $jobId . ')', __METHOD__);
+        Log::info('Created transform job for asset with id ' . $asset->id . ' (job id is ' . $jobId . ')');
     }
 
     /**
@@ -332,8 +335,8 @@ class GenerateService extends Component
                         $transformedImages = app(ImagerService::class)->transformImage($asset, $transform, null, ['optimizeType' => 'runtime'], $force);
                         unset($transformedImages);
                     } catch (ImagerException $imagerException) {
-                        $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and quick transform “{transform}”: {message}', ['assetId' => $asset->id, 'transform' => print_r($transform, true), 'message' => $imagerException->getMessage()]);
-                        Craft::error($msg, __METHOD__);
+                        $msg = t('An error occured when trying to auto generate transforms for asset with id “{assetId}“ and quick transform “{transform}”: {message}', ['assetId' => $asset->id, 'transform' => print_r($transform, true), 'message' => $imagerException->getMessage()], 'imager-x');
+                        Log::error($msg);
                     }
                 } elseif (isset(ImagerService::$namedTransforms[$transform])) {
                     $namedTransform = ImagerService::$namedTransforms[$transform];
@@ -347,12 +350,12 @@ class GenerateService extends Component
 
                         unset($transformedImages);
                     } catch (ImagerException $imagerException) {
-                        $msg = Craft::t('imager-x', 'An error occured when trying to auto generate transforms for asset with id “{assetId}“ and transform “{transform}”: {message}', ['assetId' => $asset->id, 'transform' => print_r($transform, true), 'message' => $imagerException->getMessage()]);
-                        Craft::error($msg, __METHOD__);
+                        $msg = t('An error occured when trying to auto generate transforms for asset with id “{assetId}“ and transform “{transform}”: {message}', ['assetId' => $asset->id, 'transform' => print_r($transform, true), 'message' => $imagerException->getMessage()], 'imager-x');
+                        Log::error($msg);
                     }
                 } else {
-                    $msg = Craft::t('imager-x', 'Unknown transform type “{transform}” could not be found', ['transform' => $transform]);
-                    Craft::error($msg, __METHOD__);
+                    $msg = t('Unknown transform type “{transform}” could not be found', ['transform' => $transform], 'imager-x');
+                    Log::error($msg);
                 }
             }
         }

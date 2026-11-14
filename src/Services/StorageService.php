@@ -12,12 +12,12 @@ namespace SpaceCatNinja\ImagerX\Services;
 
 use SpaceCatNinja\ImagerX\ExternalStorage\ExternalStorages;
 use Illuminate\Container\Attributes\Singleton;
-use Craft;
 use craft\base\Component;
 
 use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 use SpaceCatNinja\ImagerX\ExternalStorage\ImagerStorageInterface;
 use SpaceCatNinja\ImagerX\ImagerX;
+use Illuminate\Support\Facades\Log;
 
 /**
  * StorageService Service
@@ -59,12 +59,12 @@ class StorageService extends Component
                         // If upload failed, delete transformed file, we assume that we want to try again.
                         unlink($path);
                         $msg = 'An error occured when trying to upload file "' . $path . '" to external storage "' . $storage . '". The transformed file has been deleted.';
-                        Craft::error($msg, __METHOD__);
+                        Log::error($msg);
                         // Note, we don't throw exception here, to avoid stopping the processing of the rest of the images.
                     }
                 } else {
                     $msg = 'Could not find settings for storage "' . $storage . '".';
-                    Craft::error($msg, __METHOD__);
+                    Log::error($msg);
                     throw new ImagerException($msg);
                 }
             } else {
@@ -74,7 +74,7 @@ class StorageService extends Component
                     $msg .= ' External storages are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
                 }
                 
-                Craft::error($msg, __METHOD__);
+                Log::error($msg);
                 throw new ImagerException($msg);
             }
         }

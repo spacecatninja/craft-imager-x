@@ -10,7 +10,12 @@
 
 namespace SpaceCatNinja\ImagerX\Support;
 
-use craft\base\Element;
+use Closure;
+use CraftCms\Cms\Cms;
+use CraftCms\Cms\Element\Contracts\ElementInterface;
+use CraftCms\Cms\Support\Config;
+use CraftCms\DependencyAwareCache\Dependency\TagDependency;
+use CraftCms\DependencyAwareCache\Facades\DependencyCache;
 
 /**
  * Class CacheHelper
@@ -20,10 +25,39 @@ use craft\base\Element;
  */
 class CacheHelpers
 {
-    public static function getElementCacheTags(Element $element):array
+    /**
+     * Returns the cache tags that Craft invalidates when the element, or all elements, are changed.
+     *
+     * @return string[]
+     */
+    public static function getElementCacheTags(ElementInterface $element): array
     {
-        $class = get_class($element);
-        return array_merge($element->getCacheTags(), ['element', "element::$class", "element::$class::$element->id"]);
+        $class = $element::class;
+
+        return ['element', "element::$class", "element::$element->id"];
     }
-    
+
+    /**
+     * Returns a cache dependency that is invalidated together with Craft's caches for the element.
+     */
+    public static function getElementCacheDependency(ElementInterface $element): TagDependency
+    {
+        return new TagDependency(self::getElementCacheTags($element));
+    }
+
+    /**
+     * Gets an item from the cache, or stores the result of the callback, for the `cacheDuration` set in Craft's general config.
+     */
+    public static function remember(string $key, Closure $callback, ?TagDependency $dependency = null): mixed
+    {
+        return DependencyCache::remember($key, self::defaultDuration(), $callback, $dependency);
+    }
+
+    /**
+     * Craft's default cache duration in seconds, or `null` for no expiration.
+     */
+    public static function defaultDuration(): ?int
+    {
+        return Config::durationInSeconds(Cms::config()->cacheDuration) ?: null;
+    }
 }

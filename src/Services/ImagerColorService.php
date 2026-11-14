@@ -21,7 +21,6 @@ use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
 use SpaceCatNinja\ImagerX\Support\WhiteInclusiveColorThiefAdapter;
 use SpaceCatNinja\ImagerX\Data\LocalSourceImageModel;
 
-use yii\caching\TagDependency;
 use function SSNepenthe\ColorUtils\brightness;
 use function SSNepenthe\ColorUtils\brightness_difference;
 use function SSNepenthe\ColorUtils\color;
@@ -35,6 +34,7 @@ use function SSNepenthe\ColorUtils\looks_bright;
 use function SSNepenthe\ColorUtils\perceived_brightness;
 use function SSNepenthe\ColorUtils\relative_luminance;
 use function SSNepenthe\ColorUtils\saturation;
+use Illuminate\Support\Facades\Log;
 
 /**
  * ImagerColorService Service
@@ -82,19 +82,9 @@ class ImagerColorService extends Component
             $key .= '-' . ImagerHelpers::createTransformFilestring($area);
         }
         
-        $cache = \Craft::$app->getCache();
-        $dep = null;
-        
-        if (!$cache) {
-            \Craft::error('Cache component not found when trying to get dominant color');
-            return null;
-        }
-        
-        if ($image instanceof Asset) {
-            $dep = new TagDependency(['tags' => CacheHelpers::getElementCacheTags($image)]);
-        } 
+        $dep = $image instanceof Asset ? CacheHelpers::getElementCacheDependency($image) : null;
 
-        $dominantColor = $cache->getOrSet($key, static function() use ($image, $quality, $area) {
+        $dominantColor = CacheHelpers::remember($key, static function() use ($image, $quality, $area) {
             try {
                 $source = new LocalSourceImageModel($image);
                 $source->getLocalCopy();
@@ -105,7 +95,7 @@ class ImagerColorService extends Component
             try {
                 $dominantColor = ColorHelpers::getDominantColor($source->getFilePath(), $quality, $area);
             } catch (\RuntimeException $runtimeException) {
-                \Craft::error('Couldn\'t get dominant color for "'.$source->getFilePath().'". Error was: '.$runtimeException->getMessage());
+                Log::error('Couldn\'t get dominant color for "'.$source->getFilePath().'". Error was: '.$runtimeException->getMessage());
 
                 return null;
             }
@@ -113,7 +103,7 @@ class ImagerColorService extends Component
             ImagerService::cleanSession();
 
             return $dominantColor;
-        }, null, $dep);
+        }, $dep);
 
 
         if (!\is_array($dominantColor)) {
@@ -146,19 +136,9 @@ class ImagerColorService extends Component
             $key .= '-' . ImagerHelpers::createTransformFilestring($area);
         }
         
-        $cache = \Craft::$app->getCache();
-        $dep = null;
+        $dep = $image instanceof Asset ? CacheHelpers::getElementCacheDependency($image) : null;
         
-        if (!$cache) {
-            \Craft::error('Cache component not found when trying to get palette');
-            return null;
-        }
-        
-        if ($image instanceof Asset) {
-            $dep = new TagDependency(['tags' => CacheHelpers::getElementCacheTags($image)]);
-        } 
-        
-        $palette = $cache->getOrSet($key, static function() use ($image, $colorCount, $quality, $area) {
+        $palette = CacheHelpers::remember($key, static function() use ($image, $colorCount, $quality, $area) {
             try {
                 $source = new LocalSourceImageModel($image);
                 $source->getLocalCopy();
@@ -178,7 +158,7 @@ class ImagerColorService extends Component
                     adapter: new WhiteInclusiveColorThiefAdapter((new ImageLoader())->createAdapter()),
                 );
             } catch (\RuntimeException $runtimeException) {
-                \Craft::error('Couldn\'t get palette for "'.$source->getFilePath().'". Error was: '.$runtimeException->getMessage());
+                Log::error('Couldn\'t get palette for "'.$source->getFilePath().'". Error was: '.$runtimeException->getMessage());
 
                 return null;
             }
@@ -186,7 +166,7 @@ class ImagerColorService extends Component
             ImagerService::cleanSession();
 
             return \is_array($palette) ? array_slice($palette, 0, $colorCount) : null;
-        }, null, $dep);
+        }, $dep);
 
         if (!\is_array($palette)) {
             return null;

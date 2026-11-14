@@ -14,6 +14,7 @@ use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
 use Imagine\Imagick\Imagick;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
+use Illuminate\Support\Facades\Log;
 
 class FloodFillPaintEffect implements ImagerEffectsInterface
 {
@@ -37,10 +38,10 @@ class FloodFillPaintEffect implements ImagerEffectsInterface
 
                     $imagickInstance->floodFillPaintImage($params[0], Imagick::getQuantum() * $params[1], $searchColor, 0, 0, false);
                 } catch (\Throwable $throwable) {
-                    \Craft::error('An error occured when trying to apply floodfillpaint effect: ' . $throwable->getMessage(), __METHOD__);
+                    Log::error('An error occured when trying to apply floodfillpaint effect: ' . $throwable->getMessage());
                 }
             } else {
-                \Craft::error('An incorrect number of parameters were passed to floodfillpaint effect.', __METHOD__);
+                Log::error('An incorrect number of parameters were passed to floodfillpaint effect.');
             }
         }
     }

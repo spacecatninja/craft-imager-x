@@ -10,7 +10,8 @@
 
 namespace SpaceCatNinja\ImagerX\Support;
 
-use craft\helpers\UrlHelper;
+use CraftCms\Cms\Support\Url;
+
 
 class QueueHelpers
 {
@@ -19,7 +20,7 @@ class QueueHelpers
      */
     public static function triggerQueueNow(): void
     {
-        $url = UrlHelper::actionUrl('queue/run');
+        $url = Url::actionUrl('queue/run');
 
         if (\function_exists('curl_init')) {
             $ch = curl_init($url);

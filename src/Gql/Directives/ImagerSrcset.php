@@ -10,7 +10,6 @@
 
 namespace SpaceCatNinja\ImagerX\Gql\Directives;
 
-use Craft;
 use craft\gql\base\Directive;
 use craft\gql\GqlEntityRegistry;
 use GraphQL\Language\DirectiveLocation;
@@ -21,6 +20,7 @@ use SpaceCatNinja\ImagerX\Gql\Arguments\ImagerSrcsetArguments;
 
 use SpaceCatNinja\ImagerX\ImagerX;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class ImagerTransform
@@ -75,7 +75,7 @@ class ImagerSrcset extends Directive
         try {
             $transformedImages = app(ImagerService::class)->transformImage($source, $arguments['handle']);
         } catch (ImagerException $imagerException) {
-            Craft::error('An error occured when trying to generate srcset in GraphQL directive: ' . $imagerException->getMessage(), __METHOD__);
+            Log::error('An error occured when trying to generate srcset in GraphQL directive: ' . $imagerException->getMessage());
             return null;
         }
         

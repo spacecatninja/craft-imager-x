@@ -10,7 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Gql\Types\Generators;
 
-use craft\gql\base\GeneratorInterface;
+use CraftCms\Cms\Gql\Contracts\GeneratorInterface;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\TypeLoader;
 

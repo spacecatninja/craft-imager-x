@@ -10,15 +10,9 @@
 
 namespace SpaceCatNinja\ImagerX\Support;
 
-use Craft;
-use craft\db\Query;
 use CraftCms\Cms\Asset\Elements\Asset;
-use craft\helpers\ArrayHelper;
-use craft\helpers\ConfigHelper;
-use craft\helpers\FileHelper;
-use craft\helpers\StringHelper;
-use craft\models\ImageTransform;
-use craft\models\Volume;
+use CraftCms\Cms\Image\Data\ImageTransform;
+use CraftCms\Cms\Asset\Data\Volume;
 use Imagine\Exception\InvalidArgumentException;
 
 use Imagine\Gd\Imagine;
@@ -33,7 +27,12 @@ use SpaceCatNinja\ImagerX\Data\LocalSourceImageModel;
 use SpaceCatNinja\ImagerX\Data\LocalTargetImageModel;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 
-use yii\base\InvalidConfigException;
+use CraftCms\Cms\Support\Config;
+use CraftCms\Cms\Support\Str;
+use Normalizer;
+use CraftCms\Cms\Support\File;
+use CraftCms\Cms\Support\Typecast;
+use Illuminate\Support\Facades\Log;
 
 class ImagerHelpers
 {
@@ -85,7 +84,7 @@ class ImagerHelpers
         }
 
         try {
-            return ConfigHelper::durationInSeconds($duration);
+            return Config::durationInSeconds($duration);
         } catch (\Throwable) {
             return null;
         }
@@ -117,7 +116,7 @@ class ImagerHelpers
         $cacheDuration = self::normalizeCacheDuration($rawCacheDuration);
 
         if ($cacheDuration === null) {
-            Craft::error(sprintf('Invalid `cacheDuration` in transform: %s. Expected a number of seconds, `false`, or a duration string supported by PHP\'s `DateInterval`, eg. `P30D`. Treating it as `false`.', self::cacheDurationToString($rawCacheDuration)), __METHOD__);
+            Log::error(sprintf('Invalid `cacheDuration` in transform: %s. Expected a number of seconds, `false`, or a duration string supported by PHP\'s `DateInterval`, eg. `P30D`. Treating it as `false`.', self::cacheDurationToString($rawCacheDuration)));
             return false;
         }
 
@@ -125,7 +124,7 @@ class ImagerHelpers
             return false;
         }
 
-        return FileHelper::lastModifiedTime($targetModel->getFilePath()) + $cacheDuration < time();
+        return File::lastModified($targetModel->getFilePath()) + $cacheDuration < time();
     }
 
     /**
@@ -252,7 +251,7 @@ class ImagerHelpers
         try {
             $box = new Box((int)$width, (int)$height);
         } catch (InvalidArgumentException $invalidArgumentException) {
-            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            Log::error($invalidArgumentException->getMessage());
             throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
@@ -279,10 +278,9 @@ class ImagerHelpers
         }
 
         // We need to open it (oh no). Let's cache the result.
-        $cache = Craft::$app->getCache();
         $key = 'imagerx-sourceimage-size-'.md5($source->getFilePath());
 
-        $cachedSizeData = $cache?->getOrSet($key, static function() use ($source) {
+        $cachedSizeData = CacheHelpers::remember($key, static function() use ($source) {
             $imagineInstance = self::createImagineInstance();
 
             if ($imagineInstance) {
@@ -359,7 +357,7 @@ class ImagerHelpers
                 min(max($topPos, 0), $resizeSize->getHeight() - $cropSize->getHeight())
             );
         } catch (InvalidArgumentException $invalidArgumentException) {
-            Craft::error($invalidArgumentException->getMessage(), __METHOD__);
+            Log::error($invalidArgumentException->getMessage());
             throw new ImagerException($invalidArgumentException->getMessage(), $invalidArgumentException->getCode(), $invalidArgumentException);
         }
 
@@ -376,9 +374,9 @@ class ImagerHelpers
         /** @var Volume $volume */
         try {
             $volume = $asset->getVolume();
-        } catch (InvalidConfigException $invalidConfigException) {
-            Craft::error($invalidConfigException->getMessage(), __METHOD__);
-            throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
+        } catch (\Throwable $throwable) {
+            Log::error($throwable->getMessage());
+            throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
 
         $config = ImagerService::getConfig();
@@ -387,10 +385,10 @@ class ImagerHelpers
         $addVolumeToPath = $config->addVolumeToPath;
 
         if ($hashPath) {
-            return FileHelper::normalizePath('/'.md5('/'.($addVolumeToPath ? mb_strtolower($volume->handle).'/' : '').$asset->folderPath.'/').'/'.$asset->getId().'/');
+            return File::normalizePath('/'.md5('/'.($addVolumeToPath ? mb_strtolower($volume->handle).'/' : '').$asset->folderPath.'/').'/'.$asset->getId().'/');
         }
 
-        $path = FileHelper::normalizePath('/'.($addVolumeToPath ? mb_strtolower($volume->handle).'/' : '').$asset->folderPath.'/'.$asset->getId().'/');
+        $path = File::normalizePath('/'.($addVolumeToPath ? mb_strtolower($volume->handle).'/' : '').$asset->folderPath.'/'.$asset->getId().'/');
 
         if (str_starts_with($path, '//')) {
             $path = substr($path, 1);
@@ -410,10 +408,10 @@ class ImagerHelpers
         $pathParts = pathinfo($path);
 
         if ($hashPath) {
-            return FileHelper::normalizePath('/'.md5($pathParts['dirname']));
+            return File::normalizePath('/'.md5($pathParts['dirname']));
         }
 
-        return FileHelper::normalizePath($pathParts['dirname']);
+        return File::normalizePath($pathParts['dirname']);
     }
 
     /**
@@ -423,7 +421,7 @@ class ImagerHelpers
      */
     public static function normalizeRemoteUrlString(string $url): string
     {
-        return StringHelper::toAscii(urldecode($url));
+        return Str::ascii(Normalizer::normalize(urldecode($url), Normalizer::FORM_C), app()->getLocale());
     }
 
     /**
@@ -505,7 +503,7 @@ class ImagerHelpers
             $transformPath = '/'.str_replace('.', '_', $urlParts['host']).$transformPath;
         }
 
-        return FileHelper::normalizePath($transformPath);
+        return File::normalizePath($transformPath);
     }
 
     /**
@@ -519,7 +517,7 @@ class ImagerHelpers
             if ($k === 'effects' || $k === 'preEffects' || $k === 'transformerParams') {
                 $effectString = '';
                 foreach ($v as $eff => $param) {
-                    if (ArrayHelper::isAssociative($param)) {
+                    if (self::hasOnlyStringKeys($param)) {
                         $effectString .= '_'.$eff.self::encodeTransformObject($param);
                     } elseif (\is_array($param)) {
                         if (\is_array($param[0])) {
@@ -607,10 +605,9 @@ class ImagerHelpers
         }
 
         if (is_int($configValue)) {
-            /** @var Query $query */
             $query = Asset::find();
             $criteria['id'] = $configValue;
-            Craft::configure($query, $criteria);
+            Typecast::configure($query, $criteria);
 
             return $query->one();
         }
@@ -637,7 +634,7 @@ class ImagerHelpers
                     $imagick->profileImage('icc', $iccProfiles['icc'] ?? '');
                 }
             } catch (\Throwable $throwable) {
-                Craft::error('An error occured when trying to process image meta data: ' . $throwable->getMessage());
+                Log::error('An error occured when trying to process image meta data: ' . $throwable->getMessage());
             }
         }
     }
@@ -725,5 +722,23 @@ class ImagerHelpers
             
         }
         return '--error--';
+    }
+
+    /**
+     * Returns whether an array is non-empty and all its keys are strings.
+     */
+    private static function hasOnlyStringKeys(mixed $value): bool
+    {
+        if (!\is_array($value) || $value === []) {
+            return false;
+        }
+
+        foreach (array_keys($value) as $key) {
+            if (!\is_string($key)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

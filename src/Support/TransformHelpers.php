@@ -11,9 +11,10 @@
 namespace SpaceCatNinja\ImagerX\Support;
 
 use CraftCms\Cms\Asset\Elements\Asset;
-use craft\helpers\ArrayHelper;
 use SpaceCatNinja\ImagerX\Adapters\ImagerAdapterInterface;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
+use CraftCms\Cms\Support\Arr;
+use Illuminate\Support\Facades\Log;
 
 class TransformHelpers
 {
@@ -75,7 +76,7 @@ class TransformHelpers
                         $resolvedVal = $val($image);
                         $transform[$key] = $resolvedVal;
                     } catch (\Throwable $throwable) {
-                        \Craft::error('An error occurred when calling closure: '.$throwable->getMessage(), __METHOD__);
+                        Log::error('An error occurred when calling closure: '.$throwable->getMessage());
                         unset($transform[$key]);
                     }
                 }
@@ -158,7 +159,7 @@ class TransformHelpers
         $r = [];
 
         foreach ($transforms as $t) {
-            $r[] = ($defaults !== null ? ArrayHelper::merge($defaults, $t) : $t);
+            $r[] = ($defaults !== null ? Arr::merge($defaults, $t) : $t);
         }
 
         return $r;

@@ -11,6 +11,8 @@
 - Transformers, effects, optimizers, external storages and adapters are now registered with the `Transformers`, `Effects`, `Optimizers`, `ExternalStorages` and `Adapters` registries.
 - Imager X services are now resolved from the container, instead of being components on the plugin.
 - The console commands are now Artisan commands (`imager-x:generate`, `imager-x:clean`, `imager-x:clear-caches:all`, `imager-x:clear-caches:transforms-cache` and `imager-x:clear-caches:runtime-cache`). The Craft 5 names, like `php craft imager-x/generate`, still work.
+- Imager X now logs with Laravel's logger, and translates with Craft 6's `t()` function.
+- Cached dominant colors, color palettes and blurhashes are now invalidated together with Craft's caches for the asset.
 - The `cache/clear-transforms` and `cache/clear-remote-images` actions now return JSON, and are limited to 10 requests per minute per IP address.
 
 ### Removed
@@ -18,8 +20,10 @@
 - Removed `ImagerX::$plugin`, and the service properties on the plugin class.
 - Removed `ImagerService::registerTransformer()`, `registerEffect()`, `registerOptimizer()`, `registerExternalStorage()` and `registerAdapter()`.
 - Removed the short option aliases of the console commands.
+- `ImagerException` now extends PHP's `Exception`, instead of `yii\base\Exception`.
 
 ### Fixed
+- Fixed assets in local volumes being copied to the runtime cache before being transformed on Craft 6. They are read in place again, as on Craft 5.
 - Fixed the `cache/clear-transforms` and `cache/clear-remote-images` actions requiring a logged-in user. They are authenticated with the `clearKey` config setting.
 - Fixed deprecation warnings on PHP 8.4+ for implicitly nullable parameters.
 - Fixed GraphQL support on Craft 6.0.0-beta.1, where querying any GraphQL schema threw an exception when Imager X was installed.

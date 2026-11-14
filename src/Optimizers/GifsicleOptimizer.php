@@ -10,11 +10,11 @@
 
 namespace SpaceCatNinja\ImagerX\Optimizers;
 
-use Craft;
 
-use craft\helpers\App;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 use SpaceCatNinja\ImagerX\Concerns\RunShellCommandTrait;
+use CraftCms\Cms\Support\Env;
+use Illuminate\Support\Facades\Log;
 
 class GifsicleOptimizer implements ImagerOptimizeInterface
 {
@@ -24,8 +24,8 @@ class GifsicleOptimizer implements ImagerOptimizeInterface
     {
         $config = ImagerService::getConfig();
         
-        if ($config->skipExecutableExistCheck || file_exists(App::parseEnv($settings['path']))) {
-            $cmd = App::parseEnv($settings['path']);
+        if ($config->skipExecutableExistCheck || file_exists(Env::parse($settings['path']))) {
+            $cmd = Env::parse($settings['path']);
             $cmd .= ' ';
             $cmd .= escapeshellcmd($settings['optionString']);
             $cmd .= ' ';
@@ -34,9 +34,9 @@ class GifsicleOptimizer implements ImagerOptimizeInterface
             
             $result = self::runShellCommand($cmd);
 
-            Craft::info('Command "' . $cmd . '" returned "' . $result . '"');
+            Log::info('Command "' . $cmd . '" returned "' . $result . '"');
         } else {
-            Craft::error('Optimizer ' . self::class . ' could not be found in path ' . $settings['path'], __METHOD__);
+            Log::error('Optimizer ' . self::class . ' could not be found in path ' . $settings['path']);
         }
     }
 }

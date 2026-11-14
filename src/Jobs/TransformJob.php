@@ -11,7 +11,6 @@
 namespace SpaceCatNinja\ImagerX\Jobs;
 
 use SpaceCatNinja\ImagerX\Services\GenerateService;
-use Craft;
 use CraftCms\Cms\Asset\Elements\Asset;
 use craft\queue\BaseJob;
 use craft\queue\QueueInterface;
@@ -20,6 +19,9 @@ use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 
 use SpaceCatNinja\ImagerX\ImagerX;
 use yii\queue\Queue;
+use CraftCms\Cms\Support\Typecast;
+
+use function CraftCms\Cms\t;
 
 class TransformJob extends BaseJob
 {
@@ -53,13 +55,13 @@ class TransformJob extends BaseJob
     {
         $criteria = [];
         if ($this->assetId === null) {
-            throw new ImagerException(Craft::t('imager-x', 'Asset ID in transform job was null'));
+            throw new ImagerException(t('Asset ID in transform job was null', category: 'imager-x'));
         }
         
         $query = Asset::find();
         $criteria['id'] = $this->assetId;
         $criteria['status'] = null;
-        Craft::configure($query, $criteria);
+        Typecast::configure($query, $criteria);
         
         $asset = $query->one();
         
@@ -80,6 +82,6 @@ class TransformJob extends BaseJob
      */
     protected function defaultDescription(): ?string
     {
-        return Craft::t('imager-x', 'Transforming asset');
+        return t('Transforming asset', category: 'imager-x');
     }
 }

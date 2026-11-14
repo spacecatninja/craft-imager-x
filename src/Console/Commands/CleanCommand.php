@@ -17,6 +17,7 @@ use SpaceCatNinja\ImagerX\Console\Concerns\ParsesBooleanOptions;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 use SpaceCatNinja\ImagerX\Support\FileHelper;
 use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
+use CraftCms\Cms\Support\File;
 
 class CleanCommand extends Command
 {
@@ -62,7 +63,7 @@ class CleanCommand extends Command
 
         if ($runtimeCache) {
             $configDuration = $config->cacheDurationRemoteFiles;
-            $path = FileHelper::normalizePath(Path::runtime() . '/imager/');
+            $path = File::normalizePath(Path::runtime() . '/imager/');
             $excludes = array_unique(array_merge($excludes, self::RUNTIME_CACHE_EXCLUDES));
         } elseif ($volume !== '') {
             if (!preg_match('/^[A-Za-z0-9_\-]+$/', $volume)) {
@@ -75,7 +76,7 @@ class CleanCommand extends Command
                 return self::FAILURE;
             }
 
-            $path = FileHelper::normalizePath($path . DIRECTORY_SEPARATOR . $volume);
+            $path = File::normalizePath($path . DIRECTORY_SEPARATOR . $volume);
         }
 
         if (!$duration && $configDuration === false) {
@@ -144,7 +145,7 @@ class CleanCommand extends Command
 
     private function fileHasExpired(string $file): bool
     {
-        return FileHelper::lastModifiedTime($file) + $this->durationInSeconds < time();
+        return File::lastModified($file) + $this->durationInSeconds < time();
     }
 
     /**

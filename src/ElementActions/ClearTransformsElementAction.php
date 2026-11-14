@@ -14,11 +14,12 @@ use SpaceCatNinja\ImagerX\Services\ImagerService;
 use Craft;
 
 use craft\base\ElementAction;
-use craft\elements\db\ElementQueryInterface;
+use CraftCms\Cms\Element\Queries\Contracts\ElementQueryInterface;
 use CraftCms\Cms\Asset\Elements\Asset;
 use SpaceCatNinja\ImagerX\ImagerX as Plugin;
 
-use yii\base\Exception;
+
+use function CraftCms\Cms\t;
 
 /**
  *
@@ -31,7 +32,7 @@ class ClearTransformsElementAction extends ElementAction
      */
     public function getTriggerLabel(): string
     {
-        return Craft::t('imager-x', 'Clear Imager transforms');
+        return t('Clear Imager transforms', category: 'imager-x');
     }
 
     /**
@@ -53,12 +54,12 @@ class ClearTransformsElementAction extends ElementAction
 
                 app(ImagerService::class)->removeTransformsForAsset($asset);
             }
-        } catch (Exception $exception) {
+        } catch (\Throwable $exception) {
             $this->setMessage($exception->getMessage());
             return false;
         }
         
-        $this->setMessage(Craft::t('imager-x', 'Transforms were removed'));
+        $this->setMessage(t('Transforms were removed', category: 'imager-x'));
         return true;
     }
 }

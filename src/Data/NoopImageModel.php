@@ -10,7 +10,6 @@
 
 namespace SpaceCatNinja\ImagerX\Data;
 
-use craft\helpers\FileHelper;
 
 use Imagine\Exception\InvalidArgumentException;
 use Imagine\Image\Box;
@@ -19,7 +18,7 @@ use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 
-use yii\base\InvalidConfigException;
+use CraftCms\Cms\Support\File;
 
 class NoopImageModel extends BaseTransformedImageModel implements TransformedImageInterface
 {
@@ -71,8 +70,8 @@ class NoopImageModel extends BaseTransformedImageModel implements TransformedIma
         $this->size = @filesize($sourceModel->getFilePath());
 
         try {
-            $this->mimeType = FileHelper::getMimeType($sourceModel->getFilePath());
-        } catch (InvalidConfigException $invalidConfigException) {
+            $this->mimeType = File::getMimeType($sourceModel->getFilePath());
+        } catch (\Throwable $throwable) {
             // just ignore
         }
 

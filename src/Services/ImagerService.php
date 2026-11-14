@@ -16,7 +16,6 @@ use Craft;
 
 use craft\base\Component;
 use CraftCms\Cms\Asset\Elements\Asset;
-use craft\helpers\ArrayHelper;
 use Imagine\Image\ImageInterface;
 use SpaceCatNinja\ImagerX\Adapters\ImagerAdapterInterface;
 use SpaceCatNinja\ImagerX\Events\TransformImageEvent;
@@ -34,7 +33,13 @@ use SpaceCatNinja\ImagerX\Data\LocalTargetImageModel;
 use SpaceCatNinja\ImagerX\Data\TransformedImageInterface;
 use SpaceCatNinja\ImagerX\Transformers\Transformers;
 use SpaceCatNinja\ImagerX\Transformers\TransformerInterface;
-use yii\base\Exception;
+use CraftCms\Cms\Cms;
+use CraftCms\Cms\Support\Arr;
+use CraftCms\Cms\Support\Facades\Path;
+use CraftCms\Cms\Support\File;
+use Illuminate\Support\Facades\Log;
+
+use function CraftCms\Cms\t;
 
 /**
  * ImagerService Service
@@ -227,7 +232,7 @@ class ImagerService extends Component
      */
     public static function detectImageDriver(): void
     {
-        $extension = mb_strtolower(Craft::$app->getConfig()->getGeneral()->imageDriver);
+        $extension = mb_strtolower(Cms::config()->imageDriver);
 
         if ($extension === 'gd') {
             self::$imageDriver = 'gd';
@@ -320,8 +325,8 @@ class ImagerService extends Component
 
             while (is_string($transforms)) {
                 if (!isset(self::$namedTransforms[$transforms])) {
-                    $msg = Craft::t('imager-x', 'There is no named transform with handle “{transformName}”.', ['transformName' => $transforms]);
-                    Craft::error($msg, __METHOD__);
+                    $msg = t('There is no named transform with handle “{transformName}”.', ['transformName' => $transforms], 'imager-x');
+                    Log::error($msg);
 
                     if (self::getConfig()->suppressExceptions) {
                         return null;
@@ -331,8 +336,8 @@ class ImagerService extends Component
                 }
 
                 if (in_array($transforms, $processedTransforms, true)) {
-                    $msg = Craft::t('imager-x', 'There was a cyclic reference to named transform with handle “{transformName}”.', ['transformName' => $transforms]);
-                    Craft::error($msg, __METHOD__);
+                    $msg = t('There was a cyclic reference to named transform with handle “{transformName}”.', ['transformName' => $transforms], 'imager-x');
+                    Log::error($msg);
 
                     if (self::getConfig()->suppressExceptions) {
                         return null;
@@ -410,9 +415,9 @@ class ImagerService extends Component
                 // Limited to Pro edition, otherwise plugins could use this to
                 // re-produce the custom transformers feature for Lite edition
                 if (!app(ImagerX::class)->isPro()) {
-                    $msg = Craft::t('imager-x', 'Overriding transformed images is only available when using the Pro edition of Imager, you need to upgrade to use this feature.');
+                    $msg = t('Overriding transformed images is only available when using the Pro edition of Imager, you need to upgrade to use this feature.', category: 'imager-x');
 
-                    Craft::error($msg, __METHOD__);
+                    Log::error($msg);
                     throw new ImagerException($msg);
                 }
 
@@ -434,7 +439,7 @@ class ImagerService extends Component
                     $msg .= ' Custom transformers are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
                 }
 
-                Craft::error($msg, __METHOD__);
+                Log::error($msg);
                 throw new ImagerException($msg);
             }
 
@@ -493,7 +498,7 @@ class ImagerService extends Component
             return null;
         }
 
-        return $returnType === 'object' ? ArrayHelper::firstValue($transformedImages) : $transformedImages;
+        return $returnType === 'object' ? Arr::first($transformedImages) : $transformedImages;
     }
 
     /**
@@ -524,7 +529,7 @@ class ImagerService extends Component
         }
 
         // If ajax request, trigger jobs immediately
-        if ($taskCreated && $config->runJobsImmediatelyOnAjaxRequests && !Craft::$app->getRequest()->isConsoleRequest && Craft::$app->getRequest()->getIsAjax() && Craft::$app->getConfig()->getGeneral()->runQueueAutomatically) {
+        if ($taskCreated && $config->runJobsImmediatelyOnAjaxRequests && !Craft::$app->getRequest()->isConsoleRequest && Craft::$app->getRequest()->getIsAjax() && Cms::config()->runQueueAutomatically) {
             QueueHelpers::triggerQueueNow();
         }
     }
@@ -591,7 +596,7 @@ class ImagerService extends Component
             $source = new LocalSourceImageModel($asset);
             $source->getLocalCopy();
         } catch (ImagerException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
+            Log::error($e->getMessage());
 
             return false;
         }
@@ -634,21 +639,21 @@ class ImagerService extends Component
             if (FileHelper::isWithinBase($targetModel->path, $config->imagerSystemPath)) {
                 if (is_dir($targetModel->path)) {
                     try {
-                        FileHelper::clearDirectory(FileHelper::normalizePath($targetModel->path));
-                        FileHelper::removeDirectory(FileHelper::normalizePath($targetModel->path));
+                        File::cleanDirectory(File::normalizePath($targetModel->path));
+                        File::deleteDirectory(File::normalizePath($targetModel->path));
                     } catch (\Throwable $throwable) {
-                        Craft::error('Could not clear directory "'.$targetModel->path.'" ('.$throwable->getMessage().')', __METHOD__);
+                        Log::error('Could not clear directory "'.$targetModel->path.'" ('.$throwable->getMessage().')');
                     }
                 }
 
                 Craft::$app->elements->invalidateCachesForElement($asset);
 
                 if ($sourceModel->type !== 'local' && file_exists($sourceModel->getFilePath())) {
-                    FileHelper::unlink($sourceModel->getFilePath());
+                    File::delete($sourceModel->getFilePath());
                 }
             }
         } catch (ImagerException $imagerException) {
-            Craft::error($imagerException->getMessage(), __METHOD__);
+            Log::error($imagerException->getMessage());
         }
     }
 
@@ -660,12 +665,12 @@ class ImagerService extends Component
         $path = self::getConfig()->imagerSystemPath;
 
         try {
-            $dir = FileHelper::normalizePath($path);
+            $dir = File::normalizePath($path);
             if (is_dir($dir)) {
-                FileHelper::clearDirectory($dir);
+                File::cleanDirectory($dir);
             }
         } catch (\Throwable $throwable) {
-            Craft::error('Could not clear directory "'.$path.'" ('.$throwable->getMessage().')', __METHOD__);
+            Log::error('Could not clear directory "'.$path.'" ('.$throwable->getMessage().')');
         }
     }
 
@@ -675,20 +680,20 @@ class ImagerService extends Component
     public function deleteRemoteImageCaches(): void
     {
         try {
-            $path = Craft::$app->getPath()->getRuntimePath().'/imager/';
-        } catch (Exception $exception) {
-            Craft::error('Could not get runtime path ('.$exception->getMessage().')', __METHOD__);
+            $path = Path::runtime().'/imager/';
+        } catch (\Throwable $exception) {
+            Log::error('Could not get runtime path ('.$exception->getMessage().')');
 
             return;
         }
 
         try {
-            $dir = FileHelper::normalizePath($path);
+            $dir = File::normalizePath($path);
             if (is_dir($dir)) {
-                FileHelper::clearDirectory($dir);
+                File::cleanDirectory($dir);
             }
         } catch (\Throwable $throwable) {
-            Craft::error('Could not clear directory "'.$path.'" ('.$throwable->getMessage().')', __METHOD__);
+            Log::error('Could not clear directory "'.$path.'" ('.$throwable->getMessage().')');
         }
     }
 

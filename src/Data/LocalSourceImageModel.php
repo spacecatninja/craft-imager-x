@@ -10,14 +10,10 @@
 
 namespace SpaceCatNinja\ImagerX\Data;
 
-use Craft;
 
+use CraftCms\Cms\Asset\AssetsHelper;
 use CraftCms\Cms\Asset\Elements\Asset;
-use craft\errors\FsException;
 use CraftCms\Cms\Filesystem\Exceptions\FilesystemException;
-use CraftCms\Cms\Filesystem\Filesystems\Local;
-use craft\helpers\Assets;
-use craft\helpers\Assets as AssetsHelper;
 
 use SpaceCatNinja\ImagerX\Support\FileHelper;
 use SpaceCatNinja\ImagerX\Adapters\ImagerAdapterInterface;
@@ -25,9 +21,16 @@ use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 
-use Yii;
-use yii\base\Exception;
-use yii\base\InvalidConfigException;
+use CraftCms\Aliases\Aliases;
+use CraftCms\Cms\Support\Facades\Path;
+use CraftCms\Cms\Support\File;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Filesystem\LocalFilesystemAdapter;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\Mime\MimeTypes;
+
+use function CraftCms\Cms\t;
 
 /**
  * LocalSourceImageModel
@@ -44,6 +47,11 @@ class LocalSourceImageModel
      * @var int Seconds to wait for another process that is downloading the same source file.
      */
     private const SOURCE_CACHE_LOCK_TIMEOUT = 30;
+
+    /**
+     * @var int Seconds before a source cache lock expires, if the process holding it dies.
+     */
+    private const SOURCE_CACHE_LOCK_TTL = 300;
 
     /**
      * @var string[] Raster image types that remote sources are always allowed to contain.
@@ -128,31 +136,31 @@ class LocalSourceImageModel
         } elseif ($image instanceof Asset) {
             $this->asset = $image;
             try {
-                $fileSystemClass = $image->getVolume()->getFs()::class;
-            } catch (InvalidConfigException $invalidConfigException) {
-                Craft::error($invalidConfigException->getMessage(), __METHOD__);
-                throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
+                $isLocalDisk = $image->getVolume()->sourceDisk() instanceof LocalFilesystemAdapter;
+            } catch (\Throwable $throwable) {
+                Log::error($throwable->getMessage());
+                throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
             }
 
-            if ($fileSystemClass === Local::class) {
+            if ($isLocalDisk) {
                 $this->getPathsForLocalAsset($image);
             } else {
                 $this->type = 'volume';
                 $this->getPathsForVolumeAsset($image);
             }
         } else {
-            throw new ImagerException(Craft::t('imager-x', 'An unknown image object was used.'));
+            throw new ImagerException(t('An unknown image object was used.', category: 'imager-x'));
         }
     }
 
     public function getFilePath(): string
     {
-        return FileHelper::normalizePath($this->path.'/'.$this->filename);
+        return File::normalizePath($this->path.'/'.$this->filename);
     }
 
     public function getTemporaryFilePath(): string
     {
-        return FileHelper::normalizePath($this->path.'/~'.$this->filename);
+        return File::normalizePath($this->path.'/~'.$this->filename);
     }
 
     /**
@@ -167,12 +175,13 @@ class LocalSourceImageModel
         }
 
         if ($this->shouldRefreshLocalCopy()) {
-            $mutex = Craft::$app->getMutex();
-            $lockName = 'imagerx-sourcecache-'.md5($this->getFilePath());
-            $acquiredLock = $mutex->acquire($lockName, self::SOURCE_CACHE_LOCK_TIMEOUT);
+            $lock = Cache::lock('imagerx-sourcecache-'.md5($this->getFilePath()), self::SOURCE_CACHE_LOCK_TTL);
 
-            if (!$acquiredLock) {
-                Craft::warning('Timed out waiting for source cache lock for "'.$this->getFilePath().'", proceeding without lock.', __METHOD__);
+            try {
+                $acquiredLock = $lock->block(self::SOURCE_CACHE_LOCK_TIMEOUT);
+            } catch (LockTimeoutException) {
+                $acquiredLock = false;
+                Log::warning('Timed out waiting for source cache lock for "'.$this->getFilePath().'", proceeding without lock.');
             }
 
             try {
@@ -180,10 +189,10 @@ class LocalSourceImageModel
                 if ($this->shouldRefreshLocalCopy()) {
                     if ($this->asset && $this->type === 'volume') {
                         try {
-                            $fs = $this->asset->getVolume()->sourceDisk();
-                        } catch (InvalidConfigException $invalidConfigException) {
-                            Craft::error($invalidConfigException->getMessage(), __METHOD__);
-                            throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
+                            $disk = $this->asset->getVolume()->sourceDisk();
+                        } catch (\Throwable $throwable) {
+                            Log::error($throwable->getMessage());
+                            throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
                         }
 
                         // catch any AssetException and rethrow as ImagerException
@@ -193,8 +202,8 @@ class LocalSourceImageModel
                                 @unlink($this->getTemporaryFilePath());
                             }
 
-                            Assets::downloadFile($fs, $this->asset->getPath(), $this->getTemporaryFilePath());
-                        } catch (FsException|FilesystemException $fsException) {
+                            AssetsHelper::downloadFile($disk, $this->asset->getPath(), $this->getTemporaryFilePath());
+                        } catch (FilesystemException $fsException) {
                             throw new ImagerException($fsException->getMessage(), $fsException->getCode(), $fsException);
                         }
 
@@ -211,14 +220,14 @@ class LocalSourceImageModel
                 }
             } finally {
                 if ($acquiredLock) {
-                    $mutex->release($lockName);
+                    $lock->release();
                 }
             }
         }
 
         if (!file_exists($this->getFilePath())) {
-            $msg = Craft::t('imager-x', 'File could not be downloaded and saved to “{path}”', ['path' => $this->path]);
-            Craft::error($msg, __METHOD__);
+            $msg = t('File could not be downloaded and saved to “{path}”', ['path' => $this->path], 'imager-x');
+            Log::error($msg);
             throw new ImagerException($msg);
         }
 
@@ -244,7 +253,7 @@ class LocalSourceImageModel
         // getimagesize() doesn't know all image types, like HEIC and JPEG XL
         if ($mimeType === null) {
             try {
-                $mimeType = FileHelper::getMimeType($file, null, false);
+                $mimeType = File::getMimeType($file, false);
             } catch (\Throwable) {
                 $mimeType = null;
             }
@@ -268,15 +277,15 @@ class LocalSourceImageModel
 
         if ($mimeType !== null && $extension !== '' && !str_starts_with($mimeType, 'text/')
             && !\in_array($mimeType, ['application/xml', 'application/octet-stream', 'image/x-mvg', 'image/x-msl'], true)
-            && \in_array($extension, FileHelper::getExtensionsByMimeType($mimeType), true)) {
+            && \in_array($extension, MimeTypes::getDefault()->getExtensions(strtolower((string)$mimeType)), true)) {
             return;
         }
 
         // Remove it, so that it isn't used again
         @unlink($file);
 
-        $msg = Craft::t('imager-x', 'The remote file “{imageUrl}” is not a supported image.', ['imageUrl' => $this->url]);
-        Craft::error($msg.' Detected type: '.($mimeType ?? 'unknown').'.', __METHOD__);
+        $msg = t('The remote file “{imageUrl}” is not a supported image.', ['imageUrl' => $this->url], 'imager-x');
+        Log::error($msg.' Detected type: '.($mimeType ?? 'unknown').'.');
         throw new ImagerException($msg);
     }
 
@@ -326,7 +335,7 @@ class LocalSourceImageModel
     {
         $config = ImagerService::getConfig();
 
-        return !$this->isValidFile($this->getFilePath()) || (($config->cacheDurationRemoteFiles !== false) && ((FileHelper::lastModifiedTime($this->getFilePath()) + $config->cacheDurationRemoteFiles) < time()));
+        return !$this->isValidFile($this->getFilePath()) || (($config->cacheDurationRemoteFiles !== false) && ((File::lastModified($this->getFilePath()) + $config->cacheDurationRemoteFiles) < time()));
     }
 
     /**
@@ -354,20 +363,15 @@ class LocalSourceImageModel
     private function getPathsForLocalAsset(Asset $image): void
     {
         try {
-            $volume = $image->getVolume();
-
-            /** @var Local $fs */
-            $fs = $image->getVolume()->getFs();
-
             $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
-            $this->path = FileHelper::normalizePath($fs->getRootPath().'/'.$volume->getSubpath().'/'.$image->folderPath);
+            $this->path = File::normalizePath($image->getVolume()->sourceDisk()->path((string)$image->folderPath));
             $this->url = $image->getUrl() ?? '';
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
             $this->extension = $image->getExtension();
-        } catch (InvalidConfigException $invalidConfigException) {
-            Craft::error($invalidConfigException->getMessage(), __METHOD__);
-            throw new ImagerException($invalidConfigException->getMessage(), $invalidConfigException->getCode(), $invalidConfigException);
+        } catch (\Throwable $throwable) {
+            Log::error($throwable->getMessage());
+            throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
     }
 
@@ -382,28 +386,28 @@ class LocalSourceImageModel
         $this->transformPath = ImagerHelpers::getTransformPathForAsset($image);
 
         try {
-            $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath().'/imager/';
-        } catch (Exception $exception) {
-            Craft::error($exception->getMessage(), __METHOD__);
+            $runtimeImagerPath = Path::runtime().'/imager/';
+        } catch (\Throwable $exception) {
+            Log::error($exception->getMessage());
             throw new ImagerException($exception->getMessage(), $exception->getCode(), $exception);
         }
 
         try {
             $this->url = AssetsHelper::generateUrl($image);
-            $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
+            $this->path = File::normalizePath($runtimeImagerPath.$this->transformPath.'/');
             $this->filename = $image->getFilename();
             $this->basename = $image->getFilename(false);
             $this->extension = $image->getExtension();
         } catch (\Throwable $throwable) {
-            Craft::error($throwable->getMessage(), __METHOD__);
+            Log::error($throwable->getMessage());
             throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
 
 
         try {
-            FileHelper::createDirectory($this->path);
-        } catch (Exception $throwable) {
-            Craft::error($throwable->getMessage(), __METHOD__);
+            File::ensureDirectoryExists($this->path);
+        } catch (\Throwable $throwable) {
+            Log::error($throwable->getMessage());
             throw new ImagerException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
     }
@@ -425,7 +429,7 @@ class LocalSourceImageModel
 
         $base = $config->getSetting('imagerSystemPath');
         $this->transformPath = $pathParts['dirname'];
-        $this->path = FileHelper::normalizePath($base.'/'.$pathParts['dirname']);
+        $this->path = File::normalizePath($base.'/'.$pathParts['dirname']);
         $this->assertPathWithinBase($this->path, $base);
         $this->url = $image;
         $this->filename = $pathParts['basename'];
@@ -441,14 +445,14 @@ class LocalSourceImageModel
      */
     private function getPathsForLocalFile(string $image): void
     {
-        $webroot = (string)Yii::getAlias('@webroot');
+        $webroot = (string)Aliases::get('@webroot');
 
         // Backslashes are separators when the path is used on disk, so split on them too
         $normalizedImage = str_replace('\\', '/', $image);
         $pathParts = pathinfo($normalizedImage);
 
         $this->transformPath = ImagerHelpers::getTransformPathForPath($normalizedImage);
-        $this->path = FileHelper::normalizePath($webroot.'/'.$pathParts['dirname']);
+        $this->path = File::normalizePath($webroot.'/'.$pathParts['dirname']);
         $this->assertPathWithinBase($this->path, $webroot);
         $this->url = $image;
         $this->filename = $pathParts['basename'];
@@ -469,8 +473,8 @@ class LocalSourceImageModel
     private function assertPathWithinBase(string $path, string $base): void
     {
         if (!FileHelper::isWithinBase($path, $base)) {
-            $msg = Craft::t('imager-x', 'Refusing to resolve an image path outside of the allowed base directory.');
-            Craft::error($msg.' Path: "'.FileHelper::normalizePath($path).'", base: "'.FileHelper::normalizePath($base).'".', __METHOD__);
+            $msg = t('Refusing to resolve an image path outside of the allowed base directory.', category: 'imager-x');
+            Log::error($msg.' Path: "'.File::normalizePath($path).'", base: "'.File::normalizePath($base).'".');
             throw new ImagerException($msg);
         }
     }
@@ -506,25 +510,25 @@ class LocalSourceImageModel
         $scheme = strtolower((string)parse_url($image, PHP_URL_SCHEME));
 
         if (!in_array($scheme, ['http', 'https'], true)) {
-            throw new ImagerException(Craft::t('imager-x', 'URL "{url}" uses a disallowed scheme; only http and https are supported', ['url' => $image]));
+            throw new ImagerException(t('URL "{url}" uses a disallowed scheme; only http and https are supported', ['url' => $image], 'imager-x'));
         }
 
         $host = parse_url($image, PHP_URL_HOST);
 
         if (empty($host)) {
-            throw new ImagerException(Craft::t('imager-x', 'Could not parse host from URL "{url}"', ['url' => $image]));
+            throw new ImagerException(t('Could not parse host from URL "{url}"', ['url' => $image], 'imager-x'));
         }
 
         $ips = $this->resolveHostIps($host);
 
         if ($ips === []) {
-            throw new ImagerException(Craft::t('imager-x', 'Could not resolve host "{host}" to a valid IP address', ['host' => $host]));
+            throw new ImagerException(t('Could not resolve host "{host}" to a valid IP address', ['host' => $host], 'imager-x'));
         }
 
         foreach ($ips as $ip) {
             if (!$this->isPublicIp($ip)) {
-                $msg = Craft::t('imager-x', 'URL "{url}" resolves to a private or reserved IP address and cannot be used as an image source', ['url' => $image]);
-                Craft::error($msg, __METHOD__);
+                $msg = t('URL "{url}" resolves to a private or reserved IP address and cannot be used as an image source', ['url' => $image], 'imager-x');
+                Log::error($msg);
                 throw new ImagerException($msg);
             }
         }
@@ -656,9 +660,9 @@ class LocalSourceImageModel
         }
 
         try {
-            $runtimeImagerPath = Craft::$app->getPath()->getRuntimePath().'/imager/';
-        } catch (Exception $exception) {
-            Craft::error($exception->getMessage(), __METHOD__);
+            $runtimeImagerPath = Path::runtime().'/imager/';
+        } catch (\Throwable $exception) {
+            Log::error($exception->getMessage());
             throw new ImagerException($exception->getMessage(), $exception->getCode(), $exception);
         }
 
@@ -668,17 +672,17 @@ class LocalSourceImageModel
         $pathParts = pathinfo(ImagerHelpers::getRemoteUrlPath($image));
         $queryString = $config->getSetting('useRemoteUrlQueryString') ? ($urlParts['query'] ?? '') : '';
 
-        $this->path = FileHelper::normalizePath($runtimeImagerPath.$this->transformPath.'/');
+        $this->path = File::normalizePath($runtimeImagerPath.$this->transformPath.'/');
         $this->assertPathWithinBase($this->path, $runtimeImagerPath);
         $this->url = $image;
         $this->basename = FileHelper::truncateBasename(str_replace(' ', '-', $pathParts['filename']).($queryString !== '' ? '_'.md5($queryString) : ''));
         $this->extension = $pathParts['extension'] ?? '';
-        $this->filename = FileHelper::sanitizeFilename($this->basename.($this->extension !== '' ? '.'.$this->extension : ''));
+        $this->filename = File::sanitizeFilename($this->basename.($this->extension !== '' ? '.'.$this->extension : ''));
 
         try {
-            FileHelper::createDirectory($this->path);
-        } catch (Exception $exception) {
-            Craft::error($exception->getMessage(), __METHOD__);
+            File::ensureDirectoryExists($this->path);
+        } catch (\Throwable $exception) {
+            Log::error($exception->getMessage());
             throw new ImagerException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
@@ -708,8 +712,8 @@ class LocalSourceImageModel
             } elseif (ini_get('allow_url_fopen')) {
                 $this->downloadFileWithFopen($imageUrl, $config);
             } else {
-                $msg = Craft::t('imager-x', 'Looks like allow_url_fopen is off and cURL is not enabled. To download external files, one of these methods has to be enabled.');
-                Craft::error($msg, __METHOD__);
+                $msg = t('Looks like allow_url_fopen is off and cURL is not enabled. To download external files, one of these methods has to be enabled.', category: 'imager-x');
+                Log::error($msg);
                 throw new ImagerException($msg);
             }
         } catch (ImagerException $imagerException) {
@@ -750,8 +754,8 @@ class LocalSourceImageModel
                 $remainingTime = (int)ceil($deadline - microtime(true));
 
                 if ($remainingTime <= 0) {
-                    $msg = Craft::t('imager-x', 'Download of “{imageUrl}” took longer than the configured remoteDownloadTimeout', ['imageUrl' => $imageUrl]);
-                    Craft::error($msg, __METHOD__);
+                    $msg = t('Download of “{imageUrl}” took longer than the configured remoteDownloadTimeout', ['imageUrl' => $imageUrl], 'imager-x');
+                    Log::error($msg);
                     throw new ImagerException($msg);
                 }
             }
@@ -763,8 +767,8 @@ class LocalSourceImageModel
             $fp = fopen($this->getTemporaryFilePath(), 'wb');
 
             if ($fp === false) {
-                $msg = Craft::t('imager-x', 'Could not open a temporary file for writing while attempting to download “{imageUrl}”', ['imageUrl' => $currentUrl]);
-                Craft::error($msg, __METHOD__);
+                $msg = t('Could not open a temporary file for writing while attempting to download “{imageUrl}”', ['imageUrl' => $currentUrl], 'imager-x');
+                Log::error($msg);
                 throw new ImagerException($msg);
             }
 
@@ -825,8 +829,8 @@ class LocalSourceImageModel
 
             if ($curlErrorNo !== 0) {
                 @unlink($this->getTemporaryFilePath());
-                $msg = Craft::t('imager-x', 'cURL error “{curlErrorNo}” encountered while attempting to download “{imageUrl}”. The error was: “{curlError}”', ['imageUrl' => $currentUrl, 'curlErrorNo' => $curlErrorNo, 'curlError' => $curlError]);
-                Craft::error($msg, __METHOD__);
+                $msg = t('cURL error “{curlErrorNo}” encountered while attempting to download “{imageUrl}”. The error was: “{curlError}”', ['imageUrl' => $currentUrl, 'curlErrorNo' => $curlErrorNo, 'curlError' => $curlError], 'imager-x');
+                Log::error($msg);
                 throw new ImagerException($msg);
             }
 
@@ -841,8 +845,8 @@ class LocalSourceImageModel
         if ($httpStatus !== 200 && !($httpStatus === 404 && strrpos(mime_content_type($this->getTemporaryFilePath()), 'image') !== false)) {
             // remote server returned a 404, but the contents was a valid image file
             @unlink($this->getTemporaryFilePath());
-            $msg = Craft::t('imager-x', 'HTTP status “{httpStatus}” encountered while attempting to download “{imageUrl}”', ['imageUrl' => $currentUrl, 'httpStatus' => $httpStatus]);
-            Craft::error($msg, __METHOD__);
+            $msg = t('HTTP status “{httpStatus}” encountered while attempting to download “{imageUrl}”', ['imageUrl' => $currentUrl, 'httpStatus' => $httpStatus], 'imager-x');
+            Log::error($msg);
             throw new ImagerException($msg);
         }
 
@@ -851,8 +855,8 @@ class LocalSourceImageModel
 
         if ($maxFileSize > 0 && (int)@filesize($this->getTemporaryFilePath()) > $maxFileSize) {
             @unlink($this->getTemporaryFilePath());
-            $msg = Craft::t('imager-x', 'Download of “{imageUrl}” is larger than the configured remoteMaxFileSize', ['imageUrl' => $imageUrl]);
-            Craft::error($msg, __METHOD__);
+            $msg = t('Download of “{imageUrl}” is larger than the configured remoteMaxFileSize', ['imageUrl' => $imageUrl], 'imager-x');
+            Log::error($msg);
             throw new ImagerException($msg);
         }
     }
@@ -939,23 +943,23 @@ class LocalSourceImageModel
 
         if ($timedOut) {
             @unlink($this->getTemporaryFilePath());
-            $msg = Craft::t('imager-x', 'Download of “{imageUrl}” took longer than the configured remoteDownloadTimeout', ['imageUrl' => $imageUrl]);
-            Craft::error($msg, __METHOD__);
+            $msg = t('Download of “{imageUrl}” took longer than the configured remoteDownloadTimeout', ['imageUrl' => $imageUrl], 'imager-x');
+            Log::error($msg);
             throw new ImagerException($msg);
         }
 
         if ($copied === false) {
             @unlink($this->getTemporaryFilePath());
             $errors = error_get_last();
-            $msg = Craft::t('imager-x', 'Error “{errorType}” encountered while attempting to download “{imageUrl}”: {errorMessage}', ['imageUrl' => $imageUrl, 'errorType' => $errors['type'] ?? '', 'errorMessage' => $errors['message'] ?? '']);
-            Craft::error($msg, __METHOD__);
+            $msg = t('Error “{errorType}” encountered while attempting to download “{imageUrl}”: {errorMessage}', ['imageUrl' => $imageUrl, 'errorType' => $errors['type'] ?? '', 'errorMessage' => $errors['message'] ?? ''], 'imager-x');
+            Log::error($msg);
             throw new ImagerException($msg);
         }
 
         if ($maxFileSize > 0 && $copied > $maxFileSize) {
             @unlink($this->getTemporaryFilePath());
-            $msg = Craft::t('imager-x', 'Download of “{imageUrl}” is larger than the configured remoteMaxFileSize', ['imageUrl' => $imageUrl]);
-            Craft::error($msg, __METHOD__);
+            $msg = t('Download of “{imageUrl}” is larger than the configured remoteMaxFileSize', ['imageUrl' => $imageUrl], 'imager-x');
+            Log::error($msg);
             throw new ImagerException($msg);
         }
     }

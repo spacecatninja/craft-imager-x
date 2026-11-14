@@ -12,7 +12,6 @@ namespace SpaceCatNinja\ImagerX\Jobs;
 
 use SpaceCatNinja\ImagerX\Optimizers\Optimizers;
 use SpaceCatNinja\ImagerX\Services\StorageService;
-use Craft;
 
 use craft\queue\BaseJob;
 use craft\queue\QueueInterface;
@@ -23,6 +22,8 @@ use SpaceCatNinja\ImagerX\Optimizers\ImagerOptimizeInterface;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 
 use yii\queue\Queue;
+
+use function CraftCms\Cms\t;
 
 class OptimizeJob extends BaseJob
 {
@@ -83,6 +84,6 @@ class OptimizeJob extends BaseJob
      */
     protected function defaultDescription(): ?string
     {
-        return Craft::t('imager-x', 'Optimizing images');
+        return t('Optimizing images', category: 'imager-x');
     }
 }

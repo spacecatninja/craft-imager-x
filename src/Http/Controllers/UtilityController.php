@@ -22,6 +22,7 @@ use SpaceCatNinja\ImagerX\Support\FormatHelper;
 use SpaceCatNinja\ImagerX\Utilities\ImagerUtility;
 
 use function CraftCms\Cms\t;
+use CraftCms\Cms\Support\File;
 
 /**
  * Actions for the Imager X utility. They change state, and are only for users that have access to the utility.
@@ -102,8 +103,8 @@ readonly class UtilityController
             $imager->deleteRemoteImageCaches();
         }
 
-        $transformsCachePath = FileHelper::normalizePath(ImagerService::getConfig()->imagerSystemPath);
-        $runtimeCachePath = FileHelper::normalizePath(Path::runtime() . '/imager/');
+        $transformsCachePath = File::normalizePath(ImagerService::getConfig()->imagerSystemPath);
+        $runtimeCachePath = File::normalizePath(Path::runtime() . '/imager/');
 
         return response()->json([
             'success' => true,

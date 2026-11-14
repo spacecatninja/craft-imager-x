@@ -11,7 +11,6 @@
 namespace SpaceCatNinja\ImagerX\Gql\Directives;
 
 use SpaceCatNinja\ImagerX\Services\ImagerColorService;
-use Craft;
 use craft\gql\base\Directive;
 use craft\gql\GqlEntityRegistry;
 use GraphQL\Language\DirectiveLocation;
@@ -23,6 +22,7 @@ use SpaceCatNinja\ImagerX\Gql\Arguments\ImagerTransformArguments;
 use SpaceCatNinja\ImagerX\ImagerX;
 use SpaceCatNinja\ImagerX\Data\LocalTargetImageModel;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class ImagerTransform
@@ -90,7 +90,7 @@ class ImagerTransform extends Directive
         try {
             $transformedImage = app(ImagerService::class)->transformImage($source, $transform);
         } catch (ImagerException $imagerException) {
-            Craft::error('An error occured when trying to transform image in GraphQL directive: ' . $imagerException->getMessage(), __METHOD__);
+            Log::error('An error occured when trying to transform image in GraphQL directive: ' . $imagerException->getMessage());
             return null;
         }
         

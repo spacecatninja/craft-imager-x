@@ -103,6 +103,10 @@ The console commands are now Artisan commands. The Craft 5 names still work with
 
 The 7.0.0 alpha and beta names (`php artisan craft:imager-x:generate`, ...) still work as aliases.
 
+### Exceptions
+
+`SpaceCatNinja\ImagerX\Exceptions\ImagerException` now extends PHP's `\Exception`, instead of `yii\base\Exception`. Code that catches `yii\base\Exception` to handle Imager X errors should catch `ImagerException` instead.
+
 ### Settings and config
 
 Craft 6 reads plugin config files from `config/craft/`. Move your Imager X config files there:

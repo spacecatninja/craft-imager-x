@@ -10,7 +10,6 @@
 
 namespace SpaceCatNinja\ImagerX\Gql\Resolvers;
 
-use Craft;
 use CraftCms\Cms\Asset\Elements\Asset;
 use CraftCms\Cms\Element\Queries\AssetQuery;
 use CraftCms\Cms\Gql\Resolvers\Elements\Asset as AssetResolver;
@@ -23,6 +22,7 @@ use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
 use SpaceCatNinja\ImagerX\ImagerX;
 use SpaceCatNinja\ImagerX\Data\LocalSourceImageModel;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
+use Illuminate\Support\Facades\Log;
 
 class ImagerResolver extends Resolver
 {
@@ -43,7 +43,7 @@ class ImagerResolver extends Resolver
             $url = $arguments['url'] ?? null;
 
             if ($id && $url) {
-                Craft::error('Both `id` and `url` was submitted to GraphQL query, these are mutually exclusive. `id` will be used.', __METHOD__);
+                Log::error('Both `id` and `url` was submitted to GraphQL query, these are mutually exclusive. `id` will be used.');
             }
 
             if (!empty($id)) {
@@ -111,7 +111,7 @@ class ImagerResolver extends Resolver
                 $transformedImages = app(ImagerService::class)->transformImage($asset, $transform);
                 return self::prepResults($transformedImages);
             } catch (ImagerException $imagerException) {
-                Craft::error('An error occured when transforming asset in GraphQL query: ' . $imagerException->getMessage(), __METHOD__);
+                Log::error('An error occured when transforming asset in GraphQL query: ' . $imagerException->getMessage());
                 return null;
             }
         }

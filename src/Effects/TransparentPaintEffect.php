@@ -14,6 +14,7 @@ use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
 use Imagine\Imagick\Imagick;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
+use Illuminate\Support\Facades\Log;
 
 class TransparentPaintEffect implements ImagerEffectsInterface
 {
@@ -37,10 +38,10 @@ class TransparentPaintEffect implements ImagerEffectsInterface
 
                     $imagickInstance->transparentPaintImage($searchColor, $params[1], Imagick::getQuantum() * $params[2], false);
                 } catch (\Throwable $throwable) {
-                    \Craft::error('An error occured when trying to apply transparentpaint effect: ' . $throwable->getMessage(), __METHOD__);
+                    Log::error('An error occured when trying to apply transparentpaint effect: ' . $throwable->getMessage());
                 }
             } else {
-                \Craft::error('An incorrect number of parameters were passed to transparentpaint effect.', __METHOD__);
+                Log::error('An incorrect number of parameters were passed to transparentpaint effect.');
             }
         }
     }

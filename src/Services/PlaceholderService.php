@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Services;
 
+use SpaceCatNinja\ImagerX\Support\CacheHelpers;
 use Illuminate\Container\Attributes\Singleton;
 use craft\base\Component;
 use Imagine\Exception\RuntimeException;
@@ -21,6 +22,7 @@ use kornrunner\Blurhash\Blurhash;
 use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 use SpaceCatNinja\ImagerX\Support\Potracio;
 use SpaceCatNinja\ImagerX\Data\LocalSourceImageModel;
+use Illuminate\Support\Facades\Log;
 
 /**
  * PlaceholderService Service
@@ -142,7 +144,7 @@ class PlaceholderService extends Component
             $tracer->process();
             $data = $tracer->getSVG($size, $silhouetteType, $color, $fgColor);
         } catch (\Throwable $throwable) {
-            \Craft::error($throwable->getMessage(), __METHOD__);
+            Log::error($throwable->getMessage());
 
             return '';
         }
@@ -171,14 +173,7 @@ class PlaceholderService extends Component
 
         $hash64 = base64_encode($hash);
         $key = "imager-x-blurhash-placeholder-$hash64-$format-$width-$height";
-        $cache = \Craft::$app->getCache();
-        
-        if (!$cache) {
-            \Craft::error('Cache component not found when trying to create blurhash placeholder');
-            return '';
-        }
-        
-        $rawImageBytes = $cache->getOrSet($key, static function() use ($hash, $format, $width, $height) {
+        $rawImageBytes = CacheHelpers::remember($key, static function() use ($hash, $format, $width, $height) {
             $data = Blurhash::decode($hash, $width, $height);
 
             $image = imagecreatetruecolor($width, $height);

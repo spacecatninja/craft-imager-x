@@ -13,11 +13,13 @@ namespace SpaceCatNinja\ImagerX\Data;
 use SpaceCatNinja\ImagerX\Settings;
 use craft\base\Model;
 
-use craft\helpers\App;
-use craft\helpers\ConfigHelper;
-use craft\helpers\FileHelper;
 use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
+use CraftCms\Cms\Support\Config;
+use CraftCms\Cms\Support\Env;
+use CraftCms\Cms\Support\Facades\Deprecator;
+use CraftCms\Cms\Support\File;
+use Illuminate\Support\Facades\Log;
 
 class ConfigModel extends Settings
 {
@@ -43,11 +45,11 @@ class ConfigModel extends Settings
         
         // Deprecations
         if ($this->imgixProfile !== null || $this->imgixApiKey !== null || $this->imgixEnableAutoPurging !== null || $this->imgixEnablePurgeElementAction !== null || $this->imgixConfig !== null) {
-            \Craft::$app->deprecator->log(__METHOD__, 'Support for Imgix has been refactored into it\'s own plugin, `spacecatninja/imager-x-imgix-transformer`. Please install it and migrate your Imgix configuration to `config/imager-x-imgix-transformer.php`, see [documentation](https://github.com/spacecatninja/craft-imager-x-imgix-transformer) for more details.');
+            Deprecator::log(__METHOD__, 'Support for Imgix has been refactored into it\'s own plugin, `spacecatninja/imager-x-imgix-transformer`. Please install it and migrate your Imgix configuration to `config/imager-x-imgix-transformer.php`, see [documentation](https://github.com/spacecatninja/craft-imager-x-imgix-transformer) for more details.');
         }
         
         if (isset($this->optimizerConfig['tinypng'])) {
-            \Craft::$app->deprecator->log(__METHOD__, 'Config key `tinypng` has been renamed to `tinify`. Please update your config.');
+            Deprecator::log(__METHOD__, 'Config key `tinypng` has been renamed to `tinify`. Please update your config.');
         }
         
         // Apply transform overrides
@@ -71,7 +73,7 @@ class ConfigModel extends Settings
             $normalizedDuration = ImagerHelpers::normalizeCacheDuration($this->{$duration});
 
             if ($normalizedDuration === null) {
-                \Craft::error(sprintf('Invalid value for config setting `%s`: %s. Expected a number of seconds, `false`, or a duration string supported by PHP\'s `DateInterval`, eg. `P30D`. Treating it as `false`.', $duration, ImagerHelpers::cacheDurationToString($this->{$duration})), __METHOD__);
+                Log::error(sprintf('Invalid value for config setting `%s`: %s. Expected a number of seconds, `false`, or a duration string supported by PHP\'s `DateInterval`, eg. `P30D`. Treating it as `false`.', $duration, ImagerHelpers::cacheDurationToString($this->{$duration})));
                 $normalizedDuration = false;
             }
 
@@ -89,17 +91,17 @@ class ConfigModel extends Settings
         $localizables = ['imagerUrl'];
         
         foreach ($localizables as $localizable) {
-            $this->{$localizable} = ConfigHelper::localizedValue($this->{$localizable});
+            $this->{$localizable} = Config::localizedValue($this->{$localizable});
         }
         
         // Replace aliases
         $parseables = ['imagerSystemPath', 'imagerUrl'];
 
         foreach ($parseables as $parseable) {
-            $this->{$parseable} = App::parseEnv($this->{$parseable});
+            $this->{$parseable} = Env::parse($this->{$parseable});
         }
         // Normalize imager system path
-        $this->imagerSystemPath = FileHelper::normalizePath($this->imagerSystemPath);
+        $this->imagerSystemPath = File::normalizePath($this->imagerSystemPath);
     }
 
     /**
