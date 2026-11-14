@@ -10,7 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Gql\Queries;
 
-use craft\gql\base\Query;
+use CraftCms\Cms\Gql\Queries\Query;
 
 use GraphQL\Type\Definition\Type;
 

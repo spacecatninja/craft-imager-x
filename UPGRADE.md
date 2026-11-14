@@ -69,6 +69,48 @@ The `RegisterTransformersEvent`, `RegisterEffectsEvent`, `RegisterOptimizersEven
 
 As before, transformers other than `craft`, and external storages, are only used in Imager X Pro.
 
+### Transform events
+
+The `ImagerService::EVENT_BEFORE_TRANSFORM_IMAGE` and `ImagerService::EVENT_AFTER_TRANSFORM_IMAGE` events were replaced by Laravel events, and `TransformImageEvent` was removed.
+
+| Before | After |
+| --- | --- |
+| `ImagerService::EVENT_BEFORE_TRANSFORM_IMAGE` | `SpaceCatNinja\ImagerX\Events\TransformingImage` |
+| `ImagerService::EVENT_AFTER_TRANSFORM_IMAGE` | `SpaceCatNinja\ImagerX\Events\ImageTransformed` |
+
+Before:
+
+```php
+use spacecatninja\imagerx\events\TransformImageEvent;
+use spacecatninja\imagerx\services\ImagerService;
+use yii\base\Event;
+
+Event::on(ImagerService::class, ImagerService::EVENT_BEFORE_TRANSFORM_IMAGE,
+    function (TransformImageEvent $event) {
+        if ($event->image->volumeId === 2) {
+            $event->isValid = false;
+        }
+    }
+);
+```
+
+After:
+
+```php
+use Illuminate\Support\Facades\Event;
+use SpaceCatNinja\ImagerX\Events\TransformingImage;
+
+Event::listen(function (TransformingImage $event): void {
+    if ($event->image->volumeId === 2) {
+        $event->isValid = false;
+    }
+});
+```
+
+- `TransformingImage` has the read-only `$image` and `$transforms`. Set `$isValid` to `false` to cancel the transform, or set `$transformedImages` to an array of transformed images to use them instead (Imager X Pro only).
+- `ImageTransformed` has the read-only `$image`, `$transforms` and `$transformedImages`.
+- There is no `sender`.
+
 ### Services
 
 Services are no longer components on the plugin. `ImagerX::$plugin` was removed, and the plugin no longer has `imager`, `imagerx`, `color`, `placeholder`, `generate`, `storage` and `optimizer` properties. Inject the service class, or resolve it from the container:
@@ -83,6 +125,33 @@ Services are no longer components on the plugin. `ImagerX::$plugin` was removed,
 | `ImagerX::$plugin->optimizer` | `app(\SpaceCatNinja\ImagerX\Services\OptimizerService::class)` |
 | `ImagerX::$plugin->getSettings()` | `app(\SpaceCatNinja\ImagerX\Settings::class)` |
 | `ImagerX::getInstance()->is(ImagerX::EDITION_PRO)` | `app(\SpaceCatNinja\ImagerX\ImagerX::class)->isPro()` |
+
+Services no longer extend `craft\base\Component`. Some static members of `ImagerService` were removed, because they held state that could leak between requests and queue jobs. `ImagerService::getConfig()` is unchanged.
+
+| Before | After |
+| --- | --- |
+| `ImagerService::$transformConfig` | `ImagerService::getConfig()` |
+| `ImagerService::$generateConfig` | `app(\SpaceCatNinja\ImagerX\Data\GenerateSettings::class)` |
+| `ImagerService::$namedTransforms` | `app(\SpaceCatNinja\ImagerX\Services\NamedTransforms::class)->all()` |
+| `ImagerService::registerNamedTransform($name, $transform)` | `app(\SpaceCatNinja\ImagerX\Services\NamedTransforms::class)->register($name, $transform)` |
+| `ImagerService::$processingNamedTransform` | `app(\SpaceCatNinja\ImagerX\Services\TransformState::class)->processingNamedTransform` |
+| `ImagerService::$remoteImageSessionCache` | `app(\SpaceCatNinja\ImagerX\Services\TransformState::class)->cachedRemoteFiles` |
+
+### Queue jobs
+
+`TransformJob` and `OptimizeJob` are now Laravel jobs (`CraftCms\Cms\Queue\Job`), and take their data as constructor arguments:
+
+```php
+use SpaceCatNinja\ImagerX\Jobs\TransformJob;
+
+dispatch(new TransformJob(assetId: $asset->id, transforms: ['heroImage']));
+```
+
+`GenerateService::createTransformJob()` is still the easiest way to queue transforms for an asset.
+
+### Element actions and GraphQL
+
+`ClearTransformsElementAction` and `GenerateTransformsAction` extend `CraftCms\Cms\Element\Actions\ElementAction`, and the GraphQL classes extend Craft 6's GraphQL base classes. The GraphQL schema is unchanged.
 
 ### Console commands
 
@@ -116,6 +185,8 @@ Craft 6 reads plugin config files from `config/craft/`. Move your Imager X confi
 | `config/imager-x.php` | `config/craft/imager-x.php` |
 | `config/imager-x-transforms.php` | `config/craft/imager-x-transforms.php` |
 | `config/imager-x-generate.php` | `config/craft/imager-x-generate.php` |
+
+In `imager-x-generate.php`, use Craft 6 element classes for `elementType`, like `CraftCms\Cms\Entry\Elements\Entry::class`. `craft\elements\Entry`, `Asset`, `User` and `Address` still work, but log a deprecation warning.
 
 The settings themselves are unchanged. Plugins and modules that read the settings can inject `SpaceCatNinja\ImagerX\Settings`, which is bound in the container.
 

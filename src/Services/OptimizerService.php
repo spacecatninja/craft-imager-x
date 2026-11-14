@@ -12,8 +12,7 @@ namespace SpaceCatNinja\ImagerX\Services;
 
 use SpaceCatNinja\ImagerX\Optimizers\Optimizers;
 use Illuminate\Container\Attributes\Singleton;
-use Craft;
-use craft\base\Component;
+use CraftCms\Cms\Support\Facades\I18N;
 
 use SpaceCatNinja\ImagerX\Jobs\OptimizeJob;
 use SpaceCatNinja\ImagerX\Data\TransformedImageInterface;
@@ -30,7 +29,7 @@ use function CraftCms\Cms\t;
  * @since     3.0.0
  */
 #[Singleton]
-class OptimizerService extends Component
+class OptimizerService
 {
     /**
      * Post optimizations
@@ -93,15 +92,13 @@ class OptimizerService extends Component
      */
     private function createOptimizeJob(string $handle, string $filePath, array $settings): void
     {
-        $queue = Craft::$app->getQueue();
+        dispatch(new OptimizeJob(
+            optimizer: $handle,
+            optimizerSettings: $settings,
+            filePath: $filePath,
+            description: I18N::prep('Optimizing images ({handle})', ['handle' => $handle], 'imager-x'),
+        ));
 
-        $jobId = $queue->push(new OptimizeJob([
-            'description' => t('Optimizing images (' . $handle . ')', category: 'imager-x'),
-            'optimizer' => $handle,
-            'optimizerSettings' => $settings,
-            'filePath' => $filePath,
-        ]));
-
-        Log::info('Created optimize job for ' . $handle . ' (job id is ' . $jobId . ')');
+        Log::info('Created optimize job for ' . $handle);
     }
 }

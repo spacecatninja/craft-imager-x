@@ -10,12 +10,13 @@
 
 namespace SpaceCatNinja\ImagerX\Services;
 
-use Illuminate\Container\Attributes\Singleton;
-use Craft;
-use craft\base\Component;
+use SpaceCatNinja\ImagerX\Data\GenerateSettings;
+use SpaceCatNinja\ImagerX\Services\NamedTransforms;
+use Illuminate\Container\Attributes\Scoped;
+use CraftCms\Cms\Support\Facades\I18N;
+use CraftCms\Cms\Support\Facades\Volumes;
 use CraftCms\Cms\Element\Element;
 use CraftCms\Cms\Element\Contracts\ElementInterface;
-use craft\db\Query;
 use CraftCms\Cms\Asset\Elements\Asset;
 use CraftCms\Cms\Element\Queries\ElementQuery;
 use CraftCms\Cms\Asset\Data\Volume;
@@ -38,23 +39,23 @@ use function CraftCms\Cms\t;
  * @package   Imager
  * @since     3.0.0
  */
-#[Singleton]
-class GenerateService extends Component
+#[Scoped]
+class GenerateService
 {
     /**
      * @var array Keys for transform jobs that have already been queued during this request.
      */
-    private static array $queuedTransformJobs = [];
+    private array $queuedTransformJobs = [];
 
     /**
      * @param array|null $transforms
      */
     public function generateByUtility(array $volumeIds, bool $useConfig = true, ?array $transforms = null): void
     {
-        $volumesConfig = ImagerService::$generateConfig->volumes ?? [];
+        $volumesConfig = app(GenerateSettings::class)->volumes ?? [];
 
         foreach ($volumeIds as $volumeId) {
-            $volume = Craft::$app->volumes->getVolumeById($volumeId);
+            $volume = Volumes::getVolumeById((int)$volumeId);
 
             if (!$volume) {
                 Log::error(sprintf('Couldn\'t find volume with ID %s.', $volumeId));
@@ -90,7 +91,7 @@ class GenerateService extends Component
      */
     public function processAssetByVolumes(ElementInterface|Asset $asset): void
     {
-        $volumesConfig = ImagerService::$generateConfig->volumes;
+        $volumesConfig = app(GenerateSettings::class)->volumes;
 
         if (empty($volumesConfig)) {
             return;
@@ -127,7 +128,7 @@ class GenerateService extends Component
      */
     public function processElementByElements(ElementInterface|Element $element): void
     {
-        $elementsConfig = ImagerService::$generateConfig->elements;
+        $elementsConfig = app(GenerateSettings::class)->elements;
 
         if (empty($elementsConfig)) {
             return;
@@ -145,15 +146,14 @@ class GenerateService extends Component
             if ($elementType && $element instanceof $elementType && is_array($fields) && is_array($transforms) && $fields !== [] && $transforms !== []) {
                 // Check if criteria matches
                 if ($criteria && is_array($criteria)) {
-                    /** @var Query $query */
                     $query = $elementType::find();
                     $criteria['id'] = $element->getId();
 
-                    if (!ImagerService::$generateConfig->generateOnlyForLiveElements) {
+                    if (!app(GenerateSettings::class)->generateOnlyForLiveElements) {
                         $criteria['status'] = null;
                     }
 
-                    if (ImagerService::$generateConfig->generateForDrafts) {
+                    if (app(GenerateSettings::class)->generateForDrafts) {
                         $criteria['drafts'] = true;
                     }
 
@@ -213,7 +213,7 @@ class GenerateService extends Component
      */
     public function processElementByFields(ElementInterface|Element $element): void
     {
-        $fieldsConfig = ImagerService::$generateConfig->fields;
+        $fieldsConfig = app(GenerateSettings::class)->fields;
 
         if (empty($fieldsConfig)) {
             return;
@@ -266,7 +266,7 @@ class GenerateService extends Component
      */
     public function shouldGenerateByElements(ElementInterface|Element $element): bool
     {
-        $elementsConfig = ImagerService::$generateConfig->elements;
+        $elementsConfig = app(GenerateSettings::class)->elements;
 
         if (empty($elementsConfig)) {
             return false;
@@ -289,7 +289,7 @@ class GenerateService extends Component
      */
     public function shouldGenerateByFields(ElementInterface|Element $element): bool
     {
-        $elementsConfig = ImagerService::$generateConfig->fields;
+        $elementsConfig = app(GenerateSettings::class)->fields;
         return !empty($elementsConfig);
     }
 
@@ -303,23 +303,21 @@ class GenerateService extends Component
         // save events are fired once per site in multi-site installs (see issue #307)
         $jobKey = $asset->id.':'.md5(json_encode($transforms)).':'.($force ? '1' : '0');
 
-        if (isset(self::$queuedTransformJobs[$jobKey])) {
+        if (isset($this->queuedTransformJobs[$jobKey])) {
             Log::info('Skipped duplicate transform job for asset with id '.$asset->id);
             return;
         }
 
-        $queue = Craft::$app->getQueue();
+        dispatch(new TransformJob(
+            assetId: $asset->id,
+            transforms: $transforms,
+            force: $force,
+            description: I18N::prep('Generating transforms for asset "{filename}" (ID {id})', ['filename' => $asset->filename, 'id' => $asset->id], 'imager-x'),
+        ));
 
-        $jobId = $queue->push(new TransformJob([
-            'description' => t('Generating transforms for asset "' . $asset->filename . '" (ID ' . $asset->id . ')', category: 'imager-x'),
-            'assetId' => $asset->id,
-            'transforms' => $transforms,
-            'force' => $force,
-        ]));
+        $this->queuedTransformJobs[$jobKey] = true;
 
-        self::$queuedTransformJobs[$jobKey] = true;
-
-        Log::info('Created transform job for asset with id ' . $asset->id . ' (job id is ' . $jobId . ')');
+        Log::info('Created transform job for asset with id ' . $asset->id);
     }
 
     /**
@@ -338,8 +336,8 @@ class GenerateService extends Component
                         $msg = t('An error occured when trying to auto generate transforms for asset with id “{assetId}“ and quick transform “{transform}”: {message}', ['assetId' => $asset->id, 'transform' => print_r($transform, true), 'message' => $imagerException->getMessage()], 'imager-x');
                         Log::error($msg);
                     }
-                } elseif (isset(ImagerService::$namedTransforms[$transform])) {
-                    $namedTransform = ImagerService::$namedTransforms[$transform];
+                } elseif (app(NamedTransforms::class)->has($transform)) {
+                    $namedTransform = app(NamedTransforms::class)->get($transform);
 
                     try {
                         $transformedImages = app(ImagerService::class)->transformImage($asset, $transform, null, ['optimizeType' => 'runtime'], $force);

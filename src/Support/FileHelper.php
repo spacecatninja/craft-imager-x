@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Support;
 
+use CraftCms\Cms\Support\File;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
@@ -19,7 +20,7 @@ use RecursiveIteratorIterator;
  * @author    SPACECATNINJA
  * @since     4.0.0
  */
-class FileHelper extends \craft\helpers\FileHelper
+class FileHelper
 {
     public const BASENAME_MAX_LENGTH = 200;
 
@@ -67,13 +68,13 @@ class FileHelper extends \craft\helpers\FileHelper
      */
     public static function isWithinBase(string $path, string $base): bool
     {
-        $normalizedBase = self::normalizePath($base, '/');
+        $normalizedBase = File::normalizePath($base, '/');
 
         if ($normalizedBase === '') {
             return false;
         }
 
-        $normalizedPath = self::normalizePath($path, '/');
+        $normalizedPath = File::normalizePath($path, '/');
 
         return str_starts_with(rtrim($normalizedPath, '/').'/', rtrim($normalizedBase, '/').'/');
     }

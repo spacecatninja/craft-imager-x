@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Data;
 
+use SpaceCatNinja\ImagerX\Services\TransformState;
 use SpaceCatNinja\ImagerX\Support\FileHelper;
 use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
@@ -190,7 +191,7 @@ class LocalTargetImageModel
         $patternFilename = mb_ereg_replace('{basename}', $basename, $patternFilename);
         $patternFilename = mb_ereg_replace('{fullname}', $fullname, $patternFilename);
         $patternFilename = mb_ereg_replace('{transformString}', $transformFileString, $patternFilename);
-        $patternFilename = mb_ereg_replace('{transformName}', ImagerService::$processingNamedTransform, $patternFilename);
+        $patternFilename = mb_ereg_replace('{transformName}', app(TransformState::class)->processingNamedTransform, $patternFilename);
 
         $patternFilename = mb_ereg_replace('{basename\|hash}', md5($basename), $patternFilename);
         $patternFilename = mb_ereg_replace('{fullname\|hash}', md5($fullname), $patternFilename);

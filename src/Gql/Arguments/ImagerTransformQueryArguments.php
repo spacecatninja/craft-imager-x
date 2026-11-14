@@ -10,7 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Gql\Arguments;
 
-use craft\gql\base\Arguments;
+use CraftCms\Cms\Gql\Arguments\Arguments;
 use GraphQL\Type\Definition\Type;
 
 class ImagerTransformQueryArguments extends Arguments

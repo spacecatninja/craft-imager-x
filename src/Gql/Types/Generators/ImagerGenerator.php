@@ -11,8 +11,8 @@
 namespace SpaceCatNinja\ImagerX\Gql\Types\Generators;
 
 use CraftCms\Cms\Gql\Contracts\GeneratorInterface;
-use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeLoader;
+use CraftCms\Cms\Gql\GqlEntityRegistry;
+use CraftCms\Cms\Gql\TypeLoader;
 
 use SpaceCatNinja\ImagerX\Gql\Arguments\ImagerTransformQueryArguments;
 use SpaceCatNinja\ImagerX\Gql\Interfaces\ImagerTransformedImageInterface;

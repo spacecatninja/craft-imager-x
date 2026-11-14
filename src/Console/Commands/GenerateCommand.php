@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Console\Commands;
 
+use SpaceCatNinja\ImagerX\Data\GenerateSettings;
 use CraftCms\Cms\Asset\Elements\Asset;
 use CraftCms\Cms\Asset\Folders;
 use CraftCms\Cms\Asset\Volumes;
@@ -105,11 +106,11 @@ class GenerateCommand extends Command
 
         // Get transforms from config if none were passed in
         if ($volumeSpecified && empty($transforms)) {
-            $transforms = ImagerService::$generateConfig->volumes[$volumeHandle] ?? [];
+            $transforms = app(GenerateSettings::class)->volumes[$volumeHandle] ?? [];
         }
 
         if ($fieldSpecified && empty($transforms)) {
-            $transforms = ImagerService::$generateConfig->fields[$fieldHandle] ?? [];
+            $transforms = app(GenerateSettings::class)->fields[$fieldHandle] ?? [];
         }
 
         $assets = $volumeSpecified

@@ -13,7 +13,6 @@ namespace SpaceCatNinja\ImagerX\Services;
 use Illuminate\Container\Attributes\Singleton;
 use ColorThief\ColorThief;
 use ColorThief\Image\ImageLoader;
-use craft\base\Component;
 use CraftCms\Cms\Asset\Elements\Asset;
 use SpaceCatNinja\ImagerX\Support\CacheHelpers;
 use SpaceCatNinja\ImagerX\Support\ColorHelpers;
@@ -46,7 +45,7 @@ use Illuminate\Support\Facades\Log;
  * @since     2.0.0
  */
 #[Singleton]
-class ImagerColorService extends Component
+class ImagerColorService
 {
     // Const Properties
     // =========================================================================

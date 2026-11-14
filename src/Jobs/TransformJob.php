@@ -10,78 +10,47 @@
 
 namespace SpaceCatNinja\ImagerX\Jobs;
 
-use SpaceCatNinja\ImagerX\Services\GenerateService;
 use CraftCms\Cms\Asset\Elements\Asset;
-use craft\queue\BaseJob;
-use craft\queue\QueueInterface;
-
+use CraftCms\Cms\Queue\Job;
+use CraftCms\Cms\Support\Facades\I18N;
 use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
+use SpaceCatNinja\ImagerX\Services\GenerateService;
 
-use SpaceCatNinja\ImagerX\ImagerX;
-use yii\queue\Queue;
-use CraftCms\Cms\Support\Typecast;
-
-use function CraftCms\Cms\t;
-
-class TransformJob extends BaseJob
+/**
+ * Generates transforms for an asset.
+ */
+class TransformJob extends Job
 {
-    // Public Properties
-    // =========================================================================
-
-    /**
-     * @var null|int
-     */
-    public ?int $assetId = null;
-    
-    /**
-     * @var array
-     */
-    public array $transforms = [];
-    
-    /**
-     * @var bool
-     */
-    public bool $force = false;
-    
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @param QueueInterface|Queue $queue
-     * @throws ImagerException
-     */
-    public function execute($queue): void
-    {
-        $criteria = [];
-        if ($this->assetId === null) {
-            throw new ImagerException(t('Asset ID in transform job was null', category: 'imager-x'));
-        }
-        
-        $query = Asset::find();
-        $criteria['id'] = $this->assetId;
-        $criteria['status'] = null;
-        Typecast::configure($query, $criteria);
-        
-        $asset = $query->one();
-        
-        if (!$asset) {
-            return;
-        }
-        
-        app(GenerateService::class)->generateTransformsForAsset($asset, $this->transforms, $this->force);
+    public function __construct(
+        public ?int $assetId,
+        public array $transforms = [],
+        public bool $force = false,
+        protected ?string $description = null,
+    ) {
+        parent::__construct();
     }
 
-    // Protected Methods
-    // =========================================================================
-
     /**
-     * Returns a default description for [[getDescription()]], if [[description]] isn’t set.
-     *
-     * @return string|null The default task description
+     * @throws ImagerException
      */
-    protected function defaultDescription(): ?string
+    public function handle(GenerateService $generate): void
     {
-        return t('Transforming asset', category: 'imager-x');
+        if ($this->assetId === null) {
+            throw new ImagerException('Asset ID in transform job was null');
+        }
+
+        $asset = Asset::find()->id($this->assetId)->status(null)->one();
+
+        if (!$asset instanceof Asset) {
+            return;
+        }
+
+        $generate->generateTransformsForAsset($asset, $this->transforms, $this->force);
+    }
+
+    #[\Override]
+    protected function defaultDescription(): string
+    {
+        return I18N::prep('Transforming asset', category: 'imager-x');
     }
 }

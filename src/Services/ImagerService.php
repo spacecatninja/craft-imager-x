@@ -12,13 +12,12 @@ namespace SpaceCatNinja\ImagerX\Services;
 
 use Illuminate\Container\Attributes\Singleton;
 use SpaceCatNinja\ImagerX\Settings;
-use Craft;
 
-use craft\base\Component;
 use CraftCms\Cms\Asset\Elements\Asset;
 use Imagine\Image\ImageInterface;
 use SpaceCatNinja\ImagerX\Adapters\ImagerAdapterInterface;
-use SpaceCatNinja\ImagerX\Events\TransformImageEvent;
+use SpaceCatNinja\ImagerX\Events\ImageTransformed;
+use SpaceCatNinja\ImagerX\Events\TransformingImage;
 use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 use SpaceCatNinja\ImagerX\Support\FileHelper;
 use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
@@ -27,13 +26,14 @@ use SpaceCatNinja\ImagerX\Support\TransformHelpers;
 use SpaceCatNinja\ImagerX\ImagerX;
 use SpaceCatNinja\ImagerX\ImagerX as Plugin;
 use SpaceCatNinja\ImagerX\Data\ConfigModel;
-use SpaceCatNinja\ImagerX\Data\GenerateSettings;
 use SpaceCatNinja\ImagerX\Data\LocalSourceImageModel;
 use SpaceCatNinja\ImagerX\Data\LocalTargetImageModel;
 use SpaceCatNinja\ImagerX\Data\TransformedImageInterface;
 use SpaceCatNinja\ImagerX\Transformers\Transformers;
 use SpaceCatNinja\ImagerX\Transformers\TransformerInterface;
 use CraftCms\Cms\Cms;
+use CraftCms\Cms\Element\ElementCaches;
+use CraftCms\Cms\Support\Facades\Images;
 use CraftCms\Cms\Support\Arr;
 use CraftCms\Cms\Support\Facades\Path;
 use CraftCms\Cms\Support\File;
@@ -49,17 +49,8 @@ use function CraftCms\Cms\t;
  * @since     2.0.0
  */
 #[Singleton]
-class ImagerService extends Component
+class ImagerService
 {
-    // Events
-    // =========================================================================
-
-    /**
-     * @var string
-     */
-    public const EVENT_BEFORE_TRANSFORM_IMAGE = 'imagerxBeforeTransformImage';
-    public const EVENT_AFTER_TRANSFORM_IMAGE = 'imagerxAfterTransformImage';
-
     // Static Properties
     // =========================================================================
 
@@ -67,26 +58,6 @@ class ImagerService extends Component
      * @var string
      */
     public static string $imageDriver = 'gd';
-
-    /**
-     * @var null|ConfigModel
-     */
-    public static ?ConfigModel $transformConfig = null;
-
-    /**
-     * @var null|GenerateSettings
-     */
-    public static ?GenerateSettings $generateConfig = null;
-
-    /**
-     * @var array
-     */
-    public static array $namedTransforms = [];
-
-    /**
-     * @var array
-     */
-    public static array $remoteImageSessionCache = [];
 
     /**
      * Translate dictionary for translating transform keys into filename markers
@@ -186,19 +157,12 @@ class ImagerService extends Component
         'bottom-right' => '100% 100%',
     ];
 
-    /**
-     * @var string
-     */
-    public static string $processingNamedTransform = '';
-
 
     // Constructor
     // =========================================================================
 
-    public function __construct($config = [])
+    public function __construct()
     {
-        parent::__construct($config);
-
         // Detect image driver
         self::detectImageDriver();
 
@@ -222,9 +186,12 @@ class ImagerService extends Component
     // Static Methods
     // =========================================================================
 
+    /**
+     * Returns the config for the transform that is being processed, or the plugin settings outside of a transform.
+     */
     public static function getConfig(): ConfigModel
     {
-        return self::$transformConfig ?? new ConfigModel(app(Settings::class), null);
+        return app(TransformState::class)->config ?? new ConfigModel(app(Settings::class), null);
     }
 
     /**
@@ -239,7 +206,7 @@ class ImagerService extends Component
         } elseif ($extension === 'imagick') {
             self::$imageDriver = 'imagick';
         } else { // autodetect
-            self::$imageDriver = Craft::$app->images->getIsGd() ? 'gd' : 'imagick';
+            self::$imageDriver = Images::getIsGd() ? 'gd' : 'imagick';
         }
     }
 
@@ -292,12 +259,7 @@ class ImagerService extends Component
 
     public static function registerCachedRemoteFile(string $path): void
     {
-        self::$remoteImageSessionCache[] = $path;
-    }
-
-    public static function registerNamedTransform(string $name, array $transform): void
-    {
-        self::$namedTransforms[$name] = $transform;
+        app(TransformState::class)->cachedRemoteFiles[] = $path;
     }
 
 
@@ -317,93 +279,91 @@ class ImagerService extends Component
             return null;
         }
 
-        // Let's handle named transforms here
-        if (is_string($transforms)) {
-            self::$processingNamedTransform = $transforms;
+        $state = app(TransformState::class);
+        $namedTransforms = app(NamedTransforms::class);
+        $previousConfig = $state->config;
 
-            $processedTransforms = [];
+        try {
+            // Let's handle named transforms here
+            if (is_string($transforms)) {
+                $state->processingNamedTransform = $transforms;
 
-            while (is_string($transforms)) {
-                if (!isset(self::$namedTransforms[$transforms])) {
-                    $msg = t('There is no named transform with handle “{transformName}”.', ['transformName' => $transforms], 'imager-x');
-                    Log::error($msg);
+                $processedTransforms = [];
 
-                    if (self::getConfig()->suppressExceptions) {
-                        return null;
+                while (is_string($transforms)) {
+                    if (!$namedTransforms->has($transforms)) {
+                        $msg = t('There is no named transform with handle “{transformName}”.', ['transformName' => $transforms], 'imager-x');
+                        Log::error($msg);
+
+                        if (self::getConfig()->suppressExceptions) {
+                            return null;
+                        }
+
+                        throw new ImagerException($msg);
                     }
 
-                    throw new ImagerException($msg);
-                }
+                    if (in_array($transforms, $processedTransforms, true)) {
+                        $msg = t('There was a cyclic reference to named transform with handle “{transformName}”.', ['transformName' => $transforms], 'imager-x');
+                        Log::error($msg);
 
-                if (in_array($transforms, $processedTransforms, true)) {
-                    $msg = t('There was a cyclic reference to named transform with handle “{transformName}”.', ['transformName' => $transforms], 'imager-x');
-                    Log::error($msg);
+                        if (self::getConfig()->suppressExceptions) {
+                            return null;
+                        }
 
-                    if (self::getConfig()->suppressExceptions) {
-                        return null;
+                        throw new ImagerException($msg);
                     }
 
-                    throw new ImagerException($msg);
+                    $processedTransforms[] = $transforms;
+                    $namedTransform = $namedTransforms->get($transforms);
+                    $transforms = $namedTransform['transforms'] ?? [];
+                    $transformDefaults = array_merge($namedTransform['defaults'] ?? [], $transformDefaults ?? []) ?? [];
+                    $configOverrides = array_merge($namedTransform['configOverrides'] ?? [], $configOverrides ?? []) ?? [];
                 }
-
-                $processedTransforms[] = $transforms;
-                $namedTransform = self::$namedTransforms[$transforms];
-                $transforms = $namedTransform['transforms'] ?? [];
-                $transformDefaults = array_merge($namedTransform['defaults'] ?? [], $transformDefaults ?? []) ?? [];
-                $configOverrides = array_merge($namedTransform['configOverrides'] ?? [], $configOverrides ?? []) ?? [];
             }
-        }
 
-        if (TransformHelpers::isQuickSyntax($transforms)) {
-            $transforms = TransformHelpers::parseQuickTransforms($transforms);
-            $configOverrides = array_merge(['fillTransforms' => 'auto'], $configOverrides ?? []); // override fillTransforms if not explicitely set
-            $configOverrides = array_merge(['fillAttribute' => 'width'], $configOverrides); // override fillAttribute if not explicitely set
-        }
+            if (TransformHelpers::isQuickSyntax($transforms)) {
+                $transforms = TransformHelpers::parseQuickTransforms($transforms);
+                $configOverrides = array_merge(['fillTransforms' => 'auto'], $configOverrides ?? []); // override fillTransforms if not explicitely set
+                $configOverrides = array_merge(['fillAttribute' => 'width'], $configOverrides); // override fillAttribute if not explicitely set
+            }
 
-        // Let's figure out what our return value should be.
-        $returnType = 'array';
+            // Let's figure out what our return value should be.
+            $returnType = 'array';
 
-        if (!isset($transforms[0])) {
-            $transforms = [$transforms];
-            $returnType = 'object';
-        }
+            if (!isset($transforms[0])) {
+                $transforms = [$transforms];
+                $returnType = 'object';
+            }
 
-        // Create config model
-        self::$transformConfig = new ConfigModel(app(Settings::class), $configOverrides);
-        
-        // If we're forcing a transform, set cacheDuration to 1
-        if ($force) {
-            self::$transformConfig->cacheDuration = 1;
-        }
+            // Create config model
+            $state->config = new ConfigModel(app(Settings::class), $configOverrides);
 
-        // Resolve any callables in base transforms
-        $transforms = TransformHelpers::resolveTransforms($image, $transforms);
+            // If we're forcing a transform, set cacheDuration to 1
+            if ($force) {
+                $state->config->cacheDuration = 1;
+            }
 
-        // Fill missing transforms if fillTransforms is enabled
-        if (self::$transformConfig->fillTransforms !== false && \count($transforms) > 1) {
-            $transforms = TransformHelpers::fillTransforms($transforms);
-        }
+            // Resolve any callables in base transforms
+            $transforms = TransformHelpers::resolveTransforms($image, $transforms);
 
-        // Merge in default transform parameters
-        $transforms = TransformHelpers::mergeTransforms($transforms, $transformDefaults);
+            // Fill missing transforms if fillTransforms is enabled
+            if ($state->config->fillTransforms !== false && \count($transforms) > 1) {
+                $transforms = TransformHelpers::fillTransforms($transforms);
+            }
 
-        // Resolve any callables in transforms after defaults were merged in
-        $transforms = TransformHelpers::resolveTransforms($image, $transforms);
+            // Merge in default transform parameters
+            $transforms = TransformHelpers::mergeTransforms($transforms, $transformDefaults);
 
-        // Normalize transform parameters
-        $transforms = TransformHelpers::normalizeTransforms($transforms, $image);
+            // Resolve any callables in transforms after defaults were merged in
+            $transforms = TransformHelpers::resolveTransforms($image, $transforms);
 
-        // Allow plugins to block transform or provide their own transformed images
-        $transformedImages = null;
+            // Normalize transform parameters
+            $transforms = TransformHelpers::normalizeTransforms($transforms, $image);
 
-        if ($this->hasEventHandlers(static::EVENT_BEFORE_TRANSFORM_IMAGE)) {
-            $event = new TransformImageEvent([
-                'image' => $image,
-                'transforms' => $transforms,
-                'transformedImages' => null,
-            ]);
+            // Allow plugins to block transform or provide their own transformed images
+            $transformedImages = null;
 
-            $this->trigger(self::EVENT_BEFORE_TRANSFORM_IMAGE, $event);
+            event($event = new TransformingImage($image, $transforms));
 
             // allow plugins to cancel the image transformation all together
             if (!$event->isValid) {
@@ -423,82 +383,73 @@ class ImagerService extends Component
 
                 $transformedImages = $event->transformedImages;
             }
-        }
 
-        if ($transformedImages === null) {
-            // Create transformer
+            if ($transformedImages === null) {
+                // Create transformer
 
-            $transformerHandle = self::$transformConfig->transformer;
-            $isCustomTransformer = mb_strtolower($transformerHandle) !== 'craft';
-            $transformerClass = !$isCustomTransformer || app(ImagerX::class)->isPro() ? app(Transformers::class)->get($transformerHandle) : null;
+                $transformerHandle = $state->config->transformer;
+                $isCustomTransformer = mb_strtolower($transformerHandle) !== 'craft';
+                $transformerClass = !$isCustomTransformer || app(ImagerX::class)->isPro() ? app(Transformers::class)->get($transformerHandle) : null;
 
-            if ($transformerClass === null) {
-                $msg = 'Invalid transformer "'.$transformerHandle.'".';
+                if ($transformerClass === null) {
+                    $msg = 'Invalid transformer "'.$transformerHandle.'".';
 
-                if ($isCustomTransformer && !app(ImagerX::class)->isPro()) {
-                    $msg .= ' Custom transformers are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
+                    if ($isCustomTransformer && !app(ImagerX::class)->isPro()) {
+                        $msg .= ' Custom transformers are only available when using the Pro edition of Imager, you need to upgrade to use this feature.';
+                    }
+
+                    Log::error($msg);
+                    throw new ImagerException($msg);
                 }
 
-                Log::error($msg);
-                throw new ImagerException($msg);
-            }
+                /** @var TransformerInterface $transformer */
+                $transformer = new $transformerClass();
 
-            /** @var TransformerInterface $transformer */
-            $transformer = new $transformerClass();
+                // Do we have a debug image?
+                if ($state->config->mockImage !== null) {
+                    $image = ImagerHelpers::getTransformableFromConfigSetting($state->config->mockImage);
+                }
 
-            // Do we have a debug image?
-            if (self::$transformConfig->mockImage !== null) {
-                $image = ImagerHelpers::getTransformableFromConfigSetting(self::$transformConfig->mockImage);
-            }
+                try {
+                    $transformedImages = $transformer->transform($image, $transforms);
+                } catch (\Throwable $throwable) {
+                    // If a fallback image is defined, try to transform that instead.
+                    if ($state->config->fallbackImage !== null) {
+                        $fallbackImage = ImagerHelpers::getTransformableFromConfigSetting($state->config->fallbackImage);
 
-            try {
-                $transformedImages = $transformer->transform($image, $transforms);
-            } catch (\Throwable $throwable) {
-                // If a fallback image is defined, try to transform that instead.
-                if (self::$transformConfig->fallbackImage !== null) {
-                    $fallbackImage = ImagerHelpers::getTransformableFromConfigSetting(self::$transformConfig->fallbackImage);
+                        if ($fallbackImage) {
+                            try {
+                                $transformedImages = $transformer->transform($fallbackImage, $transforms);
+                            } catch (\Throwable $throwable) {
+                                if ($state->config->suppressExceptions) {
+                                    return null;
+                                }
 
-                    if ($fallbackImage) {
-                        try {
-                            $transformedImages = $transformer->transform($fallbackImage, $transforms);
-                        } catch (\Throwable $throwable) {
-                            if (self::$transformConfig->suppressExceptions) {
-                                return null;
+                                throw new ImagerException($throwable->getMessage());
                             }
-
-                            throw new ImagerException($throwable->getMessage());
                         }
-                    }
-                } else {
-                    if (self::$transformConfig->suppressExceptions) {
-                        return null;
-                    }
+                    } else {
+                        if ($state->config->suppressExceptions) {
+                            return null;
+                        }
 
-                    throw new ImagerException($throwable->getMessage());
+                        throw new ImagerException($throwable->getMessage());
+                    }
                 }
             }
+
+            event(new ImageTransformed($image, $transforms, $transformedImages));
+
+            if ($transformedImages === null) {
+                return null;
+            }
+
+            return $returnType === 'object' ? Arr::first($transformedImages) : $transformedImages;
+        } finally {
+            // Clean up after this transform session, also when it was cancelled or failed
+            self::cleanSession();
+            $state->config = $previousConfig;
         }
-
-        if ($this->hasEventHandlers(static::EVENT_AFTER_TRANSFORM_IMAGE)) {
-            $this->trigger(static::EVENT_AFTER_TRANSFORM_IMAGE,
-                new TransformImageEvent([
-                    'image' => $image,
-                    'transforms' => $transforms,
-                    'transformedImages' => $transformedImages,
-                ])
-            );
-        }
-
-        // Clean up after this transform session
-        self::cleanSession();
-        self::$transformConfig = null;
-        unset($transformer);
-
-        if ($transformedImages === null) {
-            return null;
-        }
-
-        return $returnType === 'object' ? Arr::first($transformedImages) : $transformedImages;
     }
 
     /**
@@ -529,7 +480,7 @@ class ImagerService extends Component
         }
 
         // If ajax request, trigger jobs immediately
-        if ($taskCreated && $config->runJobsImmediatelyOnAjaxRequests && !Craft::$app->getRequest()->isConsoleRequest && Craft::$app->getRequest()->getIsAjax() && Cms::config()->runQueueAutomatically) {
+        if ($taskCreated && $config->runJobsImmediatelyOnAjaxRequests && !app()->runningInConsole() && request()->ajax() && Cms::config()->runQueueAutomatically) {
             QueueHelpers::triggerQueueNow();
         }
     }
@@ -646,7 +597,7 @@ class ImagerService extends Component
                     }
                 }
 
-                Craft::$app->elements->invalidateCachesForElement($asset);
+                app(ElementCaches::class)->invalidateForElement($asset);
 
                 if ($sourceModel->type !== 'local' && file_exists($sourceModel->getFilePath())) {
                     File::delete($sourceModel->getFilePath());
@@ -703,18 +654,21 @@ class ImagerService extends Component
     public static function cleanSession(): void
     {
         $config = self::getConfig();
+        $state = app(TransformState::class);
 
         // Reset memoized named transform value
-        self::$processingNamedTransform = '';
+        $state->processingNamedTransform = '';
 
         // Clears any remote images downloaded during session if `cacheRemoteFiles` is `false`
-        if (!$config->cacheRemoteFiles && self::$remoteImageSessionCache !== []) {
-            foreach (self::$remoteImageSessionCache as $file) {
+        if (!$config->cacheRemoteFiles) {
+            foreach ($state->cachedRemoteFiles as $file) {
                 if (file_exists($file)) {
                     unlink($file);
                 }
             }
         }
+
+        $state->cachedRemoteFiles = [];
     }
 
 }

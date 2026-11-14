@@ -12,7 +12,6 @@ namespace SpaceCatNinja\ImagerX\Services;
 
 use SpaceCatNinja\ImagerX\Support\CacheHelpers;
 use Illuminate\Container\Attributes\Singleton;
-use craft\base\Component;
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\Box;
 use Imagine\Image\Palette\RGB;
@@ -34,7 +33,7 @@ use Illuminate\Support\Facades\Log;
  * @since     2.0.0
  */
 #[Singleton]
-class PlaceholderService extends Component
+class PlaceholderService
 {
     private array $defaults = [
         'type' => 'svg',

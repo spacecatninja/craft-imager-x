@@ -11,7 +11,6 @@
 namespace SpaceCatNinja\ImagerX\Data;
 
 use SpaceCatNinja\ImagerX\Settings;
-use craft\base\Model;
 
 use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
@@ -31,7 +30,7 @@ class ConfigModel extends Settings
     /**
      * TransformSettings constructor.
      *
-     * @param Settings|Model $settings
+     * @param Settings $settings
      * @param array|null     $overrides
      */
     public function __construct($settings, ?array $overrides = null, array $config = [])

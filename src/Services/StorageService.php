@@ -12,7 +12,6 @@ namespace SpaceCatNinja\ImagerX\Services;
 
 use SpaceCatNinja\ImagerX\ExternalStorage\ExternalStorages;
 use Illuminate\Container\Attributes\Singleton;
-use craft\base\Component;
 
 use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
 use SpaceCatNinja\ImagerX\ExternalStorage\ImagerStorageInterface;
@@ -27,7 +26,7 @@ use Illuminate\Support\Facades\Log;
  * @since     3.0.0
  */
 #[Singleton]
-class StorageService extends Component
+class StorageService
 {
     /**
      * Store transformed image in configured storages

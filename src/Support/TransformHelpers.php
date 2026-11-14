@@ -99,11 +99,11 @@ class TransformHelpers
 
         $r = [];
 
-        $attributeName = ImagerService::$transformConfig->fillAttribute;
-        $interval = (int)ImagerService::$transformConfig->fillInterval;
+        $attributeName = ImagerService::getConfig()->fillAttribute;
+        $interval = (int)ImagerService::getConfig()->fillInterval;
 
-        if (ImagerService::$transformConfig->fillTransforms === 'auto') {
-            $autoFillCount = ImagerService::$transformConfig->autoFillCount;
+        if (ImagerService::getConfig()->fillTransforms === 'auto') {
+            $autoFillCount = ImagerService::getConfig()->autoFillCount;
             $firstTransform = $transforms[0];
             $lastTransform = $transforms[count($transforms) - 1];
 

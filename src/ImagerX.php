@@ -10,40 +10,43 @@
 
 namespace SpaceCatNinja\ImagerX;
 
-use Craft;
-use CraftCms\Cms\Element\Element;
+use CraftCms\Cms\Asset\Elements\Asset;
+use CraftCms\Cms\Asset\Events\AssetReplaced;
+use CraftCms\Cms\Asset\Events\AssetUrlResolving;
+use CraftCms\Cms\Asset\Events\ThumbUrlResolving;
+use CraftCms\Cms\Asset\Validation\AssetRules;
+use CraftCms\Cms\Element\Events\ElementActionsResolving;
+use CraftCms\Cms\Element\Events\ElementDeleted;
+use CraftCms\Cms\Element\Events\ElementSaved;
+use CraftCms\Cms\Element\Events\ElementSaving;
+use CraftCms\Cms\Gql\Events\GqlTypeFieldsResolving;
+use CraftCms\Cms\Gql\Gql;
+use CraftCms\Cms\Gql\GqlDirectives;
+use CraftCms\Cms\Gql\GqlQueries;
+use CraftCms\Cms\Gql\GqlTypes;
+use CraftCms\Cms\Image\Data\ImageTransform;
 use CraftCms\Cms\Plugin\Plugin;
 use CraftCms\Cms\Plugin\PluginSettings;
-use CraftCms\Cms\Asset\Elements\Asset;
-use craft\events\DefineAssetThumbUrlEvent;
-use craft\events\DefineAssetUrlEvent;
-use craft\events\DefineGqlTypeFieldsEvent;
-use craft\events\ElementEvent;
-use craft\events\RegisterElementActionsEvent;
-use craft\events\RegisterGqlDirectivesEvent;
-use craft\events\RegisterGqlQueriesEvent;
-use craft\events\RegisterGqlTypesEvent;
-use craft\events\ReplaceAssetEvent;
-use craft\gql\TypeManager;
-use craft\models\ImageTransform;
-use craft\services\Assets;
-use craft\services\Elements;
-use craft\services\Gql;
-use craft\web\twig\variables\CraftVariable;
-use GraphQL\Type\Definition\Type;
 use CraftCms\Cms\Route\Routes;
+use CraftCms\Cms\Support\Facades\ImageTransforms;
+use CraftCms\Cms\Support\Facades\Twig;
+use CraftCms\Cms\Twig\Variables\CraftVariable;
+use GraphQL\Type\Definition\Type;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
-
 use SpaceCatNinja\ImagerX\Console\Commands\CleanCommand;
 use SpaceCatNinja\ImagerX\Console\Commands\ClearCachesCommand;
 use SpaceCatNinja\ImagerX\Console\Commands\ClearRuntimeCacheCommand;
 use SpaceCatNinja\ImagerX\Console\Commands\ClearTransformsCacheCommand;
 use SpaceCatNinja\ImagerX\Console\Commands\GenerateCommand;
-
+use SpaceCatNinja\ImagerX\Data\ConfigModel;
+use SpaceCatNinja\ImagerX\Data\GenerateSettings;
+use SpaceCatNinja\ImagerX\Data\TransformedImageInterface;
 use SpaceCatNinja\ImagerX\ElementActions\ClearTransformsElementAction;
 use SpaceCatNinja\ImagerX\ElementActions\GenerateTransformsAction;
 use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
@@ -52,20 +55,14 @@ use SpaceCatNinja\ImagerX\Gql\Directives\ImagerTransform;
 use SpaceCatNinja\ImagerX\Gql\Interfaces\ImagerTransformedImageInterface;
 use SpaceCatNinja\ImagerX\Gql\Queries\ImagerQuery;
 use SpaceCatNinja\ImagerX\Gql\Resolvers\ImagerResolver;
-use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
-use SpaceCatNinja\ImagerX\Support\VersionHelpers;
-use SpaceCatNinja\ImagerX\Data\GenerateSettings;
-use SpaceCatNinja\ImagerX\Data\TransformedImageInterface;
-
 use SpaceCatNinja\ImagerX\Services\GenerateService;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
-
+use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
 use SpaceCatNinja\ImagerX\Twig\ImagerTwigExtension;
-use SpaceCatNinja\ImagerX\Utilities\ImagerUtility;
 use SpaceCatNinja\ImagerX\Twig\ImagerVariable;
+use SpaceCatNinja\ImagerX\Utilities\ImagerUtility;
 
-use yii\base\Event;
-use Illuminate\Support\Facades\Log;
+use function CraftCms\Cms\currentUserElement;
 
 /**
  * Imager X
@@ -136,12 +133,13 @@ class ImagerX extends Plugin
 
         // Bound here rather than in boot(), because Craft loads the plugin's routes before boot() runs.
         $this->app->singleton(Settings::class, fn() => $this->getSettings());
+        $this->app->singleton(GenerateSettings::class, static fn() => new GenerateSettings(Config::get('craft.imager-x-generate', [])));
 
         // The cache clearing action URLs are anonymous and authenticated with the `clearKey` setting
         RateLimiter::for(self::CLEAR_CACHE_RATE_LIMITER, static fn(Request $request) => Limit::perMinute(10)->by($request->ip()));
     }
 
-    public function boot(Routes $routes): void
+    public function boot(Routes $routes, GqlTypes $gqlTypes, GqlQueries $gqlQueries, GqlDirectives $gqlDirectives): void
     {
         // The `clearKey` authenticates the cache clearing action URLs, not a session, so they don't need CSRF protection
         PreventRequestForgery::except([
@@ -149,46 +147,36 @@ class ImagerX extends Plugin
             $routes->actionTriggerUriPrefix() . "/$this->handle/cache/clear-remote-images",
         ]);
 
-        // Load additional config files
-        $this->loadAdditionalConfigs();
-
         // Create config model
         $config = ImagerService::getConfig();
 
-        // Add our Twig extensions
-        Craft::$app->view->registerTwigExtension(new ImagerTwigExtension());
+        // Add our Twig extension, and `craft.imager` / `craft.imagerx`
+        Twig::registerExtension(new ImagerTwigExtension());
+        CraftVariable::macro('imager', static fn() => app(ImagerVariable::class));
+        CraftVariable::macro('imagerx', static fn() => app(ImagerVariable::class));
 
-        // Register our variables
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT,
-            static function(Event $event) {
-                /** @var CraftVariable $variable */
-                $variable = $event->sender;
-                $variable->set('imager', ImagerVariable::class);
-                $variable->set('imagerx', ImagerVariable::class);
+        // Clear transforms when an image is replaced
+        Event::listen(static function(AssetReplaced $event): void {
+            if ($event->asset->kind === 'image') {
+                app(ImagerService::class)->removeTransformsForAsset($event->asset);
             }
-        );
-
-        // Event listener for clearing caches when an asset is replaced
-        Event::on(Assets::class, Assets::EVENT_AFTER_REPLACE_ASSET,
-            static function(ReplaceAssetEvent $event) {
-                // Check if the asset is an image before proceeding
-                if ($event->asset->kind === 'image') {
-                    app(ImagerService::class)->removeTransformsForAsset($event->asset);
-                }
-            }
-        );
+        });
 
         // Register element actions
         $this->registerElementActions();
 
         // Register overrides for native transforms and thumbs
-        $this->registerNativeOverrides();
+        $this->registerNativeOverrides($config);
 
         // Register GraphQL functionality
-        $this->registerGraphQL();
+        if ($this->isPro()) {
+            $this->registerGraphQL($gqlTypes, $gqlQueries, $gqlDirectives);
+        }
 
         // Register generate listeners
-        $this->registerGenerateListeners();
+        if ($this->isPro()) {
+            $this->registerGenerateListeners();
+        }
 
         // Register listener for clearing transforms on asset delete/move
         if ($config->removeTransformsOnAssetFileops) {
@@ -205,158 +193,133 @@ class ImagerX extends Plugin
     }
 
     /**
-     * Load additional config files
-     */
-    private function loadAdditionalConfigs(): void
-    {
-        // Named transforms
-        $transformsConfig = Config::get('craft.imager-x-transforms', []);
-
-        foreach ($transformsConfig as $transformname => $transformConfig) {
-            ImagerService::registerNamedTransform($transformname, $transformConfig);
-        }
-
-        // Generate setup
-        $generateConfig = Config::get('craft.imager-x-generate', []);
-        ImagerService::$generateConfig = new GenerateSettings($generateConfig);
-    }
-
-    /**
      * Register element actions
      */
     private function registerElementActions(): void
     {
-        // Register element action to assets for clearing transforms
-        Event::on(Asset::class, Element::EVENT_REGISTER_ACTIONS,
-            static function(RegisterElementActionsEvent $event) {
-                $config = ImagerService::getConfig();
+        Event::listen(static function(ElementActionsResolving $event): void {
+            if (!is_a($event->elementType, Asset::class, true)) {
+                return;
+            }
 
-                $identity = Craft::$app->getUser()->getIdentity();
+            $config = ImagerService::getConfig();
+            $user = currentUserElement();
 
-                if ($identity && count($config->hideClearCachesForUserGroups) > 0) {
-                    foreach ($config->hideClearCachesForUserGroups as $userGroup) {
-                        if ($identity->isInGroup($userGroup)) {
-                            return;
-                        }
-                    }
-                }
-
-                $event->actions[] = ClearTransformsElementAction::class;
-
-                if (app(self::class)->isPro()) {
-                    // If any volume transforms were configured, add generate transforms element action
-                    $generateVolumeConfig = ImagerService::$generateConfig['volumes'] ?? null;
-
-                    if ($generateVolumeConfig) {
-                        $event->actions[] = GenerateTransformsAction::class;
+            if ($user && count($config->hideClearCachesForUserGroups) > 0) {
+                foreach ($config->hideClearCachesForUserGroups as $userGroup) {
+                    if ($user->isInGroup($userGroup)) {
+                        return;
                     }
                 }
             }
-        );
+
+            $event->actions[] = ClearTransformsElementAction::class;
+
+            // If any volume transforms were configured, add generate transforms element action
+            if (app(self::class)->isPro() && !empty(app(GenerateSettings::class)->volumes)) {
+                $event->actions[] = GenerateTransformsAction::class;
+            }
+        });
     }
 
     /**
      * Register events for overriding native functionality
      */
-    private function registerNativeOverrides(): void
+    private function registerNativeOverrides(ConfigModel $config): void
     {
-        $config = ImagerService::getConfig();
-
         // Event listener for overriding Craft's internal transform functionality
         if ($config->useForNativeTransforms) {
             // Imager does native transforms right away, so Craft's srcset field has to count each size
             // towards the GraphQL complexity, the same as Craft counts the url field with a transform.
-            Event::on(TypeManager::class, TypeManager::EVENT_DEFINE_GQL_TYPE_FIELDS,
-                static function(DefineGqlTypeFieldsEvent $event) {
-                    if ($event->typeName !== 'AssetInterface' || !isset($event->fields['srcset'])) {
-                        return;
+            Event::listen(static function(GqlTypeFieldsResolving $event): void {
+                if ($event->typeName !== 'AssetInterface' || !isset($event->fields['srcset'])) {
+                    return;
+                }
+
+                $event->fields['srcset']['complexity'] = static fn($childrenComplexity, $args) => $childrenComplexity + Gql::GRAPHQL_COMPLEXITY_CPU_HEAVY * max(1, \count((array)($args['sizes'] ?? [])));
+            });
+
+            Event::listen(static function(AssetUrlResolving $event): void {
+                $asset = $event->asset;
+
+                if ($event->transform === null || $asset->kind !== 'image' || !\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+                    return;
+                }
+
+                // In the control panel, leave transforms of assets without public transform URLs to Craft.
+                // Craft then uses its own transforms that require a logged in user, for thumbnails and previews.
+                if (request()->isCpRequest() && !self::hasPublicTransformUrls($asset)) {
+                    return;
+                }
+
+                try {
+                    $transform = $event->transform;
+                    $isNativeTransform = false;
+
+                    // Transform is an ImageTransform
+                    if ($transform instanceof ImageTransform) {
+                        $transform = ImagerHelpers::normalizeAssetTransformToObject($transform);
+                        $isNativeTransform = true;
                     }
 
-                    $event->fields['srcset']['complexity'] = static fn($childrenComplexity, $args) => $childrenComplexity + Gql::GRAPHQL_COMPLEXITY_CPU_HEAVY * max(1, \count((array)($args['sizes'] ?? [])));
-                }
-            );
+                    // Transform is a named asset transform
+                    if (is_string($transform)) {
+                        $assetTransform = ImageTransforms::getTransformByHandle($transform);
 
-            Event::on(Asset::class, Asset::EVENT_BEFORE_DEFINE_URL,
-                static function(DefineAssetUrlEvent $event) {
-                    if ($event->transform !== null && $event->sender->kind === 'image' && \in_array(strtolower($event->sender->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
-                        // In the control panel, leave transforms of assets without public transform URLs to Craft.
-                        // Craft then uses its own transforms that require a logged in user, for thumbnails and previews.
-                        if (Craft::$app->getRequest()->getIsCpRequest() && !self::hasPublicTransformUrls($event->sender)) {
-                            return;
-                        }
-
-                        try {
-                            $transform = $event->transform;
-                            $isNativeTransform = false;
-
-                            // Transform is an ImageTransform
-                            if ($transform instanceof ImageTransform) {
-                                $transform = ImagerHelpers::normalizeAssetTransformToObject($transform);
-                                $isNativeTransform = true;
-                            }
-
-                            // Transform is a named asset transform
-                            if (is_string($transform)) {
-                                $assetTransform = Craft::$app->getImageTransforms()->getTransformByHandle($transform);
-
-                                if ($assetTransform) {
-                                    $transform = ImagerHelpers::normalizeAssetTransformToObject($assetTransform);
-                                    $isNativeTransform = true;
-                                } else {
-                                    Log::error('Unknown asset transform handle supplied to native transform');
-                                    $transform = [];
-                                }
-                            }
-
-                            // Like Craft, let the asset's focal point take precedence over a native transform's position when cropping
-                            if ($isNativeTransform && ($transform['mode'] ?? null) === 'crop' && $event->sender->getHasFocalPoint()) {
-                                unset($transform['position']);
-                            }
-
-                            if (is_array($transform)) {
-                                // We need to reset the transform here to avoid an infinite loop
-                                $event->sender->setTransform(null);
-
-                                // Do the transform
-                                $transformedImage = app(ImagerService::class)->transformImage($event->sender, $transform);
-
-                                if ($transformedImage !== null) {
-                                    $event->url = $transformedImage->getUrl();
-                                    $event->handled = true;
-                                }
-                            }
-                        } catch (ImagerException $e) {
-                            return null;
+                        if ($assetTransform) {
+                            $transform = ImagerHelpers::normalizeAssetTransformToObject($assetTransform);
+                            $isNativeTransform = true;
+                        } else {
+                            Log::error('Unknown asset transform handle supplied to native transform');
+                            $transform = [];
                         }
                     }
+
+                    // Like Craft, let the asset's focal point take precedence over a native transform's position when cropping
+                    if ($isNativeTransform && ($transform['mode'] ?? null) === 'crop' && $asset->getHasFocalPoint()) {
+                        unset($transform['position']);
+                    }
+
+                    if (is_array($transform)) {
+                        $transformedImage = app(ImagerService::class)->transformImage($asset, $transform);
+
+                        if ($transformedImage !== null) {
+                            $event->url = $transformedImage->getUrl();
+                            $event->handled = true;
+                        }
+                    }
+                } catch (ImagerException) {
+                    // Leave it to Craft
                 }
-            );
+            });
         }
 
         // Event listener for overriding Craft's internal thumb url
         if ($config->useForCpThumbs) {
-            Event::on(Assets::class, Assets::EVENT_DEFINE_THUMB_URL,
-                static function(DefineAssetThumbUrlEvent $event) {
-                    if ($event->asset->kind === 'image' && \in_array(strtolower($event->asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
-                        // Leave thumbnails of assets without public transform URLs to Craft, which uses its own
-                        // transforms that require a logged in user.
-                        if (!self::hasPublicTransformUrls($event->asset)) {
-                            return;
-                        }
+            Event::listen(static function(ThumbUrlResolving $event): void {
+                $asset = $event->asset;
 
-                        try {
-                            /** @var TransformedImageInterface $transformedImage */
-                            $transformedImage = app(ImagerService::class)->transformImage($event->asset, ['width' => $event->width, 'height' => $event->height, 'mode' => 'fit']);
-
-                            if ($transformedImage !== null) {
-                                $event->url = $transformedImage->getUrl();
-                            }
-                        } catch (ImagerException) {
-                            // just ignore
-                        }
-                    }
+                if ($asset->kind !== 'image' || !\in_array(strtolower($asset->getExtension()), ImagerService::getConfig()->safeFileFormats, true)) {
+                    return;
                 }
-            );
+
+                // Leave thumbnails of assets without public transform URLs to Craft, which uses its own
+                // transforms that require a logged in user.
+                if (!self::hasPublicTransformUrls($asset)) {
+                    return;
+                }
+
+                try {
+                    /** @var TransformedImageInterface|null $transformedImage */
+                    $transformedImage = app(ImagerService::class)->transformImage($asset, ['width' => $event->width, 'height' => $event->height, 'mode' => $event->mode->value]);
+
+                    if ($transformedImage !== null) {
+                        $event->url = $transformedImage->getUrl();
+                    }
+                } catch (ImagerException) {
+                    // just ignore
+                }
+            });
         }
     }
 
@@ -373,69 +336,34 @@ class ImagerX extends Plugin
     }
 
     /**
-     * Register GraphQL event listeners
+     * Register GraphQL types, queries and directives
      */
-    private function registerGraphQL(): void
+    private function registerGraphQL(GqlTypes $gqlTypes, GqlQueries $gqlQueries, GqlDirectives $gqlDirectives): void
     {
-        if ($this->isPro()) {
-            // Register types
-            Event::on(
-                Gql::class,
-                Gql::EVENT_REGISTER_GQL_TYPES,
-                static function(RegisterGqlTypesEvent $event) {
-                    Log::debug('Gql::EVENT_REGISTER_GQL_TYPES');
-                    $event->types[] = ImagerTransformedImageInterface::class;
-                }
-            );
+        $gqlTypes->register(ImagerTransformedImageInterface::class);
+        $gqlQueries->register(ImagerQuery::class);
+        $gqlDirectives->register(ImagerTransform::class, ImagerSrcset::class);
 
-            // Register query
-            Event::on(Gql::class,
-                Gql::EVENT_REGISTER_GQL_QUERIES,
-                static function(RegisterGqlQueriesEvent $event) {
-                    $queries = ImagerQuery::getQueries();
-                    foreach ($queries as $key => $value) {
-                        $event->queries[$key] = $value;
-                    }
-                }
-            );
-
-            // Register directives
-            Event::on(Gql::class,
-                Gql::EVENT_REGISTER_GQL_DIRECTIVES,
-                static function(RegisterGqlDirectivesEvent $event) {
-                    $event->directives[] = ImagerTransform::class;
-                    $event->directives[] = ImagerSrcset::class;
-                }
-            );
-
-            if (VersionHelpers::craftIs('3.4')) {
-                /*
-                 * Adds queries to AssetInterface, see https://github.com/spacecatninja/craft-imager-x/pull/111
-                 */
-                Event::on(TypeManager::class,
-                    TypeManager::EVENT_DEFINE_GQL_TYPE_FIELDS,
-                    static function(DefineGqlTypeFieldsEvent $event) {
-                        if ($event->typeName !== 'AssetInterface') {
-                            return;
-                        }
-
-                        $event->fields['imagerTransform'] = [
-                            'name' => 'imagerTransform',
-                            'type' => Type::listOf(ImagerTransformedImageInterface::getType()),
-                            'args' => [
-                                'transform' => [
-                                    'name' => 'transform',
-                                    'type' => Type::string(),
-                                    'description' => 'The handle of the named transform you want to generate.',
-                                ],
-                            ],
-                            'resolve' => ImagerResolver::class.'::resolve',
-                            'description' => 'Returns a list of images produced from the named Imager X transform.',
-                        ];
-                    }
-                );
+        // Adds queries to AssetInterface, see https://github.com/spacecatninja/craft-imager-x/pull/111
+        Event::listen(static function(GqlTypeFieldsResolving $event): void {
+            if ($event->typeName !== 'AssetInterface') {
+                return;
             }
-        }
+
+            $event->fields['imagerTransform'] = [
+                'name' => 'imagerTransform',
+                'type' => Type::listOf(ImagerTransformedImageInterface::getType()),
+                'args' => [
+                    'transform' => [
+                        'name' => 'transform',
+                        'type' => Type::string(),
+                        'description' => 'The handle of the named transform you want to generate.',
+                    ],
+                ],
+                'resolve' => ImagerResolver::class.'::resolve',
+                'description' => 'Returns a list of images produced from the named Imager X transform.',
+            ];
+        });
     }
 
     /**
@@ -443,46 +371,36 @@ class ImagerX extends Plugin
      */
     private function registerGenerateListeners(): void
     {
-        if ($this->isPro()) {
-            if (ImagerService::$generateConfig === null) {
+        Event::listen(static function(ElementSaved $event): void {
+            $config = app(GenerateSettings::class);
+            $element = $event->element;
+            $generate = app(GenerateService::class);
+
+            if ($element instanceof Asset && $element->ruleset->getScenario() === AssetRules::SCENARIO_INDEX) {
                 return;
             }
 
-            Event::on(Elements::class,
-                Elements::EVENT_AFTER_SAVE_ELEMENT,
-                static function(ElementEvent $event) {
-                    /** @var GenerateSettings $config */
-                    $config = ImagerService::$generateConfig;
+            // Volume based generation is site agnostic, so skip propagation saves in multi-site installs (see issue #307)
+            if (!$element->propagating && $generate->shouldGenerateByVolumes($element)) {
+                $generate->processAssetByVolumes($element);
+            }
 
-                    /** @var Element $element */
-                    $element = $event->element;
+            if ($element->getIsRevision()) {
+                return;
+            }
 
-                    if ($element instanceof Asset && $element->getScenario() === Asset::SCENARIO_INDEX) {
-                        return;
-                    }
+            if (!$config->generateForDrafts && $element->getIsDraft()) {
+                return;
+            }
 
-                    // Volume based generation is site agnostic, so skip propagation saves in multi-site installs (see issue #307)
-                    if (!$element->propagating && app(GenerateService::class)->shouldGenerateByVolumes($element)) {
-                        app(GenerateService::class)->processAssetByVolumes($element);
-                    }
+            if ($generate->shouldGenerateByElements($element)) {
+                $generate->processElementByElements($element);
+            }
 
-                    if ($element->getIsRevision()) {
-                        return;
-                    }
-
-                    if (!$config->generateForDrafts && $element->getIsDraft()) {
-                        return;
-                    }
-
-                    if (app(GenerateService::class)->shouldGenerateByElements($element)) {
-                        app(GenerateService::class)->processElementByElements($element);
-                    }
-
-                    if (app(GenerateService::class)->shouldGenerateByFields($element)) {
-                        app(GenerateService::class)->processElementByFields($element);
-                    }
-                });
-        }
+            if ($generate->shouldGenerateByFields($element)) {
+                $generate->processElementByFields($element);
+            }
+        });
     }
 
     /**
@@ -490,36 +408,28 @@ class ImagerX extends Plugin
      */
     private function registerRemoveTransformsListeners(): void
     {
-        Event::on(Elements::class, Elements::EVENT_AFTER_DELETE_ELEMENT,
-            static function(ElementEvent $event) {
-                if ($event->element instanceof Asset) {
-                    /** @var Asset $asset */
-                    $asset = $event->element;
-
-                    app(ImagerService::class)->removeTransformsForAsset($asset);
-                }
+        Event::listen(static function(ElementDeleted $event): void {
+            if ($event->element instanceof Asset) {
+                app(ImagerService::class)->removeTransformsForAsset($event->element);
             }
-        );
+        });
 
-        Event::on(Elements::class, Elements::EVENT_BEFORE_SAVE_ELEMENT,
-            static function(ElementEvent $event) {
-                /** @var Element $element */
-                $element = $event->element;
+        Event::listen(static function(ElementSaving $event): void {
+            $element = $event->element;
 
-                if (!$element instanceof Asset || $event->isNew) {
-                    return;
-                }
-
-                // Craft only uses the file operations scenario when the filename changes, a plain move uses the move scenario
-                $isRelocation = \in_array($element->getScenario(), [Asset::SCENARIO_FILEOPS, Asset::SCENARIO_MOVE], true)
-                    || ($element->newFolderId !== null && $element->newFolderId !== (int)$element->folderId)
-                    || ($element->newFilename !== null && $element->newFilename !== $element->getFilename())
-                    || $element->newLocation !== null;
-
-                if ($isRelocation) {
-                    app(ImagerService::class)->removeTransformsForAsset($element);
-                }
+            if (!$element instanceof Asset || $event->isNew) {
+                return;
             }
-        );
+
+            // Craft only uses the file operations scenario when the filename changes, a plain move uses the move scenario
+            $isRelocation = \in_array($element->ruleset->getScenario(), [AssetRules::SCENARIO_FILEOPS, AssetRules::SCENARIO_MOVE], true)
+                || ($element->newFolderId !== null && $element->newFolderId !== (int)$element->folderId)
+                || ($element->newFilename !== null && $element->newFilename !== $element->getFilename())
+                || $element->newLocation !== null;
+
+            if ($isRelocation) {
+                app(ImagerService::class)->removeTransformsForAsset($element);
+            }
+        });
     }
 }

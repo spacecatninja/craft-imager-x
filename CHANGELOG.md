@@ -11,6 +11,12 @@
 - Transformers, effects, optimizers, external storages and adapters are now registered with the `Transformers`, `Effects`, `Optimizers`, `ExternalStorages` and `Adapters` registries.
 - Imager X services are now resolved from the container, instead of being components on the plugin.
 - The console commands are now Artisan commands (`imager-x:generate`, `imager-x:clean`, `imager-x:clear-caches:all`, `imager-x:clear-caches:transforms-cache` and `imager-x:clear-caches:runtime-cache`). The Craft 5 names, like `php craft imager-x/generate`, still work.
+- Imager X now listens for Craft 6's Laravel events, and registers its GraphQL types, queries and directives, element actions and Twig variables natively.
+- The `ImagerService::EVENT_BEFORE_TRANSFORM_IMAGE` and `EVENT_AFTER_TRANSFORM_IMAGE` events were replaced by the `TransformingImage` and `ImageTransformed` Laravel events.
+- `TransformJob` and `OptimizeJob` are now Laravel jobs.
+- Named transforms are now held by the `NamedTransforms` service, and the generate config is bound in the container as `GenerateSettings`.
+- When `useForCpThumbs` is enabled, control panel thumbnails now use the transform mode Craft asks for, instead of always `fit`.
+- `craft\elements\Entry`, `Asset`, `User` and `Address` used as `elementType` in `imager-x-generate.php` are mapped to the Craft 6 classes, and log a deprecation warning.
 - Imager X now logs with Laravel's logger, and translates with Craft 6's `t()` function.
 - Cached dominant colors, color palettes and blurhashes are now invalidated together with Craft's caches for the asset.
 - The `cache/clear-transforms` and `cache/clear-remote-images` actions now return JSON, and are limited to 10 requests per minute per IP address.
@@ -20,9 +26,14 @@
 - Removed `ImagerX::$plugin`, and the service properties on the plugin class.
 - Removed `ImagerService::registerTransformer()`, `registerEffect()`, `registerOptimizer()`, `registerExternalStorage()` and `registerAdapter()`.
 - Removed the short option aliases of the console commands.
+- Removed `TransformImageEvent`.
+- Removed `ImagerService::$transformConfig`, `$generateConfig`, `$namedTransforms`, `$processingNamedTransform`, `$remoteImageSessionCache` and `registerNamedTransform()`.
 - `ImagerException` now extends PHP's `Exception`, instead of `yii\base\Exception`.
 
 ### Fixed
+- Fixed config overrides of a transform being used by later transforms in the same request, when the transform was cancelled, or failed with `suppressExceptions` enabled.
+- Fixed transform jobs not being queued for assets that had already been queued earlier in the same long-running process, like a queue worker.
+- Fixed the list of remote files to clean up after a transform growing for the lifetime of the process.
 - Fixed assets in local volumes being copied to the runtime cache before being transformed on Craft 6. They are read in place again, as on Craft 5.
 - Fixed the `cache/clear-transforms` and `cache/clear-remote-images` actions requiring a logged-in user. They are authenticated with the `clearKey` config setting.
 - Fixed deprecation warnings on PHP 8.4+ for implicitly nullable parameters.

@@ -10,9 +10,10 @@
 
 namespace SpaceCatNinja\ImagerX\ElementActions;
 
+use SpaceCatNinja\ImagerX\Data\GenerateSettings;
+use Illuminate\Support\Facades\Gate;
 use SpaceCatNinja\ImagerX\Services\GenerateService;
-use Craft;
-use craft\base\ElementAction;
+use CraftCms\Cms\Element\Actions\ElementAction;
 use CraftCms\Cms\Asset\Elements\Asset;
 use CraftCms\Cms\Element\Queries\AssetQuery;
 use CraftCms\Cms\Element\Queries\Contracts\ElementQueryInterface;
@@ -20,6 +21,7 @@ use SpaceCatNinja\ImagerX\ImagerX;
 
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 
+use function CraftCms\Cms\currentUser;
 use function CraftCms\Cms\t;
 
 /**
@@ -48,14 +50,13 @@ class GenerateTransformsAction extends ElementAction
             return false;
         }
         
-        $elementsService = Craft::$app->getElements();
-        $user = Craft::$app->getUser()->getIdentity();
+        $user = currentUser();
 
         // Only act on assets the current user can view. This is done first, so that the
         // response doesn't say anything about other assets.
         $assetsToGenerate = array_filter(
             $query->kind('image')->all(),
-            static fn($asset) => $asset instanceof Asset && $elementsService->canView($asset, $user)
+            static fn($asset) => $asset instanceof Asset && $user !== null && Gate::forUser($user)->check('view', $asset)
         );
 
         if (empty($assetsToGenerate)) {
@@ -63,7 +64,7 @@ class GenerateTransformsAction extends ElementAction
             return true;
         }
 
-        $generateConfig = ImagerService::$generateConfig['volumes'] ?? null;
+        $generateConfig = app(GenerateSettings::class)->volumes;
         
         if (empty($generateConfig)) {
             $this->setMessage(t('No generate transforms configured', category: 'imager-x'));

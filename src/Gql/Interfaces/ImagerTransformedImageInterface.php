@@ -10,10 +10,10 @@
 
 namespace SpaceCatNinja\ImagerX\Gql\Interfaces;
 
-use craft\gql\base\InterfaceType as BaseInterfaceType;
+use CraftCms\Cms\Gql\Types\InterfaceType as BaseInterfaceType;
 
-use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeLoader;
+use CraftCms\Cms\Gql\GqlEntityRegistry;
+use CraftCms\Cms\Gql\TypeLoader;
 use CraftCms\Cms\Gql\Contracts\SingularTypeInterface;
 use GraphQL\Type\Definition\InterfaceType;
 

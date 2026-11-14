@@ -10,7 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Support;
 
-use Craft;
+use CraftCms\Cms\Cms;
 
 class VersionHelpers
 {
@@ -19,6 +19,6 @@ class VersionHelpers
      */
     public static function craftIs($version, $operator = '>='): bool|int
     {
-        return version_compare(Craft::$app->getVersion(), $version, $operator);
+        return version_compare(Cms::version(), $version, $operator);
     }
 }

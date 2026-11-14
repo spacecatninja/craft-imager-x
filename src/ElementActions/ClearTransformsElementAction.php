@@ -10,15 +10,16 @@
 
 namespace SpaceCatNinja\ImagerX\ElementActions;
 
+use Illuminate\Support\Facades\Gate;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
-use Craft;
 
-use craft\base\ElementAction;
+use CraftCms\Cms\Element\Actions\ElementAction;
 use CraftCms\Cms\Element\Queries\Contracts\ElementQueryInterface;
 use CraftCms\Cms\Asset\Elements\Asset;
 use SpaceCatNinja\ImagerX\ImagerX as Plugin;
 
 
+use function CraftCms\Cms\currentUser;
 use function CraftCms\Cms\t;
 
 /**
@@ -42,13 +43,12 @@ class ClearTransformsElementAction extends ElementAction
      */
     public function performAction(ElementQueryInterface $query): bool
     {
-        $elementsService = Craft::$app->getElements();
-        $user = Craft::$app->getUser()->getIdentity();
+        $user = currentUser();
 
         try {
             foreach ($query->all() as $asset) {
                 // Only act on assets the current user can view
-                if (!$asset instanceof Asset || !$elementsService->canView($asset, $user)) {
+                if (!$asset instanceof Asset || $user === null || !Gate::forUser($user)->check('view', $asset)) {
                     continue;
                 }
 

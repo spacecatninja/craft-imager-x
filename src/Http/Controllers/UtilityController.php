@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Http\Controllers;
 
+use SpaceCatNinja\ImagerX\Services\NamedTransforms;
 use CraftCms\Cms\Support\Facades\Path;
 use CraftCms\Cms\Utility\Utilities;
 use Illuminate\Http\JsonResponse;
@@ -44,7 +45,7 @@ readonly class UtilityController
         $namedTransforms = $request->input('namedTransforms');
 
         // Only named transforms that are configured for the site can be generated from the utility
-        $namedTransforms = \is_array($namedTransforms) ? array_values(array_filter($namedTransforms, static fn($handle) => \is_string($handle) && isset(ImagerService::$namedTransforms[$handle]))) : [];
+        $namedTransforms = \is_array($namedTransforms) ? array_values(array_filter($namedTransforms, static fn($handle) => \is_string($handle) && app(NamedTransforms::class)->has($handle))) : [];
 
         $errors = [];
 

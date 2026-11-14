@@ -12,8 +12,7 @@ namespace SpaceCatNinja\ImagerX\Transformers;
 
 use SpaceCatNinja\ImagerX\Adapters\Adapters;
 use SpaceCatNinja\ImagerX\Effects\Effects;
-use Craft;
-use craft\base\Component;
+use CraftCms\Cms\Support\Facades\Images;
 
 use CraftCms\Cms\Asset\Elements\Asset;
 use Imagine\Exception\InvalidArgumentException;
@@ -55,21 +54,14 @@ use function CraftCms\Cms\t;
  * @package   Imager
  * @since     2.0.0
  */
-class CraftTransformer extends Component implements TransformerInterface
+class CraftTransformer implements TransformerInterface
 {
     private null|Imagine|\Imagine\Imagick\Imagine $imagineInstance = null;
 
     private null|GdImage|ImageInterface|ImagickImage $imageInstance = null;
 
-    /**
-     * CraftTransformer constructor.
-     *
-     * @param array $config
-     */
-    public function __construct($config = [])
+    public function __construct()
     {
-        parent::__construct($config);
-
         $this->imagineInstance = ImagerHelpers::createImagineInstance();
     }
 
@@ -178,7 +170,7 @@ class CraftTransformer extends Component implements TransformerInterface
                 throw new ImagerException($msg);
             }
 
-            if (!Craft::$app->images->checkMemoryForImage($sourceModel->getFilePath())) {
+            if (!Images::checkMemoryForImage($sourceModel->getFilePath())) {
                 $msg = t('Not enough memory available to perform this image operation.', category: 'imager-x');
                 Log::error($msg);
                 throw new ImagerException($msg);

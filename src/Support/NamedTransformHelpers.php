@@ -10,12 +10,13 @@
 
 namespace SpaceCatNinja\ImagerX\Support;
 
+use SpaceCatNinja\ImagerX\Services\NamedTransforms;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 
 class NamedTransformHelpers
 {
     public static function getNamedTransform(string $name): ?array
     {
-        return ImagerService::$namedTransforms[$name] ?? null;
+        return app(NamedTransforms::class)->get($name);
     }
 }

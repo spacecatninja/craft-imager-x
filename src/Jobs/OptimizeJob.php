@@ -10,80 +10,55 @@
 
 namespace SpaceCatNinja\ImagerX\Jobs;
 
+use CraftCms\Cms\Queue\Job;
+use CraftCms\Cms\Support\Facades\I18N;
+use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
+use SpaceCatNinja\ImagerX\Optimizers\ImagerOptimizeInterface;
 use SpaceCatNinja\ImagerX\Optimizers\Optimizers;
+use SpaceCatNinja\ImagerX\Services\ImagerService;
 use SpaceCatNinja\ImagerX\Services\StorageService;
 
-use craft\queue\BaseJob;
-use craft\queue\QueueInterface;
-
-use SpaceCatNinja\ImagerX\Exceptions\ImagerException;
-use SpaceCatNinja\ImagerX\ImagerX;
-use SpaceCatNinja\ImagerX\Optimizers\ImagerOptimizeInterface;
-use SpaceCatNinja\ImagerX\Services\ImagerService;
-
-use yii\queue\Queue;
-
-use function CraftCms\Cms\t;
-
-class OptimizeJob extends BaseJob
+/**
+ * Optimizes a transformed image, and uploads it to the configured external storages.
+ */
+class OptimizeJob extends Job
 {
-    // Public Properties
-    // =========================================================================
-
-    /**
-     * @var string
-     */
-    public string $optimizer = '';
-    
-    /**
-     * @var array
-     */
-    public array $optimizerSettings = [];
-    
-    /**
-     * @var string
-     */
-    public string $filePath = '';
-
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @param QueueInterface|Queue $queue
-     * @throws ImagerException
-     */
-    public function execute($queue): void
-    {
-        /** @var class-string<ImagerOptimizeInterface>|null $optimizerClass */
-        $optimizerClass = app(Optimizers::class)->get($this->optimizer);
-
-        if ($optimizerClass !== null) {
-            $optimizerClass::optimize($this->filePath, $this->optimizerSettings);
-            
-            // Clear stat cache to make sure old file size is not cached
-            clearstatcache(true, $this->filePath);
-            
-            $config = ImagerService::getConfig();
-    
-            if (empty($config->storages)) {
-                return;
-            }
-    
-            app(StorageService::class)->store($this->filePath, true);
-        }
+    public function __construct(
+        public string $optimizer,
+        public array $optimizerSettings,
+        public string $filePath,
+        protected ?string $description = null,
+    ) {
+        parent::__construct();
     }
 
-    // Protected Methods
-    // =========================================================================
-
     /**
-     * Returns a default description for [[getDescription()]], if [[description]] isn’t set.
-     *
-     * @return string|null The default task description
+     * @throws ImagerException
      */
-    protected function defaultDescription(): ?string
+    public function handle(Optimizers $optimizers, StorageService $storage): void
     {
-        return t('Optimizing images', category: 'imager-x');
+        /** @var class-string<ImagerOptimizeInterface>|null $optimizerClass */
+        $optimizerClass = $optimizers->get($this->optimizer);
+
+        if ($optimizerClass === null) {
+            return;
+        }
+
+        $optimizerClass::optimize($this->filePath, $this->optimizerSettings);
+
+        // Clear stat cache to make sure old file size is not cached
+        clearstatcache(true, $this->filePath);
+
+        if (empty(ImagerService::getConfig()->storages)) {
+            return;
+        }
+
+        $storage->store($this->filePath, true);
+    }
+
+    #[\Override]
+    protected function defaultDescription(): string
+    {
+        return I18N::prep('Optimizing images', category: 'imager-x');
     }
 }

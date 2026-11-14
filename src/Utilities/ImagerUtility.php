@@ -10,6 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Utilities;
 
+use SpaceCatNinja\ImagerX\Services\NamedTransforms;
 use Craft;
 
 use CraftCms\Cms\Asset\Elements\Asset;
@@ -126,7 +127,7 @@ class ImagerUtility extends Utility
         }
 
         // Get checkboxes for named transforms
-        $namedTransforms = ImagerService::$namedTransforms;
+        $namedTransforms = app(NamedTransforms::class)->all();
         $namedTransformsOptions = [];
         $hasTransformWithoutDisplayName = false;
 

@@ -10,8 +10,8 @@
 
 namespace SpaceCatNinja\ImagerX\Gql\Directives;
 
-use craft\gql\base\Directive;
-use craft\gql\GqlEntityRegistry;
+use CraftCms\Cms\Gql\Directives\Directive;
+use CraftCms\Cms\Gql\GqlEntityRegistry;
 use GraphQL\Language\DirectiveLocation;
 use GraphQL\Type\Definition\Directive as GqlDirective;
 use GraphQL\Type\Definition\ResolveInfo;

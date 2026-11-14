@@ -12,7 +12,6 @@ namespace SpaceCatNinja\ImagerX\Twig;
 
 use SpaceCatNinja\ImagerX\Services\PlaceholderService;
 use SpaceCatNinja\ImagerX\Settings;
-use Craft;
 
 use CraftCms\Cms\Asset\Elements\Asset;
 use SpaceCatNinja\ImagerX\Adapters\ImagerAdapterInterface;
@@ -253,7 +252,7 @@ class ImagerVariable
      */
     public function clientSupportsWebp(): bool
     {
-        return Craft::$app->getRequest()->accepts('image/webp');
+        return $this->clientAccepts('image/webp');
     }
 
     /**
@@ -265,7 +264,29 @@ class ImagerVariable
             $format = sprintf('image/%s', $format);
         }
 
-        return Craft::$app->getRequest()->accepts($format);
+        return $this->clientAccepts($format);
+    }
+
+    /**
+     * Checks if the request's `Accept` header lists a content type, or its `type/*` wildcard.
+     *
+     * Unlike Laravel's `Request::accepts()`, a `*\/*` wildcard doesn't count, since browsers send it for every request.
+     */
+    private function clientAccepts(string $contentType): bool
+    {
+        foreach (request()->getAcceptableContentTypes() as $acceptable) {
+            $acceptable = strtolower($acceptable);
+
+            if ($acceptable === strtolower($contentType)) {
+                return true;
+            }
+
+            if ($acceptable !== '*/*' && str_ends_with($acceptable, '/*') && str_starts_with(strtolower($contentType), substr($acceptable, 0, -1))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

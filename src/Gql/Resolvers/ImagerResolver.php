@@ -13,7 +13,7 @@ namespace SpaceCatNinja\ImagerX\Gql\Resolvers;
 use CraftCms\Cms\Asset\Elements\Asset;
 use CraftCms\Cms\Element\Queries\AssetQuery;
 use CraftCms\Cms\Gql\Resolvers\Elements\Asset as AssetResolver;
-use craft\gql\base\Resolver;
+use CraftCms\Cms\Gql\Resolvers\Resolver;
 
 use GraphQL\Type\Definition\ResolveInfo;
 

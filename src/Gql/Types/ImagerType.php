@@ -10,7 +10,7 @@
 
 namespace SpaceCatNinja\ImagerX\Gql\Types;
 
-use craft\gql\base\ObjectType;
+use CraftCms\Cms\Gql\Types\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use SpaceCatNinja\ImagerX\Gql\Interfaces\ImagerTransformedImageInterface;
 
