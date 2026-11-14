@@ -13,9 +13,17 @@ namespace SpaceCatNinja\ImagerX;
 use CraftCms\Cms\Asset\Elements\Asset;
 use CraftCms\Cms\Cms;
 use CraftCms\Cms\Plugin\PluginSettings;
+use CraftCms\Cms\Support\Facades\Deprecator;
 
 class Settings extends PluginSettings
 {
+    /**
+     * Settings that were removed, and are ignored if a project still sets them.
+     */
+    public const array REMOVED_SETTINGS = [
+        'smartResizeEnabled' => 'The `smartResizeEnabled` setting was removed in Imager X 7. Remove it from your config.',
+    ];
+
     public string $transformer = 'craft';
     public string $imagerSystemPath = '@webroot/imager/';
     public string|array $imagerUrl = '/imager/';
@@ -34,7 +42,6 @@ class Settings extends PluginSettings
     public string|bool $interlace = false;
     public bool $allowUpscale = true;
     public string $resizeFilter = 'lanczos';
-    public bool $smartResizeEnabled = false;
     public bool $removeMetadata = false;
     public bool $preserveColorProfiles = false;
     public array $safeFileFormats = ['jpg', 'jpeg', 'gif', 'png', 'webp'];
@@ -176,5 +183,25 @@ class Settings extends PluginSettings
         $this->suppressExceptions = !Cms::config()->devMode;
 
         parent::__construct($config);
+    }
+
+    public function setAttributes($values): void
+    {
+        parent::setAttributes(self::withoutRemovedSettings($values));
+    }
+
+    /**
+     * Removes settings that no longer exist, and logs a deprecation warning for each.
+     */
+    public static function withoutRemovedSettings(array $values): array
+    {
+        foreach (self::REMOVED_SETTINGS as $name => $message) {
+            if (array_key_exists($name, $values)) {
+                Deprecator::log("imager-x:$name", $message);
+                unset($values[$name]);
+            }
+        }
+
+        return $values;
     }
 }

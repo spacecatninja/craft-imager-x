@@ -55,7 +55,7 @@ class ConfigModel extends Settings
         $excludedConfigOverrideProperties = ['fillTransforms', 'fillInterval', 'fillAttribute', 'filenamePattern', 'transformer', 'optimizeType', 'safeFileFormats'];
 
         if ($overrides !== null) {
-            foreach ($overrides as $key => $value) {
+            foreach (Settings::withoutRemovedSettings($overrides) as $key => $value) {
                 $this->$key = $value;
                 if (!\in_array($key, $excludedConfigOverrideProperties, true)) {
                     $this->addToOverrideFilestring($key, $value);

@@ -25,6 +25,7 @@
 - The `cache/clear-transforms` and `cache/clear-remote-images` actions now return JSON, and are limited to 10 requests per minute per IP address.
 
 ### Removed
+- Removed the `smartResizeEnabled` config setting. If it's still set, it's ignored and a deprecation warning is logged.
 - Removed the `EVENT_REGISTER_TRANSFORMERS`, `EVENT_REGISTER_EFFECTS`, `EVENT_REGISTER_OPTIMIZERS`, `EVENT_REGISTER_EXTERNAL_STORAGES` and `EVENT_REGISTER_ADAPTERS` events, and their event classes.
 - Removed `ImagerX::$plugin`, and the service properties on the plugin class.
 - Removed `ImagerService::registerTransformer()`, `registerEffect()`, `registerOptimizer()`, `registerExternalStorage()` and `registerAdapter()`.

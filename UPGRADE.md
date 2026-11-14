@@ -190,7 +190,7 @@ Craft 6 reads plugin config files from `config/craft/`. Move your Imager X confi
 
 In `imager-x-generate.php`, use Craft 6 element classes for `elementType`, like `CraftCms\Cms\Entry\Elements\Entry::class`. `craft\elements\Entry`, `Asset`, `User` and `Address` still work, but log a deprecation warning.
 
-The settings themselves are unchanged. Plugins and modules that read the settings can inject `SpaceCatNinja\ImagerX\Settings`, which is bound in the container.
+The settings themselves are unchanged, except that `smartResizeEnabled` was removed. If your config still sets it, it's ignored and a deprecation warning is logged, so you can remove it whenever it suits you. Plugins and modules that read the settings can inject `SpaceCatNinja\ImagerX\Settings`, which is bound in the container.
 
 ### Routes and action URLs
 

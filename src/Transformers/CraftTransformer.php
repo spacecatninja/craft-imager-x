@@ -40,7 +40,6 @@ use SpaceCatNinja\ImagerX\Data\NoopImageModel;
 use SpaceCatNinja\ImagerX\Data\TransformedImageInterface;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 
-use CraftCms\Cms\Cms;
 use CraftCms\Cms\Support\Facades\Path;
 use CraftCms\Cms\Support\File;
 use Illuminate\Support\Facades\Log;
@@ -289,12 +288,7 @@ class CraftTransformer implements TransformerInterface
             $filterMethod = $this->getFilterMethod($transform);
 
             // Do the resize
-            if (ImagerService::$imageDriver === 'imagick' && $config->getSetting('smartResizeEnabled', $transform)) {
-                /** @var ImagickImage $layer */
-                $layer->smartResize($resizeSize, (bool)Cms::config()->preserveImageColorProfiles, $config->getSetting('jpegQuality', $transform));
-            } else {
-                $layer->resize($resizeSize, $filterMethod);
-            }
+            $layer->resize($resizeSize, $filterMethod);
 
             // Do the crop
             if (!isset($transform['mode']) || $transform['mode'] === 'crop' || $transform['mode'] === 'croponly') {
