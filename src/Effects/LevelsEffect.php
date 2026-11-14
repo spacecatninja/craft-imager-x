@@ -12,7 +12,6 @@ namespace SpaceCatNinja\ImagerX\Effects;
 
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
-use Imagine\Imagick\Imagick;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 
 class LevelsEffect implements ImagerEffectsInterface
@@ -42,7 +41,7 @@ class LevelsEffect implements ImagerEffectsInterface
     }
 
     /**
-     * @param Imagick $imagickInstance
+     * @param \Imagick $imagickInstance
      * @param $value
      */
     private static function applyLevels($imagickInstance, $value)

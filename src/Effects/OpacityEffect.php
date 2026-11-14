@@ -12,7 +12,6 @@ namespace SpaceCatNinja\ImagerX\Effects;
 
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
-use Imagine\Imagick\Imagick;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 
 class OpacityEffect implements ImagerEffectsInterface
@@ -46,12 +45,12 @@ class OpacityEffect implements ImagerEffectsInterface
      * If 'transparent' is passed as the background color, the effect doesn't produce any
      * visible effect on a non-transparent image.
      *
-     * @param Imagick|\Imagick $imagickInstance
+     * @param \Imagick $imagickInstance
      * @param int|float $alpha
      * @param string $color
      * @throws \ImagickException
      */
-    private static function opacity(Imagick|\Imagick $imagickInstance, float|int $alpha = 1, $color = '#fff')
+    private static function opacity(\Imagick $imagickInstance, float|int $alpha = 1, $color = '#fff')
     {
         $width = $imagickInstance->getImageWidth();
         $height = $imagickInstance->getImageHeight();
@@ -75,12 +74,12 @@ class OpacityEffect implements ImagerEffectsInterface
         }
         
         if (defined('\Imagick::ALPHACHANNEL_OFF')) { // ImageMagick >= 7
-            $imagickInstance->setImageAlphaChannel(Imagick::ALPHACHANNEL_OFF);
+            $imagickInstance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_OFF);
         } else {
-            $imagickInstance->setImageAlphaChannel(Imagick::ALPHACHANNEL_OPAQUE);
+            $imagickInstance->setImageAlphaChannel(\Imagick::ALPHACHANNEL_OPAQUE);
         }
         
-        $imagickInstance->compositeImage($temporary, Imagick::COMPOSITE_REPLACE, 0, 0);
-        $imagickInstance->compositeImage($clone, Imagick::COMPOSITE_DEFAULT, 0, 0);
+        $imagickInstance->compositeImage($temporary, \Imagick::COMPOSITE_REPLACE, 0, 0);
+        $imagickInstance->compositeImage($clone, \Imagick::COMPOSITE_DEFAULT, 0, 0);
     }
 }

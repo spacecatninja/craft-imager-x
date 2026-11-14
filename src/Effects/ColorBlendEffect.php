@@ -12,7 +12,6 @@ namespace SpaceCatNinja\ImagerX\Effects;
 
 use Imagine\Gd\Image as GdImage;
 use Imagine\Imagick\Image as ImagickImage;
-use Imagine\Imagick\Imagick;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
 
 class ColorBlendEffect implements ImagerEffectsInterface
@@ -44,7 +43,7 @@ class ColorBlendEffect implements ImagerEffectsInterface
      *
      * Code by olav@redwall.ee on http://php.net/manual/en/imagick.colorizeimage.php
      *
-     * @param Imagick $imagickInstance
+     * @param \Imagick $imagickInstance
      * @param $color
      * @param int|float $alpha
      * @param int $composite_flag

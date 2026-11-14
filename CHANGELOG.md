@@ -33,6 +33,7 @@
 - `ImagerException` now extends PHP's `Exception`, instead of `yii\base\Exception`.
 
 ### Fixed
+- Fixed the `opacity`, `floodfillpaint` and `transparentpaint` effects not working with Imagick. They referenced `Imagine\Imagick\Imagick`, which doesn't exist, instead of PHP's `Imagick` class.
 - Fixed config overrides of a transform being used by later transforms in the same request, when the transform was cancelled, or failed with `suppressExceptions` enabled.
 - Fixed transform jobs not being queued for assets that had already been queued earlier in the same long-running process, like a queue worker.
 - Fixed the list of remote files to clean up after a transform growing for the lifetime of the process.
