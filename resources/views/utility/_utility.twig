@@ -45,9 +45,8 @@
             </p>
         </div>
 
-        <form id="imager-x-utility-cache" method="post" accept-charset="UTF-8" data-action-url="imager-x/utility/clear-cache" data-queue-url="{{ queueUrl }}">
+        <form id="imager-x-utility-cache" method="post" accept-charset="UTF-8" data-action-url="{{ clearCacheUrl }}" data-queue-url="{{ queueUrl }}">
             {{ csrfInput() }}
-            {{ actionInput('imager-x/utility/clear-cache') }}
             {{ hiddenInput('cacheClearType', '') }}
 
             <table class="cp-table cp-table--auto cp-table--aligned imager-utility__table">
@@ -94,9 +93,8 @@
                 </p>
             </div>
 
-            <form id="imager-x-utility-generate" method="post" accept-charset="UTF-8" data-action-url="imager-x/utility/generate-transforms" data-queue-url="{{ queueUrl }}">
+            <form id="imager-x-utility-generate" method="post" accept-charset="UTF-8" data-action-url="{{ generateTransformsUrl }}" data-queue-url="{{ queueUrl }}">
                 {{ csrfInput() }}
-                {{ actionInput('imager-x/utility/generate-transforms') }}
 
                 <div class="imager-utility__fields">
                     {{ _self.checkboxSelectField('imager-x-volumes', 'volumes', 'Choose volumes'|t('imager-x'), volumeOptions) }}

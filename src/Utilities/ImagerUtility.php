@@ -152,19 +152,30 @@ class ImagerUtility extends Utility
 
         // Load the utility's styles and script. Craft adds them to the page when the utility is shown.
         $plugin = app(ImagerX::class);
-        $version = '?v=' . $plugin->version;
-        HtmlStack::cssFile($plugin->asset('utility/imagerutility.css') . $version);
-        HtmlStack::jsFile($plugin->asset('utility/imagerutility.js') . $version);
+        HtmlStack::cssFile($plugin->asset('utility/imagerutility.css') . self::assetVersion('imagerutility.css'));
+        HtmlStack::jsFile($plugin->asset('utility/imagerutility.js') . self::assetVersion('imagerutility.js'));
 
         return template('imager-x/utility/_utility', [
             'volumeOptions' => $volumeOptions,
             'namedTransformsOptions' => $namedTransformsOptions,
             'showDisplayNameInfo' => $hasTransformWithoutDisplayName,
             'queueUrl' => Url::cpUrl('utilities/queue-manager'),
+            'clearCacheUrl' => Url::actionUrl('imager-x/utility/clear-cache'),
+            'generateTransformsUrl' => Url::actionUrl('imager-x/utility/generate-transforms'),
             'caches' => $caches,
             'debugInfo' => $debugInfo,
             'isPro' => $plugin->isPro(),
         ], TemplateMode::Cp);
+    }
+
+    /**
+     * Returns a query string that changes when the file changes, so browsers don't use an outdated copy.
+     */
+    private static function assetVersion(string $filename): string
+    {
+        $hash = @md5_file(dirname(__DIR__, 2) . '/resources/dist/' . $filename);
+
+        return $hash ? '?v=' . substr($hash, 0, 12) : '';
     }
 
     private static function debugInfo(): array
