@@ -57,6 +57,7 @@ use SpaceCatNinja\ImagerX\Gql\Queries\ImagerQuery;
 use SpaceCatNinja\ImagerX\Gql\Resolvers\ImagerResolver;
 use SpaceCatNinja\ImagerX\Services\GenerateService;
 use SpaceCatNinja\ImagerX\Services\ImagerService;
+use SpaceCatNinja\ImagerX\Services\TransformState;
 use SpaceCatNinja\ImagerX\Support\ImagerHelpers;
 use SpaceCatNinja\ImagerX\Twig\ImagerTwigExtension;
 use SpaceCatNinja\ImagerX\Twig\ImagerVariable;
@@ -280,8 +281,17 @@ class ImagerX extends Plugin
                         unset($transform['position']);
                     }
 
-                    if (is_array($transform)) {
-                        $transformedImage = app(ImagerService::class)->transformImage($asset, $transform);
+                    // Guard against recursion, in case something asks for a native transform URL while we transform
+                    $state = app(TransformState::class);
+
+                    if (is_array($transform) && !$state->resolvingNativeTransformUrl) {
+                        $state->resolvingNativeTransformUrl = true;
+
+                        try {
+                            $transformedImage = app(ImagerService::class)->transformImage($asset, $transform);
+                        } finally {
+                            $state->resolvingNativeTransformUrl = false;
+                        }
 
                         if ($transformedImage !== null) {
                             $event->url = $transformedImage->getUrl();

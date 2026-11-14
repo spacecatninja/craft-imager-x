@@ -33,4 +33,9 @@ class TransformState
      * @var string[] Remote files that were downloaded to the runtime cache during the current transform.
      */
     public array $cachedRemoteFiles = [];
+
+    /**
+     * @var bool Whether Imager X is transforming an image for Craft's native transform URLs (`useForNativeTransforms`).
+     */
+    public bool $resolvingNativeTransformUrl = false;
 }
