@@ -137,6 +137,11 @@ class CraftTransformer implements TransformerInterface
                 throw new ImagerException($msg);
             }
 
+            // PHP caches realpath() results across requests, so a folder another process deleted can still look like
+            // it exists, for example after the transforms cache was cleared from the console or the utility.
+            clearstatcache(true, $sourceModel->path);
+            clearstatcache(true, $targetModel->path);
+
             if (!realpath($sourceModel->path)) {
                 $msg = t('Source folder “{sourcePath}” does not exist', ['sourcePath' => $sourceModel->path], 'imager-x');
                 Log::error($msg);
@@ -408,7 +413,9 @@ class CraftTransformer implements TransformerInterface
     {
         $tempPath = Path::runtime().DIRECTORY_SEPARATOR.'imager'.DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR;
 
-        // Check if the path exists
+        // Check if the path exists. Clear PHP's realpath cache first, in case another process deleted it.
+        clearstatcache(true, $tempPath);
+
         if (!realpath($tempPath)) {
             try {
                 File::ensureDirectoryExists($tempPath);

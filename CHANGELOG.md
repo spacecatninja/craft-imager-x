@@ -35,6 +35,7 @@
 - `ImagerException` now extends PHP's `Exception`, instead of `yii\base\Exception`.
 
 ### Fixed
+- Fixed transforms failing with a “Target folder … is not writeable” error for up to two minutes after the transforms cache was cleared by another process, like the console command or the Imager X utility.
 - Fixed the `opacity`, `floodfillpaint` and `transparentpaint` effects not working with Imagick. They referenced `Imagine\Imagick\Imagick`, which doesn't exist, instead of PHP's `Imagick` class.
 - Fixed config overrides of a transform being used by later transforms in the same request, when the transform was cancelled, or failed with `suppressExceptions` enabled.
 - Fixed transform jobs not being queued for assets that had already been queued earlier in the same long-running process, like a queue worker.
