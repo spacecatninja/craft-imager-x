@@ -1,4 +1,27 @@
-{% import "_includes/forms" as forms %}
+{#
+ # A checkbox list, rendered with Craft 6's <craft-field> and <craft-checkbox-select> components.
+ #}
+{% macro checkboxSelectField(id, name, label, options, instructions = null) %}
+    <craft-field class="field" data-attribute="{{ id }}" id="{{ id }}-field" label="{{ label }}" fieldset orientation="ltr">
+        <craft-checkbox-select id="{{ id }}" name="{{ name }}" slot="input">
+            <input type="hidden" name="{{ name }}" value data-empty>
+            {%- for option in options %}
+                <div class="cp-checkbox-select__item">
+                    <craft-checkbox>
+                        <input type="checkbox" class="checkbox" slot="input" id="{{ id }}-{{ loop.index }}" name="{{ name }}[]" value="{{ option.value }}">
+                        <label slot="label" for="{{ id }}-{{ loop.index }}" id="{{ id }}-{{ loop.index }}-label">
+                            {{- option.label -}}
+                            {%- if option.count is defined %} <span class="imager-utility__muted">({{ '{count} images'|t('imager-x', { count: option.count }) }})</span>{% endif -%}
+                        </label>
+                    </craft-checkbox>
+                </div>
+            {%- endfor %}
+        </craft-checkbox-select>
+        {% if instructions %}
+            <div slot="help-text"><p>{{ instructions }}</p></div>
+        {% endif %}
+    </craft-field>
+{% endmacro %}
 
 {#
  # Rendered inside Craft 6's CP shell, where this HTML is compiled as a Vue template and
@@ -76,29 +99,19 @@
                 {{ actionInput('imager-x/utility/generate-transforms') }}
 
                 <div class="imager-utility__fields">
-                    {{ forms.checkboxSelectField({
-                        label: 'Choose volumes'|t('imager-x'),
-                        name: 'volumes',
-                        options: volumeOptions,
-                        showAllOption: false,
-                    }) }}
+                    {{ _self.checkboxSelectField('imager-x-volumes', 'volumes', 'Choose volumes'|t('imager-x'), volumeOptions) }}
 
-                    {{ forms.lightswitchField({
-                        name: 'useConfiguredTransforms',
-                        label: 'Use configured transforms'|t('imager-x'),
-                        instructions: 'Use the transforms configured in imager-x-generate.php for each volume. Disable to pick transforms manually.'|t('imager-x'),
-                        on: true,
-                    }) }}
+                    <craft-field class="field lightswitch-field" data-attribute="imager-x-use-configured-transforms" id="imager-x-use-configured-transforms-field" label="{{ 'Use configured transforms'|t('imager-x') }}" orientation="ltr">
+                        <craft-switch checked slot="input">
+                            <craft-switch-button slot="input" id="imager-x-use-configured-transforms" role="switch" size="medium" checked data-tag-name="craft-switch-button" aria-checked="true"></craft-switch-button>
+                            <input type="hidden" name="useConfiguredTransforms" value="1" slot="hidden-input">
+                        </craft-switch>
+                        <div slot="help-text"><p>{{ 'Use the transforms configured in imager-x-generate.php for each volume. Disable to pick transforms manually.'|t('imager-x') }}</p></div>
+                    </craft-field>
 
                     <div id="imager-x-utility-generate-transforms" hidden>
                         {% if namedTransformsOptions|length %}
-                            {{ forms.checkboxSelectField({
-                                label: 'Choose transforms'|t('imager-x'),
-                                instructions: showDisplayNameInfo ? 'It appears that one or more of your named transforms doesn\'t have a display name. If you add this to your transforms in imager-x-transforms.php, those will be shown instead of the handle.'|t('imager-x') : null,
-                                name: 'namedTransforms',
-                                options: namedTransformsOptions,
-                                showAllOption: false,
-                            }) }}
+                            {{ _self.checkboxSelectField('imager-x-named-transforms', 'namedTransforms', 'Choose transforms'|t('imager-x'), namedTransformsOptions, showDisplayNameInfo ? 'It appears that one or more of your named transforms doesn\'t have a display name. If you add this to your transforms in imager-x-transforms.php, those will be shown instead of the handle.'|t('imager-x') : null) }}
                         {% else %}
                             <craft-callout variant="info" icon="circle-info">
                                 {{ 'No named transforms are configured. Add some to imager-x-transforms.php to pick them here.'|t('imager-x') }}

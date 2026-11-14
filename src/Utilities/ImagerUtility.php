@@ -11,12 +11,15 @@
 namespace SpaceCatNinja\ImagerX\Utilities;
 
 use SpaceCatNinja\ImagerX\Services\NamedTransforms;
-use Craft;
 
 use CraftCms\Cms\Asset\Elements\Asset;
-use craft\helpers\Template;
+use CraftCms\Cms\Cms;
+use CraftCms\Cms\Edition;
+use CraftCms\Cms\Support\Facades\HtmlStack;
+use CraftCms\Cms\Support\Facades\Images;
+use CraftCms\Cms\Support\Facades\Volumes;
 use CraftCms\Cms\Utility\Utility;
-use SpaceCatNinja\ImagerX\AssetBundles\ImagerUtilityAssets;
+use CraftCms\Cms\View\TemplateMode;
 use SpaceCatNinja\ImagerX\Support\FileHelper;
 use SpaceCatNinja\ImagerX\Support\FormatHelper;
 use SpaceCatNinja\ImagerX\ImagerX;
@@ -28,6 +31,7 @@ use CraftCms\Cms\Support\PHP;
 use CraftCms\Cms\Support\Url;
 
 use function CraftCms\Cms\t;
+use function CraftCms\Cms\template;
 
 /**
  * @author    SPACECATNINJA
@@ -109,7 +113,7 @@ class ImagerUtility extends Utility
         ];
 
         // Get checkboxes for volumes
-        $volumes = Craft::$app->getVolumes()->getAllVolumes();
+        $volumes = Volumes::getAllVolumes();
         $volumeOptions = [];
 
         foreach ($volumes as $volume) {
@@ -121,7 +125,8 @@ class ImagerUtility extends Utility
                 ->count();
 
             $volumeOptions[] = [
-                'label' => Template::raw(e($volume->name) . sprintf(' <span class="imager-utility__muted">(%s images)</span>', $assetsCount)),
+                'label' => $volume->name,
+                'count' => $assetsCount,
                 'value' => $volume->id,
             ];
         }
@@ -137,7 +142,7 @@ class ImagerUtility extends Utility
             }
 
             $namedTransformsOptions[] = [
-                'label' => e($namedTransformValue['displayName'] ?? $namedTransformKey),
+                'label' => $namedTransformValue['displayName'] ?? $namedTransformKey,
                 'value' => $namedTransformKey,
             ];
         }
@@ -145,26 +150,21 @@ class ImagerUtility extends Utility
         // Compile debug info
         $debugInfo = self::debugInfo();
 
-        // Register asset bundle
-        try {
-            Craft::$app->getView()->registerAssetBundle(ImagerUtilityAssets::class);
-        } catch (\Throwable) {
-            return t('Could not load asset bundle', category: 'imager-x');
-        }
+        // Load the utility's styles and script. Craft adds them to the page when the utility is shown.
+        $plugin = app(ImagerX::class);
+        $version = '?v=' . $plugin->version;
+        HtmlStack::cssFile($plugin->asset('utility/imagerutility.css') . $version);
+        HtmlStack::jsFile($plugin->asset('utility/imagerutility.js') . $version);
 
-        // Render template
-        return Craft::$app->getView()->renderTemplate(
-            'imager-x/utility/_utility',
-            [
-                'volumeOptions' => $volumeOptions,
-                'namedTransformsOptions' => $namedTransformsOptions,
-                'showDisplayNameInfo' => $hasTransformWithoutDisplayName,
-                'queueUrl' => Url::cpUrl('utilities/queue-manager'),
-                'caches' => $caches,
-                'debugInfo' => $debugInfo,
-                'isPro' => app(ImagerX::class)->isPro(),
-            ]
-        );
+        return template('imager-x/utility/_utility', [
+            'volumeOptions' => $volumeOptions,
+            'namedTransformsOptions' => $namedTransformsOptions,
+            'showDisplayNameInfo' => $hasTransformWithoutDisplayName,
+            'queueUrl' => Url::cpUrl('utilities/queue-manager'),
+            'caches' => $caches,
+            'debugInfo' => $debugInfo,
+            'isPro' => $plugin->isPro(),
+        ], TemplateMode::Cp);
     }
 
     private static function debugInfo(): array
@@ -182,23 +182,21 @@ class ImagerUtility extends Utility
         ];
         $r[] = [
             'label' => 'Craft version & edition',
-            'value' => Craft::$app->getVersion() . ' ' . mb_strtoupper(Craft::$app->getEditionName()),
+            'value' => Cms::version() . ' ' . mb_strtoupper(Edition::get()->name),
         ];
         $r[] = [
             'label' => 'PHP version',
             'value' => PHP::version(),
         ];
 
-        $imagesService = Craft::$app->getImages();
-
         $r[] = [
             'label' => 'Image driver & version',
-            'value' => ($imagesService->getIsGd() ? 'GD' : 'Imagick') . ' ' . $imagesService->getVersion(),
+            'value' => (Images::getIsGd() ? 'GD' : 'Imagick') . ' ' . Images::getVersion(),
         ];
 
         $r[] = [
             'label' => 'Image driver supported formats',
-            'value' => implode(', ', $imagesService->getSupportedImageFormats()),
+            'value' => implode(', ', Images::getSupportedImageFormats()),
         ];
 
         $customEncoders = implode(', ', array_keys($config->customEncoders));

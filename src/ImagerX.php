@@ -108,6 +108,11 @@ class ImagerX extends Plugin
         ImagerUtility::class,
     ];
 
+    protected array $publishables = [
+        __DIR__ . '/../resources/dist/imagerutility.js' => 'utility/imagerutility.js',
+        __DIR__ . '/../resources/dist/imagerutility.css' => 'utility/imagerutility.css',
+    ];
+
     // Public Methods
     // =========================================================================
 

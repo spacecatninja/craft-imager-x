@@ -96,7 +96,7 @@ class LocalSourceImageModel
      */
     public function __construct($image)
     {
-        $this->init($image);
+        $this->resolvePaths($image);
     }
 
     /**
@@ -106,7 +106,7 @@ class LocalSourceImageModel
      *
      * @throws ImagerException
      */
-    private function init($image): void
+    private function resolvePaths($image): void
     {
         $settings = ImagerService::getConfig();
 

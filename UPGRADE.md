@@ -13,7 +13,8 @@ Templates that only use `craft.imagerx` / `craft.imager` and the `srcset` filter
 
 1. Upgrade your project to Craft 6 first.
 2. Update the plugin: `composer require spacecatninja/imager-x:^7.0.0`.
-3. Review the breaking changes below and update your code.
+3. Move your Imager X config files to `config/craft/` (see below).
+4. Review the breaking changes below and update your code.
 
 ## Breaking changes
 

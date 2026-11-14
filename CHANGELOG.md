@@ -19,6 +19,8 @@
 - `craft\elements\Entry`, `Asset`, `User` and `Address` used as `elementType` in `imager-x-generate.php` are mapped to the Craft 6 classes, and log a deprecation warning.
 - Imager X now logs with Laravel's logger, and translates with Craft 6's `t()` function.
 - Cached dominant colors, color palettes and blurhashes are now invalidated together with Craft's caches for the asset.
+- The Imager X utility's script and styles are now published to `public/vendor/spacecatninja/imager-x/utility/` when Composer installs or updates the plugin, instead of with a Yii asset bundle.
+- The Imager X utility no longer uses the `_includes/forms` macros, which come from the Yii 2 adapter.
 - The `cache/clear-transforms` and `cache/clear-remote-images` actions now return JSON, and are limited to 10 requests per minute per IP address.
 
 ### Removed
